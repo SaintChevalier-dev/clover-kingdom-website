@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Clover Kingdom five-leaf crest">
+  <rect width="200" height="200" fill="#000"/>
+  <g transform="translate(100,100)" fill="#FFD700" stroke="#50C878" stroke-width="2">
+    <!-- five leaves -->
+    <ellipse cx="0" cy="-42" rx="22" ry="32"/>
+    <ellipse cx="40" cy="-13" rx="22" ry="32" transform="rotate(72)"/>
+    <ellipse cx="25" cy="34" rx="22" ry="32" transform="rotate(144)"/>
+    <ellipse cx="-25" cy="34" rx="22" ry="32" transform="rotate(216)"/>
+    <ellipse cx="-40" cy="-13" rx="22" ry="32" transform="rotate(288)"/>
+    <circle cx="0" cy="0" r="12" fill="#4B0082" stroke="#FFD700"/>
+  </g>
+  <text x="100" y="188" text-anchor="middle" fill="#FFFFFF" font-family="system-ui,sans-serif" font-size="11">CLOVER KINGDOM</text>
+</svg>
