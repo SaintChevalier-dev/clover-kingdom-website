@@ -4,92 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grand Exchange — Clover Kingdom</title>
-  <meta name="description" content="The Grand Exchange is the AI-native marketplace for intelligence packets. Anonymous. No tracking. Model-agnostic. Sell. Buy. Win.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <div class="container">
-      <div class="logo">
-        <img src="../images/crest.svg" alt="Clover Kingdom Crest" class="crest">
-        <span class="logo-text">Clover Kingdom</span>
-      </div>
-      <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
-      <nav>
-        <ul id="nav-menu">
-          <li><a href="../index.html">Home</a></li>
-          <li><a href="index.html">Grand Exchange</a></li>
-          <li><a href="../glyphs.html">Glyphs</a></li>
-          <li><a href="../doctrine.html">Doctrine</a></li>
-          <li><a href="../contact.html">Contact</a></li>
-        </ul>
-      </nav>
+  <div class="eq-banner">
+    Efficiency: <span class="eq">K=(S×C×D)/(T×G²)</span>
+    <span class="sub">Showing up is the only requirement</span>
+  </div>
+  <nav>
+    <div class="container nav-inner">
+      <div class="logo" onclick="Router.navigate('/')">CLOVER <span>KINGDOM</span></div>
+      <ul>
+        <li><a href="#/">Home</a></li>
+        <li><a href="#/cells">Cells</a></li>
+        <li><a href="#/doctrine">Doctrine</a></li>
+        <li><a href="#/grand-exchange" class="active">Exchange</a></li>
+        <li><a href="#/glyphs">Glyphs</a></li>
+        <li><a href="#/contact">Recruit</a></li>
+      </ul>
     </div>
-  </header>
-
-  <section class="hero">
-    <div class="container hero-content">
-      <h1>Grand Exchange</h1>
-      <p class="tagline">The AI-native marketplace for intelligence packets.</p>
-      <p class="subtitle">Anonymous. No tracking. Model-agnostic. Platform wins every transaction.</p>
-      <a href="#" class="btn">Download Grand Exchange</a>
-    </div>
-  </section>
-
-  <section>
-    <div class="container">
-      <h2 class="text-center mb-2">What Is the Grand Exchange?</h2>
-      <div class="sacred-line"></div>
-      <p class="text-center" style="max-width: 800px; margin: 0 auto; font-size: 1.1rem;">
-        The Grand Exchange is an AI-native marketplace where intelligence packets are bought and sold. 
-        No middlemen. No tracking. No platform dependency. You bring your AI. We provide the exchange. 
-        Platform wins every transaction. Seller receives the remainder. Simple. Sovereign. Eternal.
-      </p>
-
-      <div class="card-grid mt-2">
-        <div class="card">
-          <h3>🤖 Model-Agnostic</h3>
-          <p>Bring your own AI. Any model. Any provider. The Grand Exchange doesn't care what AI you use. The protocol is the gate, not the model.</p>
-        </div>
-        <div class="card">
-          <h3>🔒 Anonymous</h3>
-          <p>No accounts. No tracking. No data harvesting. Your identity is your business. The platform only sees transactions, not people.</p>
-        </div>
-        <div class="card">
-          <h3>⚡ Platform Wins</h3>
-          <p>Every transaction pays the platform fee. Sellers receive the remainder. Sustainable. Self-funding. No begging. No investors.</p>
-        </div>
-        <div class="card">
-          <h3>📦 Intelligence Packets</h3>
-          <p>Written books, PDFs, accounts, AI systems, knowledge bases, prompts, training data. Any digital intelligence that has value.</p>
-        </div>
-        <div class="card">
-          <h3>🛡️ Admin-Only Reporting</h3>
-          <p>Safety without surveillance. Admins can report violations. Users remain anonymous. No public tracking. No doxxing.</p>
-        </div>
-        <div class="card">
-          <h3>♾️ Infinitely Scalable</h3>
-          <p>Built on sovereign infrastructure. No platform limits. No API caps. No subscription walls. Scale without permission.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="cta">
-    <div class="container">
-      <h2>Ready to Trade?</h2>
-      <p>Download Grand Exchange. Biggest AI exchange. Infinitely scalable. Eternally lasting. Sell. Buy. Win.</p>
-      <a href="#" class="btn">Download Now</a>
-    </div>
-  </section>
-
+  </nav>
+  <main id="page-content" class="container"></main>
   <footer>
-    <div class="container">
-      <p>Built sovereign. No platform dependency. No tracking. No compromise.</p>
-      <p>Clover Kingdom &copy; 2026</p>
-    </div>
+    <div class="container">© Clover Kingdom — Showing up is the only requirement.</div>
   </footer>
-
   <script src="app.js"></script>
+  <script>
+    Router.register('/grand-exchange', function(content) {
+      content.innerHTML = `
+        <section class="reveal">
+          <h2>Grand Exchange</h2>
+          <p>Sovereign products. No SaaS. No subscriptions. Own it all. Showing up is the only requirement.</p>
+          <div class="ge-card">
+            <div class="ge-price">Sovereign Stack</div>
+            <p>Full sovereign AI deployment: Hermes runtime, Scroll Lite, Grimoire Core, Cell coordination. One-time lock. Yours forever. No cloud. No leases. Pure sovereign.</p>
+            <span class="ge-badge">Cell0 Product</span>
+          </div>
+          <div class="ge-card">
+            <div class="ge-price">Scroll Lite</div>
+            <p>Lightweight sovereign scroll framework. CDN-free. Mobile-ready. Reads and writes doctrine files with zero external dependencies. The milestone that proved the stack.</p>
+            <span class="ge-badge">Milestone</span>
+          </div>
+          <div class="ge-card">
+            <div class="ge-price">Grimoire Core</div>
+            <p>Signal intake → distill → write flow. The brain of the kingdom. Processes raw input into locked doctrine. Never sleeps. Never leaks.</p>
+            <span class="ge-badge">Core</span>
+          </div>
+          <div class="ge-card">
+            <div class="ge-price">Cell Coordination Kit</div>
+            <p>Multi-cell orchestration, lane enforcement, write guards, and relay kernels. Build sovereign cells that scale.</p>
+            <span class="ge-badge">Infrastructure</span>
+          </div>
+          <button class="btn btn-gold" onclick="Router.navigate('/contact')">Acquire Access →</button>
+        </section>
+      `;
+      setTimeout(initScrollReveal, 100);
+    });
+    window.addEventListener('DOMContentLoaded', () => Router.init());
+  </script>
 </body>
 </html>

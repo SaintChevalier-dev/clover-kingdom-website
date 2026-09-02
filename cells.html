@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cell Registry — Clover Kingdom</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="eq-banner">
+    Efficiency: <span class="eq">K=(S×C×D)/(T×G²)</span>
+    <span class="sub">Showing up is the only requirement</span>
+  </div>
+  <nav>
+    <div class="container nav-inner">
+      <div class="logo" onclick="Router.navigate('/')">CLOVER <span>KINGDOM</span></div>
+      <ul>
+        <li><a href="#/">Home</a></li>
+        <li><a href="#/cells" class="active">Cells</a></li>
+        <li><a href="#/doctrine">Doctrine</a></li>
+        <li><a href="#/grand-exchange">Exchange</a></li>
+        <li><a href="#/glyphs">Glyphs</a></li>
+        <li><a href="#/contact">Recruit</a></li>
+      </ul>
+    </div>
+  </nav>
+  <main id="page-content" class="container"></main>
+  <footer>
+    <div class="container">© Clover Kingdom — Showing up is the only requirement.</div>
+  </footer>
+  <script src="app.js"></script>
+  <script>
+    Router.register('/cells', function(content) {
+      content.innerHTML = `
+        <section class="reveal">
+          <h2>Cell Registry</h2>
+          <p>Each cell owns its lanes, write folders, and output. No cross-mutation. No drift. Showing up is the only requirement.</p>
+          <div class="cell-grid">
+            ${cells.map(c => `
+              <div class="cell-card">
+                <div class="cell-id">${c.id}</div>
+                <div class="cell-name">${c.name}</div>
+                <div class="cell-lane">${c.lane}</div>
+                <span class="cell-status status-${c.status}">${c.statusLabel}</span>
+                <p style="margin-top:0.8rem;font-size:0.8rem">${c.description}</p>
+                <div style="margin-top:0.5rem;font-size:0.7rem;color:var(--gray)">Write: ${c.writeFolder}</div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+        <section class="reveal">
+          <h2>Lane Map</h2>
+          <p>Write lanes are sacred. Each cell writes only to its assigned folder. The lane map is doctrine-locked.</p>
+          <div class="ge-card">
+            <h3 style="color:var(--gold)">Cell0 — Build</h3>
+            <code style="color:var(--emerald);font-size:0.8rem">/Cell0/projects/ · /Cell0/.hermes/plans/</code>
+          </div>
+          <div class="ge-card">
+            <h3 style="color:var(--gold)">Cell1 — Visual</h3>
+            <code style="color:var(--emerald);font-size:0.8rem">/Cell1/media/ · /Cell1/references/</code>
+          </div>
+          <div class="ge-card">
+            <h3 style="color:var(--gold)">Cell2 — Archive</h3>
+            <code style="color:var(--emerald);font-size:0.8rem">/Cell2/scrolls/ · /Cell2/memory/</code>
+          </div>
+          <div class="ge-card">
+            <h3 style="color:var(--gold)">Cell3 — Outreach</h3>
+            <code style="color:var(--emerald);font-size:0.8rem">/Cell3/outreach/ · /Cell3/discord/</code>
+          </div>
+        </section>
+      `;
+      setTimeout(initScrollReveal, 100);
+    });
+    window.addEventListener('DOMContentLoaded', () => Router.init());
+  </script>
+</body>
+</html>
