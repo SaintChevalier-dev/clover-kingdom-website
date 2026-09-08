@@ -629,3 +629,36 @@ footer {
   color: var(--gray);
   border-top: 1px solid #111;
 }
+
+/* Kingdom loop on hero */
+#hero .loop-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  margin: 1.25rem auto 0.5rem;
+  max-width: 42rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--gold, #c5a059);
+}
+#hero .loop-step {
+  border: 1px solid rgba(197,160,89,0.45);
+  padding: 0.35rem 0.55rem;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.35);
+}
+#hero .loop-arrow { opacity: 0.55; color: #c8c8c8; }
+#hero .loop-caption {
+  margin: 0.4rem auto 1rem;
+  max-width: 36rem;
+  font-size: 0.9rem;
+  color: #a8a8a8;
+  text-align: center;
+}
+.eq-banner .eq {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.02em;
+}

@@ -53,6 +53,14 @@ Router.register('/', function(content) {
           <h1>You have entered the<br>kingdom</h1>
         </div>
         <div class="equation">K = (S × C × D) / (T × G²)</div>
+        <div class="loop-strip" aria-label="Kingdom loop">
+          <span class="loop-step">Intent</span><span class="loop-arrow">→</span>
+          <span class="loop-step">Act</span><span class="loop-arrow">→</span>
+          <span class="loop-step">Verify</span><span class="loop-arrow">→</span>
+          <span class="loop-step">Record</span><span class="loop-arrow">→</span>
+          <span class="loop-step">Next tip</span>
+        </div>
+        <p class="loop-caption">Loop engineering — the roadmap is a living system. You set direction; the mesh runs the tip.</p>
         <p class="subtitle">Sovereign Operating System · Cell0 · Build Loop Active</p>
         <button class="enter-btn" onclick="Router.navigate('/cells')">Enter the Cells →</button>
       </div>
