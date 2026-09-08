@@ -662,3 +662,37 @@ footer {
   font-family: ui-monospace, monospace;
   letter-spacing: 0.02em;
 }
+/* Kingdom Efficiency OS */
+#hero .eq-mnemonic {
+  margin: 0.75rem auto 1rem;
+  max-width: 34rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #c8c8c8;
+  text-align: center;
+}
+#efficiency-os .equation-block,
+#hero .equation {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(1.1rem, 2.5vw, 1.65rem);
+  color: var(--gold, #c5a059);
+  letter-spacing: 0.02em;
+  text-align: center;
+  margin: 1rem auto 1.25rem;
+}
+#efficiency-os .equation-block {
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(197,160,89,0.4);
+  background: rgba(0,0,0,0.45);
+  border-radius: 4px;
+  max-width: 36rem;
+}
+.section-lead {
+  color: #a8a8a8;
+  max-width: 40rem;
+  margin: 0.5rem auto 1.25rem;
+  text-align: center;
+  line-height: 1.5;
+}
+#efficiency-os .accordion { max-width: 40rem; margin: 0.5rem auto; }
+#loop-engineering .grimoire-flow { margin: 1.25rem auto; }
