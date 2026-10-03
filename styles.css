@@ -1284,3 +1284,11 @@ a:hover {
 
 /* Safety: never allow sideways scrolling on phones */
 html, body { overflow-x: clip; max-width: 100%; }
+
+.apply-privacy {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  opacity: 0.75;
+  text-align: left;
+}

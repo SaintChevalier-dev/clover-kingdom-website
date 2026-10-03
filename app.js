@@ -99,7 +99,7 @@ function buildGate() {
         <div class="apply-box">
           <div class="apply-box-head">
             <h3>The gate</h3>
-            <p>Four questions. Wizard King reads. Approval happens in Discord.</p>
+            <p>Five questions. Wizard King reads. Approval happens in Discord.</p>
             <div class="form-not-rank">A form is not a rank.</div>
           </div>
 
@@ -127,15 +127,14 @@ function buildGate() {
             <button type="submit" class="apply-submit">Apply</button>
           </form>
 
+          <div class="apply-privacy">
+            For adults, 18 or older. What you write here passes through Cloudflare to a private intake that Saint Chevalier and Wizard King read to decide on your application. Do not put passwords, ID numbers or anything private in the form.
+          </div>
+
           <div class="apply-note">
             There is no open invite URL here. A form is not a rank.<br>
             Approval is Discord — or you talk to Saint Chevalier.
           </div>
-        </div>
-
-        <div style="margin-top:48px">
-          <div class="faint" style="margin-bottom:14px">The table</div>
-          <div class="shelf" id="offer-shelf"></div>
         </div>
 
         <div class="sage-mouth" id="sage-mouth">
