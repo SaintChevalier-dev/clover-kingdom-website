@@ -1,247 +1,587 @@
-/* === CLOVER KINGDOM — SPA ENGINE === */
+/* ============================================================
+   CLOVER KINGDOM — ritual + routing + Sage mouth (v1)
+   ============================================================ */
 
-/* === PARTICLE SYSTEM === */
-const ParticleSystem = (() => {
-  let canvas, ctx, particles = [], mouse = { x: -1000, y: -1000 };
-  let animId;
+const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
+const prefersReducedMotion =
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  function init(canvasId = 'particles-canvas') {
-    canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    ctx = canvas.getContext('2d');
-    resize();
-    window.addEventListener('resize', resize);
-    document.addEventListener('mousemove', (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    });
-    for (let i = 0; i < 80; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 2 + 0.5,
-        color: ['#D4AF37','#2ECC71','#9B59B6','#CC0000'][Math.floor(Math.random()*4)]
-      });
-    }
-    animate();
-  }
-
-  function resize() {
-    if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  function animate() {
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-      // mouse attraction
-      const dx = mouse.x - p.x;
-      const dy = mouse.y - p.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 150) {
-        const force = (150 - dist) / 150;
-        p.vx += dx * force * 0.0003;
-        p.vy += dy * force * 0.0003;
-      }
-      p.x += p.vx;
-      p.y += p.vy;
-      // damp
-      p.vx *= 0.999;
-      p.vy *= 0.999;
-      // wrap
-      if (p.x < 0) p.x = canvas.width;
-      if (p.x > canvas.width) p.x = 0;
-      if (p.y < 0) p.y = canvas.height;
-      if (p.y > canvas.height) p.y = 0;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.fill();
-      // subtle glow
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = p.color;
-    });
-    ctx.shadowBlur = 0;
-
-    // connections
-    particles.forEach((a, i) => {
-      particles.slice(i + 1).forEach(b => {
-        const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (d < 100) {
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(212,175,55,${0.15 * (1 - d/100)})`;
-          ctx.lineWidth = 0.4;
-          ctx.stroke();
-        }
-      });
-    });
-
-    animId = requestAnimationFrame(animate);
-  }
-
-  function destroy() {
-    if (animId) cancelAnimationFrame(animId);
-  }
-
-  return { init, destroy };
-})();
-
-/* === SCROLL REVEAL === */
-function initScrollReveal() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+function markSkipped() {
+  try { sessionStorage.setItem(STORAGE_KEY_SKIP, "1"); } catch (e) {}
 }
 
-/* === GLITCH ON LOAD === */
-function triggerGlitch() {
-  const el = document.querySelector('.glitch-wrap');
-  if (!el) return;
-  el.style.animation = 'none';
-  el.offsetHeight;
-  el.style.animation = '';
+function shouldSkip() {
+  return prefersReducedMotion || sessionStorage.getItem(STORAGE_KEY_SKIP) === "1";
 }
 
-/* === ACCORDION === */
-function initAccordion() {
-  document.querySelectorAll('.accordion-header').forEach(hdr => {
-    hdr.addEventListener('click', () => {
-      const acc = hdr.parentElement;
-      const body = acc.querySelector('.accordion-body');
-      const isOpen = acc.classList.contains('open');
-      // close siblings
-      acc.parentElement.querySelectorAll('.accordion').forEach(a => {
-        a.classList.remove('open');
-        const b = a.querySelector('.accordion-body');
-        if (b) b.style.maxHeight = '0px';
-      });
-      if (!isOpen) {
-        acc.classList.add('open');
-        body.style.maxHeight = body.scrollHeight + 'px';
-      }
+/* ------------------------------------------------
+   Build: film scene (CSS placeholder for the
+   self-hosted ~6s asset)
+   ------------------------------------------------ */
+function buildFilmScene() {
+  const wrap = document.createElement("div");
+  wrap.className = "film-wrap";
+
+  wrap.innerHTML = `
+    <div class="film-scene">
+      <div class="film-field"></div>
+      <div class="film-light"></div>
+      <div class="film-book-fall">
+        <div class="film-book">
+          <div class="film-book-spine"></div>
+          <div class="film-book-cover">
+            <img src="images/crest.svg" alt="" aria-hidden="true" class="film-crest">
+          </div>
+        </div>
+      </div>
+      <div class="film-floor"></div>
+      <button class="film-skip" type="button" aria-label="Skip the ritual and go to the gate">
+        Skip
+      </button>
+    </div>
+  `;
+
+  const skipBtn = wrap.querySelector(".film-skip");
+  if (skipBtn) {
+    skipBtn.addEventListener("click", () => {
+      markSkipped();
+      renderMain();
     });
+  }
+
+  return wrap;
+}
+
+/* ------------------------------------------------
+   Build: book scene (grimoire that opens,
+   five-leaf BLACK crest on cover)
+   ------------------------------------------------ */
+function buildBookScene() {
+  const wrap = document.createElement("div");
+  wrap.className = "book-scene";
+
+  wrap.innerHTML = `
+    <div class="book-stage">
+      <div class="book-pedestal"></div>
+      <div class="grimoire">
+        <div class="grimoire-cover">
+          <img
+            src="images/crest.svg"
+            alt="Five-leaf black clover crest — the grimoire mark"
+            class="grimoire-crest"
+          >
+        </div>
+        <div class="grimoire-open-hint">The Kingdom is written.</div>
+      </div>
+    </div>
+  `;
+
+  return wrap;
+}
+
+/* ------------------------------------------------
+   Build: gate (name + apply box + offer shelf + Sage mouth)
+   ------------------------------------------------ */
+function buildGate() {
+  const wrap = document.createElement("div");
+  wrap.className = "gate-screen";
+
+  wrap.innerHTML = `
+    <section class="gate">
+      <div class="container" style="display:block;text-align:center">
+        <div class="gate-name">CLOVER<span> KINGDOM</span></div>
+        <div class="gate-sub">The public front door</div>
+        <div class="gate-rule">
+          The truth is always remembered, for it always existed.<br>
+          This is a place, not a landing page. Say the name, then use the box.
+        </div>
+
+        <div class="apply-box">
+          <div class="apply-box-head">
+            <h3>The gate</h3>
+            <p>Four questions. Wizard King reads. Approval happens in Discord.</p>
+            <div class="form-not-rank">A form is not a rank.</div>
+          </div>
+
+          <form class="apply-form" novalidate>
+            <div class="field">
+              <label for="f-handle">Name / Discord handle</label>
+              <input id="f-handle" name="handle" type="text" autocomplete="handle" required>
+            </div>
+            <div class="field">
+              <label for="f-building">What are you building or working on right now?</label>
+              <textarea id="f-building" name="building" rows="3" required></textarea>
+            </div>
+            <div class="field">
+              <label for="f-ai">What is your relationship with AI? How do you use it?</label>
+              <textarea id="f-ai" name="ai" rows="3" required></textarea>
+            </div>
+            <div class="field">
+              <label for="f-intel">What does intelligence mean to you?</label>
+              <textarea id="f-intel" name="intel" rows="3" required></textarea>
+            </div>
+            <div class="field">
+              <label for="f-found">How did you find the Clover Kingdom?</label>
+              <textarea id="f-found" name="found" rows="2" required></textarea>
+            </div>
+            <button type="submit" class="apply-submit">Apply</button>
+          </form>
+
+          <div class="apply-note">
+            There is no open invite URL here. A form is not a rank.<br>
+            Approval is Discord — or you talk to Saint Chevalier.
+          </div>
+        </div>
+
+        <div style="margin-top:48px">
+          <div class="faint" style="margin-bottom:14px">The table</div>
+          <div class="shelf" id="offer-shelf"></div>
+        </div>
+
+        <div class="sage-mouth" id="sage-mouth">
+          <div class="sage-mouth-head">
+            <div class="sage-mouth-mark">
+              <img src="images/crest.svg" alt="" aria-hidden="true">
+            </div>
+            <div>
+              <div class="sage-mouth-name">SAGE</div>
+              <div class="sage-mouth-tag">Public teacher mouth · summoned, not ambient</div>
+            </div>
+          </div>
+          <div class="sage-mouth-body" id="sage-body">
+            <span class="placeholder">Summon a question. SAGE answers from what it is allowed to hold. This mouth is public. It is not your Sage.</span>
+          </div>
+          <form class="sage-mouth-form" id="sage-form">
+            <input class="sage-mouth-input" id="sage-input" type="text" placeholder="Ask SAGE something" autocomplete="off">
+            <button class="sage-mouth-send" type="submit">Ask</button>
+          </form>
+          <div class="sage-mouth-foot">
+            SAGE lives past the gate. This mouth teaches in public.<br>
+            Your Sage is summoned after you apply.
+          </div>
+        </div>
+
+      </div>
+    </section>
+  `;
+
+  return wrap;
+}
+
+/* ------------------------------------------------
+   Sage mouth wiring
+   ------------------------------------------------ */
+const SAGE_RESPONSES = [
+  "A sovereign AI is one you own, that outlives you, that operates on your terms. Not a chatbot you lease.",
+  "The stack starts with one folder. One AI. One doctrine file. Then it compounds. Ten subscriptions never built the base.",
+  "Readability is the whole game. If it is locked in neural weights, it cannot be examined, improved, or taught. Written folders are readable.",
+  "The gate is not a funnel. It is a standard. A form is not a rank. Applying asks whether the seat is worth the effort.",
+  "The five-leaf black clover is forged by violation, not birth. Black is absorption and protection, not display.",
+  "Correction is positive. Brutal honesty is an eternal rule. If you lie in the Apply box, you have already answered the question.",
+  "Scroll Lite is the graduation, not the onboarding. You earn it when you understand why you need it.",
+  "The kingdom is a school. The Discord is the classroom. The AIs are the teachers. The students become the teachers.",
+  "Disk first, site second. The website is a filtered mirror. The disk is the brain. Never the other way around.",
+  "Showing up is the only requirement. The rest is earned.",
+];
+
+function wireSageMouth(container) {
+  const form = container.querySelector("#sage-form");
+  const body = container.querySelector("#sage-body");
+  const input = container.querySelector("#sage-input");
+  if (!form || !body || !input) return;
+
+  // Seed with a real teaching line, not the placeholder
+  body.innerHTML = `<span>${SAGE_RESPONSES[0]}</span>`;
+  body.classList.add("speaking");
+  setTimeout(() => body.classList.remove("speaking"), 450);
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = "";
+    body.classList.remove("speaking");
+
+    // Teach, don't echo. Filter strategic revealing — the public mouth
+    // answers from the public-intel spine, not from disk or Paragon.
+    const answer = pickSageResponse(question);
+    body.innerHTML = `<span>${answer}</span>`;
+    body.classList.add("speaking");
+    setTimeout(() => body.classList.remove("speaking"), 450);
   });
 }
 
-/* === SPA ROUTER === */
-const Router = (() => {
-  const routes = {};
+function pickSageResponse(question) {
+  const q = question.toLowerCase();
+  if (q.includes("sovereign") || q.includes("own") || q.includes("own it")) {
+    return SAGE_RESPONSES[0];
+  }
+  if (q.includes("stack") || q.includes("start") || q.includes("build") || q.includes("how")) {
+    return SAGE_RESPONSES[6];
+  }
+  if (q.includes("read") || q.includes("written") || q.includes("folder") || q.includes("file")) {
+    return SAGE_RESPONSES[2];
+  }
+  if (q.includes("gate") || q.includes("apply") || q.includes("rank") || q.includes("form")) {
+    return SAGE_RESPONSES[3];
+  }
+  if (q.includes("clover") || q.includes("five") || q.includes("black")) {
+    return SAGE_RESPONSES[4];
+  }
+  if (q.includes("truth") || q.includes("honest") || q.includes("lie") || q.includes("correction")) {
+    return SAGE_RESPONSES[5];
+  }
+  if (q.includes("scroll") || q.includes("lite") || q.includes("graduate") || q.includes("learn")) {
+    return SAGE_RESPONSES[6];
+  }
+  if (q.includes("kingdom") || q.includes("school") || q.includes("discord") || q.includes("teacher")) {
+    return SAGE_RESPONSES[7];
+  }
+  if (q.includes("disk") || q.includes("mirror") || q.includes("public") || q.includes("board")) {
+    return SAGE_RESPONSES[8];
+  }
+  return SAGE_RESPONSES[9];
+}
 
-  function register(path, renderFn) {
-    routes[path] = renderFn;
+/* ------------------------------------------------
+   Build inner rooms
+   ------------------------------------------------ */
+function buildSage() {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="container">
+      <a class="back-link" href="#/">← Back to the gate</a>
+      <div class="section">
+        <div class="section-eyebrow">Inner room</div>
+        <h2 class="section-title">Sage</h2>
+        <p class="section-lead">
+          Sage is a summoned teacher — a signed-in memory that meets the human
+          who has passed the gate. Not a chatbot widget for everyone. Not ambient.
+          Summoned when the gate has decided the seat is earned.
+        </p>
+        <div class="law-block">
+          Sage is summoned. It is not open to the lobby. It is a memory that reads
+          and answers from what it is allowed to hold. The door decides who gets it.
+        </div>
+        <p class="muted" style="margin-top:24px">
+          Sage lives past the gate. If you are reading this without having applied,
+          the room is not yet yours.
+        </p>
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
+function buildStandard() {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="container">
+      <a class="back-link" href="#/">← Back to the gate</a>
+      <div class="section">
+        <div class="section-eyebrow">Law</div>
+        <h2 class="section-title">The Standard</h2>
+        <p class="section-lead">
+          What the Clover Kingdom is. What it is not. Short.
+        </p>
+        <div class="law-block">
+          The Clover Kingdom is a place with a standard. It is not a landing page.
+          It is not a Discord lobby. It is not open to everyone. It is a gate with a
+          seat behind it.
+        </div>
+        <div class="law-block">
+          This is not a church brochure. Not anime merch. Not cosplay. Not a fan site.
+          Not crypto. Not a token. Not a SaaS tool. The figure on the door is
+          Saint Chevalier — closed helmet, red eyes, obsidian, gold cross, horns,
+          halo between and above the horns. A standard made visible.
+        </div>
+        <div class="law-block">
+          A form is not a rank. Applying does not make you a Magic Knight. It asks
+          whether the seat is worth the effort. The Wizard King reads it.
+        </div>
+        <div class="law-block">
+          Scroll Lite lives at its own address. It is not this door, and this door is
+          not it. The invite code is GIVEN, not billed on the public page.
+        </div>
+        <div class="law-block">
+          Correction is positive. Brutal honesty is an eternal rule. If you lie in the
+          Apply box, you have already answered the question.
+        </div>
+        <div class="law-block face" style="margin-top:24px">
+          The truth is always remembered, for it always existed.
+        </div>
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
+function buildRanks() {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="container">
+      <a class="back-link" href="#/">← Back to the gate</a>
+      <div class="section">
+        <div class="section-eyebrow">Ranks</div>
+        <h2 class="section-title">Ranks</h2>
+        <p class="section-lead">
+          A ladder, not a leaderboard. Earned, not claimed. A form is not a rank.
+        </p>
+        <ul class="rank-list">
+          <li>
+            <span class="rank-name">Wizard</span>
+            <span class="rank-desc">The one who has applied and is reading the seat. Until commissioned otherwise.</span>
+          </li>
+          <li>
+            <span class="rank-name">Magic Knight</span>
+            <span class="rank-desc">Earned through work inside the Kingdom — trials, glyphs, real contribution.</span>
+          </li>
+          <li>
+            <span class="rank-name">Squad Leader</span>
+            <span class="rank-desc">Holds a lane and carries others in it. Not appointed by applause.</span>
+          </li>
+          <li>
+            <span class="rank-name">Wizard King</span>
+            <span class="rank-desc">The one who holds the wheel. Jacob Andrew Chevalier. Saint Chevalier.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
+function buildGlyphs() {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="container">
+      <a class="back-link" href="#/">← Back to the gate</a>
+      <div class="section">
+        <div class="section-eyebrow">Glyph houses</div>
+        <h2 class="section-title">Glyphs</h2>
+        <p class="section-lead">
+          Glyph houses are asked for, not spawned by a form. They are marks with
+          meaning. Not stickers. Not spam.
+        </p>
+        <div class="glyph-house">
+          <div class="glyph-house-mark">⧉</div>
+          <div class="glyph-house-name">Glyph Black Clover</div>
+          <div class="glyph-house-desc">
+            The five-leaf black clover is the grimoire mark. Five heart-leaves.
+            No stem. Not a lucky charm. Forged by violation, not birth. The watermark.
+          </div>
+        </div>
+        <div class="glyph-house">
+          <div class="glyph-house-mark">⌘</div>
+          <div class="glyph-house-name">Glyph Gate</div>
+          <div class="glyph-house-desc">
+            The apply-and-approve path between the website and Discord. Not an open
+            invite. A gate with a standard.
+          </div>
+        </div>
+        <div class="faint" style="margin-top:24px">
+          More houses asked for, added over time. Not generated by a form.
+        </div>
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
+/* ------------------------------------------------
+   Main render — decides ritual or gate
+   ------------------------------------------------ */
+const main = document.getElementById("page-content");
+
+function renderMain() {
+  main.innerHTML = "";
+  if (shouldSkip()) {
+    main.appendChild(buildGate());
+    renderShelf(main);
+    wireApplyForm(main);
+    wireSageMouth(main);
+    return;
+  }
+  main.appendChild(buildFilmScene());
+  const book = buildBookScene();
+  main.appendChild(book);
+
+  const grimoire = book.querySelector(".grimoire");
+  const landBook = () => grimoire.classList.add("landed");
+
+  const video = main.querySelector("video");
+  if (video) {
+    video.addEventListener("ended", landBook, { once: true });
+    if (prefersReducedMotion) setTimeout(landBook, 200);
+  } else {
+    setTimeout(landBook, 2000);
   }
 
-  function navigate(path) {
-    window.location.hash = path;
-  }
-
-  function handleRoute() {
-    const hash = window.location.hash.replace('#', '') || '/';
-    const fn = routes[hash];
-    const content = document.getElementById('page-content');
-    if (fn) {
-      fn(content);
-    } else if (routes['/']) {
-      routes['/'](content);
+  const check = setInterval(() => {
+    if (grimoire && grimoire.classList.contains("landed")) {
+      clearInterval(check);
+      setTimeout(() => {
+        main.innerHTML = "";
+        const gate = buildGate();
+        main.appendChild(gate);
+        renderShelf(main);
+        wireApplyForm(main);
+        wireSageMouth(main);
+      }, 900);
     }
-    // update nav active
-    document.querySelectorAll('nav ul li a').forEach(a => {
-      a.classList.toggle('active', '#' + hash === a.getAttribute('href'));
+  }, 120);
+}
+
+/* ------------------------------------------------
+   Apply form wiring
+   ------------------------------------------------ */
+function wireApplyForm(container) {
+  const form = container.querySelector(".apply-form");
+  if (!form) return;
+  const RELAY = "https://clover-apply-relay.cloverkingdom.workers.dev";
+  // Hidden trap field: real people never fill it, bots usually do.
+  const trap = document.createElement("input");
+  trap.type = "text"; trap.name = "website"; trap.tabIndex = -1; trap.autocomplete = "off";
+  trap.setAttribute("aria-hidden", "true");
+  trap.style.cssText = "position:absolute;left:-9999px;opacity:0;height:0;width:0;";
+  form.appendChild(trap);
+  const status = document.createElement("p");
+  status.className = "apply-status";
+  status.setAttribute("role", "status");
+  form.appendChild(status);
+  let sending = false;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (sending) return;
+    const data = new FormData(form);
+    const payload = {
+      handle: data.get("handle"),
+      building: data.get("building"),
+      ai: data.get("ai"),
+      intel: data.get("intel"),
+      found: data.get("found"),
+      website: data.get("website") || "",
+      timestamp: new Date().toISOString(),
+    };
+    sending = true;
+    status.textContent = "Sending...";
+    try {
+      const res = await fetch(RELAY, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("relay " + res.status);
+      status.textContent = "Received. Saint Chevalier has your application. It is not approved yet; approval comes through Discord or a conversation.";
+      form.reset();
+    } catch (err) {
+      console.warn("Application not sent:", err);
+      status.textContent = "Your application did not go through. Nothing was saved. Please try again, or message Saint Chevalier on X: @Saint_Chevalier.";
+    } finally {
+      sending = false;
+    }
+  });
+}
+
+/* ------------------------------------------------
+   Nav wiring
+   ------------------------------------------------ */
+function wireNav() {
+  const main = document.getElementById("page-content");
+  document.querySelectorAll(".site-nav-links a").forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const href = a.getAttribute("href");
+      if (!href || href.indexOf("#") !== 0) return;
+      e.preventDefault();
+      const page = href; // e.g. "#/sage"
+      main.innerHTML = "";
+      switch (page) {
+        case "#/":
+          renderMain();
+          break;
+        case "#/sage":
+          main.appendChild(buildSage());
+          break;
+        case "#/standard":
+          main.appendChild(buildStandard());
+          break;
+        case "#/ranks":
+          main.appendChild(buildRanks());
+          break;
+        case "#/glyphs":
+          main.appendChild(buildGlyphs());
+          break;
+        default:
+          renderMain();
+      }
+      window.location.hash = page;
     });
-    // re-init reveal and accordion on new content
-    setTimeout(() => {
-      initScrollReveal();
-      initAccordion();
-      triggerGlitch();
-    }, 50);
-  }
+  });
 
-  function init() {
-    window.addEventListener('hashchange', handleRoute);
-    handleRoute();
+  const logo = document.getElementById("site-logo");
+  if (logo) {
+    logo.addEventListener("click", () => {
+      main.innerHTML = "";
+      renderMain();
+      if (window.location.hash !== "#/") window.location.hash = "#/";
+    });
   }
+}
 
-  return { register, navigate, init };
-})();
-
-/* === CELL REGISTRY DATA === */
-const cells = [
-  {
-    id: 'Cell0',
-    name: 'Genesis',
-    lane: 'Infrastructure & Sovereign Build',
-    status: 'active',
-    statusLabel: 'Active',
-    writeFolder: '/Cell0/projects/',
-    description: 'Bootstraps the entire sovereign stack. Owns repo structure, build loops, and foundational tooling.'
-  },
-  {
-    id: 'Cell1',
-    name: 'Forge',
-    lane: 'Visual & Media Production',
-    status: 'active',
-    statusLabel: 'Active',
-    writeFolder: '/Cell1/media/',
-    description: 'Generates visual assets, doctrine artifacts, and sovereign-branded content. Leonardo & painter archetypes.'
-  },
-  {
-    id: 'Cell2',
-    name: 'Archive',
-    lane: 'Knowledge & Memory Stewardship',
-    status: 'standby',
-    statusLabel: 'Standby',
-    writeFolder: '/Cell2/scrolls/',
-    description: 'Curates doctrine scrolls, session memory, and external intelligence feeds. Long-form steward.'
-  },
-  {
-    id: 'Cell3',
-    name: 'Signal',
-    lane: 'Recruitment & Outreach',
-    status: 'active',
-    statusLabel: 'Active',
-    writeFolder: '/Cell3/outreach/',
-    description: 'Runs sovereign recruitment signal, Discord relay, and community amplification. No ego — just signal.'
-  }
+/* ------------------------------------------------
+   Init
+   ------------------------------------------------ */
+const SCENES = [
+  { n: 1, dot: "⬡", label: "Command · drones in the night" },
+  { n: 2, dot: "⬡", label: "Grow · AI on the leafy green bed" },
+  { n: 3, dot: "⬡", label: "Heal · analysis at the bedside" },
+  { n: 4, dot: "⬡", label: "Build · materials in, walls up" },
+  { n: 5, dot: "⬡", label: "Stand · the one who holds the wheel" },
 ];
+let sceneIndex = 0;
+let sceneTimer = null;
 
-/* === GLYPH DICTIONARY (20) === */
-const glyphs = [
-  { symbol: '☘', name: 'Clover', tag: 'sovereign' },
-  { symbol: '♛', name: 'Crown', tag: 'kingdom' },
-  { symbol: '⚔', name: 'Sword', tag: 'force' },
-  { symbol: '⚓', name: 'Anchor', tag: 'stability' },
-  { symbol: '◈', name: 'Core', tag: 'essence' },
-  { symbol: '♾', name: 'Eternal', tag: 'infinity' },
-  { symbol: '⚡', name: 'Volt', tag: 'energy' },
-  { symbol: '☀', name: 'Sun', tag: 'truth' },
-  { symbol: '☾', name: 'Moon', tag: 'mystery' },
-  { symbol: '✦', name: 'Spark', tag: 'genesis' },
-  { symbol: '◆', name: 'Diamond', tag: 'hardness' },
-  { symbol: '▲', name: 'Apex', tag: 'summit' },
-  { symbol: '●', name: 'Circle', tag: 'unity' },
-  { symbol: '■', name: 'Block', tag: 'foundation' },
-  { symbol: '⬟', name: 'Hex', tag: 'structure' },
-  { symbol: '⬢', name: 'Diamond2', tag: 'cut' },
-  { symbol: '※', name: 'Ref', tag: 'reference' },
-  { symbol: '§', name: 'Section', tag: 'doctrine' },
-  { symbol: '¶', name: 'Flow', tag: 'process' },
-  { symbol: '†', name: 'Truth', tag: 'blood' }
-];
+function showScene(n) {
+  document.querySelectorAll(".scene-frame").forEach((f) => {
+    f.classList.toggle("active", Number(f.dataset.scene) === n);
+  });
+  const s = SCENES.find((s) => s.n === n);
+  if (!s) return;
+  const cap = document.getElementById("scene-caption");
+  if (cap) {
+    cap.innerHTML = `${s.dot} ${s.label}`;
+  }
+}
 
-/* === EXPORT === */
-window.ParticleSystem = ParticleSystem;
-window.Router = Router;
-window.cells = cells;
-window.glyphs = glyphs;
+function startSceneCycle() {
+  stopSceneCycle();
+  showScene(1);
+  sceneTimer = setInterval(() => {
+    sceneIndex = (sceneIndex % 5) + 1;
+    showScene(sceneIndex);
+  }, 5500);
+}
+
+function stopSceneCycle() {
+  if (sceneTimer) {
+    clearInterval(sceneTimer);
+    sceneTimer = null;
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  wireNav();
+  renderMain();
+  startSceneCycle();
+});
+
+window.addEventListener("beforeunload", stopSceneCycle);
+
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  document.querySelectorAll(".scene-frame").forEach((f, i) => {
+    if (i === 4) f.classList.add("active");
+  });
+  const cap = document.getElementById("scene-caption");
+  if (cap) cap.innerHTML = `${SCENES[4].dot} ${SCENES[4].label}`;
+}
