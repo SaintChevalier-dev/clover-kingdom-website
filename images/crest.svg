@@ -1,13 +1,127 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Clover Kingdom five-leaf crest">
-  <rect width="200" height="200" fill="#000"/>
-  <g transform="translate(100,100)" fill="#FFD700" stroke="#50C878" stroke-width="2">
-    <!-- five leaves -->
-    <ellipse cx="0" cy="-42" rx="22" ry="32"/>
-    <ellipse cx="40" cy="-13" rx="22" ry="32" transform="rotate(72)"/>
-    <ellipse cx="25" cy="34" rx="22" ry="32" transform="rotate(144)"/>
-    <ellipse cx="-25" cy="34" rx="22" ry="32" transform="rotate(216)"/>
-    <ellipse cx="-40" cy="-13" rx="22" ry="32" transform="rotate(288)"/>
-    <circle cx="0" cy="0" r="12" fill="#4B0082" stroke="#FFD700"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Clover Kingdom five-leaf black crest, no stem">
+  <!-- Background omitted: crest is the mark, not a badge on a plate -->
+
+  <!--
+    Five-leaf BLACK clover. Magic crest. Five heart-leaves.
+    NO stem. NOT four leaves. Not a lucky charm.
+    This is the grimoire mark.
+
+    Arrangement: quincunx — one leaf centered, four around it.
+    Each leaf is a heart-leaf (pointed tip, two rounded lobes at base),
+    rendered here as a cardioid-ish form so the five-leaf shape reads
+    instantly and cannot be mistaken for a four-leaf.
+  -->
+  <g transform="translate(100,100)" fill="#000000">
+
+    <!-- Center leaf -->
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+    />
+
+    <!-- Top leaf -->
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(-45)"
+    />
+
+    <!-- Right leaf -->
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(45)"
+    />
+
+    <!-- Bottom-left leaf -->
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(135)"
+    />
+
+    <!-- Bottom-right leaf -->
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(225)"
+    />
+
   </g>
-  <text x="100" y="188" text-anchor="middle" fill="#FFFFFF" font-family="system-ui,sans-serif" font-size="11">CLOVER KINGDOM</text>
+
+  <!--
+    Subtle burn / edge so the black reads against near-black
+    backgrounds. Not a rim light. Not gold. A faint obsidian
+    edge so the five-leaf shape is legible on the page.
+  -->
+  <g transform="translate(100,100)" fill="none" stroke="#1c1c20" stroke-width="1.2">
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+    />
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(-45)"
+    />
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(45)"
+    />
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(135)"
+    />
+    <path
+      d="
+        M 0 -46
+        C  6 -30,  6 -14,  0   0
+        C -6 -14, -6 -30,  0 -46
+        Z
+      "
+      transform="rotate(225)"
+    />
+  </g>
+
+  <!--
+    NO stem. The spec says so. Do not add one.
+  -->
 </svg>
