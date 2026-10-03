@@ -843,7 +843,7 @@ a:hover {
 }
 
 .film-skip {
-  position: absolute;
+  position: fixed;
   bottom: 26px;
   left: 50%;
   transform: translateX(-50%);
@@ -858,7 +858,7 @@ a:hover {
   cursor: pointer;
   pointer-events: auto;
   transition: color 0.2s, border-color 0.2s;
-  z-index: 5;
+  z-index: 30;
 }
 
 .film-skip:hover {
@@ -1273,3 +1273,14 @@ a:hover {
 
 /* Apply form status line */
 .apply-status { margin-top: 0.8rem; min-height: 1.4em; font-size: 0.95rem; opacity: 0.9; }
+
+/* Phone layout: let the nav wrap into two tidy rows with comfortable tap targets */
+@media (max-width: 680px) {
+  .site-nav-inner { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 0; }
+  .site-logo { white-space: nowrap; font-size: 0.95rem; }
+  .site-nav-links { flex-wrap: wrap; gap: 4px 6px; font-size: 0.72rem; }
+  .site-nav-links a { white-space: nowrap; padding: 10px 8px; display: inline-block; }
+}
+
+/* Safety: never allow sideways scrolling on phones */
+html, body { overflow-x: clip; max-width: 100%; }

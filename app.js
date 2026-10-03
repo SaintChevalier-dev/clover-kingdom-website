@@ -198,7 +198,11 @@ function wireSageMouth(container) {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const question = input.value.trim();
-    if (!question) return;
+    if (!question) {
+      input.focus();
+      body.innerHTML = `<span>Ask the Sage a question first. One line is enough.</span>`;
+      return;
+    }
 
     input.value = "";
     body.classList.remove("speaking");
@@ -398,7 +402,6 @@ function renderMain() {
   main.innerHTML = "";
   if (shouldSkip()) {
     main.appendChild(buildGate());
-    renderShelf(main);
     wireApplyForm(main);
     wireSageMouth(main);
     return;
@@ -425,7 +428,7 @@ function renderMain() {
         main.innerHTML = "";
         const gate = buildGate();
         main.appendChild(gate);
-        renderShelf(main);
+        markSkipped(); // ritual played once this session; do not replay on every Gate click
         wireApplyForm(main);
         wireSageMouth(main);
       }, 900);
@@ -487,44 +490,47 @@ function wireApplyForm(container) {
 /* ------------------------------------------------
    Nav wiring
    ------------------------------------------------ */
-function wireNav() {
+const SUBPAGES = {
+  "#/sage": () => buildSage(),
+  "#/standard": () => buildStandard(),
+  "#/ranks": () => buildRanks(),
+  "#/glyphs": () => buildGlyphs(),
+};
+
+function routeFromHash() {
+  const page = window.location.hash || "#/";
   const main = document.getElementById("page-content");
+  main.innerHTML = "";
+  stopSceneCycleIfAny();
+  if (SUBPAGES[page]) {
+    main.appendChild(SUBPAGES[page]());
+    window.scrollTo(0, 0);
+  } else {
+    renderMain();
+  }
+}
+
+function stopSceneCycleIfAny() { /* scenes keep running behind the page by design */ }
+
+function wireNav() {
+  // One router for everything: nav links, back links and the browser's own back button
+  // all change the hash, and the hash decides the page.
+  window.addEventListener("hashchange", routeFromHash);
   document.querySelectorAll(".site-nav-links a").forEach((a) => {
-    a.addEventListener("click", (e) => {
-      const href = a.getAttribute("href");
-      if (!href || href.indexOf("#") !== 0) return;
-      e.preventDefault();
-      const page = href; // e.g. "#/sage"
-      main.innerHTML = "";
-      switch (page) {
-        case "#/":
-          renderMain();
-          break;
-        case "#/sage":
-          main.appendChild(buildSage());
-          break;
-        case "#/standard":
-          main.appendChild(buildStandard());
-          break;
-        case "#/ranks":
-          main.appendChild(buildRanks());
-          break;
-        case "#/glyphs":
-          main.appendChild(buildGlyphs());
-          break;
-        default:
-          renderMain();
-      }
-      window.location.hash = page;
+    a.addEventListener("click", () => {
+      // Clicking the page you are already on: re-render it (hashchange will not fire).
+      if (a.getAttribute("href") === (window.location.hash || "#/")) routeFromHash();
     });
   });
 
   const logo = document.getElementById("site-logo");
   if (logo) {
     logo.addEventListener("click", () => {
-      main.innerHTML = "";
-      renderMain();
-      if (window.location.hash !== "#/") window.location.hash = "#/";
+      if (window.location.hash !== "#/" && window.location.hash !== "") {
+        window.location.hash = "#/";
+      } else {
+        routeFromHash();
+      }
     });
   }
 }
@@ -572,7 +578,7 @@ function stopSceneCycle() {
 
 window.addEventListener("DOMContentLoaded", () => {
   wireNav();
-  renderMain();
+  routeFromHash();
   startSceneCycle();
 });
 
