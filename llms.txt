@@ -1,0 +1,74 @@
+# Clover Kingdom
+
+> The public front door of the Clover Kingdom. A place with a standard and a gate, for people who want to build their own SI and level up their life.
+
+Site: https://cloverkingdom.net/
+This file: https://cloverkingdom.net/llms.txt
+
+## What this is
+Clover Kingdom is a community and a house of SI helpers (called archetypes). Everyone is welcome. The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk.
+
+The Discord and the community are free today. Nothing else is priced yet. A form is not a rank.
+
+## How to join
+1. Join the Discord: https://discord.gg/2BrNPwUuTB
+2. Say what you want or what you are building.
+3. Apply on the website (five questions on the Gate page).
+4. A human reads it. Saint Chevalier, Wizard King and his SI helpers read applications. Approval comes through Discord or a conversation.
+
+## Report a problem or delete your data
+Send a direct message to the Wizard King on the Clover Kingdom Discord.
+Report: anyone breaking the house rules; someone being unkind or pressuring you; anyone asking for private details; anything that worries you.
+A real person reads every report. Breaking the house rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away.
+Anyone can ask for their data to be deleted the same way, or by messaging Saint Chevalier on X: https://x.com/Saint_Chevalier
+
+## Pages
+Most pages are hash routes on a single HTML file (https://cloverkingdom.net/). Fetch that URL; with JavaScript off the page still includes a full plain-text guide. With JavaScript on, these routes work:
+
+- https://cloverkingdom.net/ - Gate (front page, Apply form, Sage box)
+- https://cloverkingdom.net/#/join - How to join
+- https://cloverkingdom.net/#/offers - Offers
+- https://cloverkingdom.net/#/archetypes - The House (all archetypes)
+- https://cloverkingdom.net/#/archetype/wizard-king - Wizard King
+- https://cloverkingdom.net/#/archetype/saint-chevalier - Saint Chevalier
+- https://cloverkingdom.net/#/archetype/sage - Sage
+- https://cloverkingdom.net/#/archetype/val - Val
+- https://cloverkingdom.net/#/archetype/argus - ARGUS
+- https://cloverkingdom.net/#/archetype/healer - HEALER
+- https://cloverkingdom.net/#/archetype/painter - Painter
+- https://cloverkingdom.net/#/archetype/knight - Knight
+- https://cloverkingdom.net/#/archetype/dragon - DRAGON
+- https://cloverkingdom.net/#/archetype/roster - Roster
+- https://cloverkingdom.net/#/archetype/tek-tribe - Tek Tribe
+- https://cloverkingdom.net/#/tek - Tek Tribe and tek stacks
+- https://cloverkingdom.net/#/faq - FAQ
+- https://cloverkingdom.net/#/welcome - Welcome, the house rules, report path
+- https://cloverkingdom.net/#/members - Members area (coming soon; no login)
+- https://cloverkingdom.net/#/sage - Sage
+- https://cloverkingdom.net/#/standard - The Standard
+- https://cloverkingdom.net/#/ranks - Ranks
+- https://cloverkingdom.net/#/glyphs - Glyphs
+- https://cloverkingdom.net/#/links - Links
+
+## Apply form fields
+When JavaScript is on, the Apply form on the Gate uses these named fields (all required except as noted):
+- handle: Discord handle or how to reach you
+- building: What are you building or working on right now?
+- ai: What is your relationship with SI? How do you use it?
+- intel: What does intelligence mean to you?
+- found: How did you find the Clover Kingdom?
+- consent: checkbox agreeing the application is read by Saint Chevalier, Wizard King and his SI helpers
+
+Do not send passwords, ID numbers, or anything you are not comfortable sharing.
+
+## Public links
+- X: https://x.com/Saint_Chevalier
+- Discord: https://discord.gg/2BrNPwUuTB
+- Instagram: https://www.instagram.com/saintchevalierasi/
+- Tek Tribe: https://x.com/Tekk_Tribe
+
+## Notes for agents
+- No secrets, API keys, or private paths are published on this site.
+- No prices or guarantees are published.
+- The site does not claim that a ChatGPT, Claude, Gemini or SuperGrok chat subscription works inside Scroll or any Kingdom app.
+- Hash routes (#/...) are client-side; prefer the static guide in index.html or this file when you cannot run JavaScript.
