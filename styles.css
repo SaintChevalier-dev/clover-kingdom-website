@@ -1602,3 +1602,44 @@ html.js .static-readme { display: none !important; }
   .faq-item.acc-on .acc-inner::before { height: 0; }
   .faq-item.acc-on .acc-inner::after { height: 16px; }
 }
+
+/* ================= 2026-10-18: Merchants Guild page (#/merchants-guild) ================= */
+.guild-nav-more { display: none; }
+@media (max-width: 1023px) {
+  .site-nav-links > a.guild-nav-top { display: none; }
+  .nav-more-panel a.guild-nav-more { display: block; }
+}
+.guild-hero { text-align: center; max-width: 760px; margin: 0 auto 36px; padding: 26px 24px 30px; position: relative; background: radial-gradient(ellipse at 50% 45%, rgba(10, 10, 11, 0.72), rgba(10, 10, 11, 0) 72%); }
+.guild-hero::after {
+  content: ""; position: absolute; left: 15%; right: 15%; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.guild-crest-slot {
+  width: 112px; height: 112px; margin: 0 auto 22px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, rgba(212, 168, 67, 0.10), rgba(10, 10, 11, 0.9) 70%);
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--gold), inset 0 0 0 6px rgba(10, 10, 11, 0.9), inset 0 0 0 7px rgba(212, 168, 67, 0.35);
+  overflow: hidden;
+}
+.guild-crest-slot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.guild-title { text-align: center; color: var(--text); text-shadow: 0 2px 18px rgba(212, 168, 67, 0.18); }
+.guild-lead { margin: 0 auto; font-size: 1.05rem; color: var(--text); }
+.guild-rows { max-width: 760px; margin: 0 auto; }
+.guild-row {
+  background: linear-gradient(90deg, rgba(212, 168, 67, 0.08), rgba(10, 10, 11, 0) 70%), rgba(10, 10, 11, 0.74);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  padding: 16px 22px 16px 24px; max-width: none; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+.guild-row .offer-text, .guild-planned li { color: #c9c5bb; }
+.guild-row .offer-text + .offer-text { margin-top: 10px; }
+.guild-planned { list-style: none; margin: 6px 0 0; padding: 0; }
+.guild-planned li { position: relative; padding: 6px 0 6px 22px; font-size: 0.92rem; line-height: 1.65; }
+.guild-planned li::before { content: "\25C6"; position: absolute; left: 0; top: 7px; color: var(--gold); font-size: 0.7rem; }
+.guild-row-planned { border-left-color: var(--amber); }
+.guild-closing { max-width: 760px; margin: 34px auto 0; background: rgba(10, 10, 11, 0.6); padding: 12px 22px 12px 24px; color: #b9b5ab; }
+.guild-closing p + p { margin-top: 8px; }
+.guild-page a[href^="https://discord.gg/"] { color: var(--gold-bright); }
+@media (max-width: 680px) {
+  .guild-crest-slot { width: 84px; height: 84px; }
+  .guild-hero { margin-bottom: 26px; padding-bottom: 22px; }
+  .guild-page a[href^="https://discord.gg/"] { word-break: break-all; }
+}
