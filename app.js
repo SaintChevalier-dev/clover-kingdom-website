@@ -923,8 +923,8 @@ function buildMerchantsGuild() {
       <a class="back-link" href="#/">\u2190 Back to the gate</a>
       <div class="section">
         <header class="guild-hero">
-          <!-- PAINTER crest slot: drop the final sealed Guild crest image here (img.guild-crest inside this div). Empty until PAINTER's crest repaint is ready. -->
-          <div class="guild-crest-slot" aria-hidden="true"></div>
+          <!-- PAINTER crest slot: sealed five-leaf crest CK_CREST_SLOT_112 (SC R508a). -->
+          <div class="guild-crest-slot" aria-hidden="true"><img class="guild-crest" src="images/guild-crest.png" alt="" width="112" height="112" loading="lazy"></div>
           <h2 class="section-title guild-title">${escHtml(g.title)}</h2>
           <p class="section-lead guild-lead">${guildText(g.lead)}</p>
         </header>
