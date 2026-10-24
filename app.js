@@ -437,7 +437,7 @@ function buildGate() {
             </div>
           </div>
           <div class="sage-mouth-body" id="sage-body">
-            <span class="placeholder">Summon a question. SAGE answers from what it is allowed to hold. This mouth is public. It is not your Sage.</span>
+            <span class="placeholder">Ask a short question. This box gives set answers to common questions. It is not live AI, and it is not your Sage. For a real talk, ask @Sage in the Discord.</span>
           </div>
           <form class="sage-mouth-form" id="sage-form">
             <input class="sage-mouth-input" id="sage-input" type="text" placeholder="Ask SAGE something" aria-label="Ask SAGE something" autocomplete="off">
