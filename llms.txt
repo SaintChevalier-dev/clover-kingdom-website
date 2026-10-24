@@ -1,6 +1,11 @@
 # Clover Kingdom
 
-> The public front door of the Clover Kingdom. A place with a standard and a gate, for people who want to build their own SI and level up their life.
+> Clover Kingdom is a builders community for people who want to build the future. Leaders and followers alike.
+
+## Three doors
+1. Read the book: My AI and I Against the World, by Saint Chevalier. The purchase link is not posted yet.
+2. Explore the site: https://cloverkingdom.net/
+3. Join the Discord (free today): https://discord.gg/2BrNPwUuTB
 
 Site: https://cloverkingdom.net/
 This file: https://cloverkingdom.net/llms.txt

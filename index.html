@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. Everyone is welcome. Join the Discord, apply, and a human reads it.">
-  <title>CLOVER KINGDOM - The Public Front Door</title>
+  <meta name="description" content="Clover Kingdom is a builders community for people who want to build the future. Three doors: read the book My AI and I Against the World, explore this site, or join the Discord.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self' https://clover-apply-relay.cloverkingdom.workers.dev; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="canonical" href="https://cloverkingdom.net/">
+  <title>Clover Kingdom - A builders community for people who want to build the future</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/svg+xml" href="images/crest.svg">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM / AI agent guide">
@@ -13,13 +16,18 @@
   <meta name="keywords" content="Clover Kingdom, sovereign SI, Discord community, archetypes, Tek Tribe, Wizard King, Saint Chevalier">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Clover Kingdom">
-  <meta property="og:title" content="CLOVER KINGDOM - The Public Front Door">
-  <meta property="og:description" content="A place with a standard and a gate. Everyone is welcome. Build your own SI. Level up your life. Find your people.">
+  <meta property="og:title" content="Clover Kingdom - A builders community for people who want to build the future">
+  <meta property="og:description" content="A builders community for people who want to build the future. Read the book, explore the site, or join the Discord.">
   <meta property="og:url" content="https://cloverkingdom.net/">
-  <meta property="og:image" content="https://cloverkingdom.net/images/crest.svg">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://cloverkingdom.net/images/crest-hero.jpg">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+  <meta property="og:image:alt" content="The five-leaf black clover crest of the Clover Kingdom">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://cloverkingdom.net/images/crest-hero.jpg">
+  <meta name="twitter:site" content="@Saint_Chevalier">
   <meta name="twitter:title" content="CLOVER KINGDOM">
-  <meta name="twitter:description" content="A place with a standard and a gate. Everyone is welcome. Build your own SI. Level up your life. Find your people.">
+  <meta name="twitter:description" content="A builders community for people who want to build the future. Read the book, explore the site, or join the Discord.">
   <meta name="theme-color" content="#0a0a0b">
   <script type="application/ld+json">
   {
@@ -37,7 +45,7 @@
           "https://www.instagram.com/saintchevalierasi/",
           "https://x.com/Tekk_Tribe"
         ],
-        "description": "A place with a standard and a gate, for people who want to build their own SI and level up their life. Everyone is welcome."
+        "description": "A builders community for people who want to build the future. Everyone is welcome."
       },
       {
         "@type": "WebSite",
@@ -54,6 +62,7 @@
 </head>
 
 <body>
+  <a class="skip-link" href="#page-content">Skip to content</a>
 
   <!-- Steady kingdom backdrop: dark forest-green to near-black with a soft gold glow.
        No rotating scenes, no figures, no fake data panels. -->
@@ -66,7 +75,7 @@
          prefers-reduced-motion: CSS hides the video and keeps the poster/gradient.
          Previous silent loop kept for rollback at images/kingdom-loop.mp4 (v3 clean). -->
     <video class="kingdom-bg-video" id="kingdom-bg-video"
-           muted autoplay loop playsinline preload="auto"
+           muted autoplay loop playsinline preload="metadata"
            poster="images/kingdom-loop-poster.jpg">
       <source src="images/kingdom-loop-scored.mp4" type="video/mp4" media="(min-width: 769px)">
     </video>
@@ -81,7 +90,7 @@
     <span class="bg-sound-label">Sound off</span>
   </button>
 
-  <nav class="site-nav">
+  <nav class="site-nav" aria-label="Main">
     <!-- Header term tags (2026-10-08 v2): in the empty side space left and right of the centered header row (same row, no extra height). Hidden on narrower screens; see styles.css. -->
     <span class="nav-tag nav-tag-left">AI = SI (Super Intelligence)</span>
     <span class="nav-tag nav-tag-right">SI + PSI (Physically Sovereign Intelligence) = Archetype</span>
@@ -115,7 +124,14 @@
   <!-- Readable without JavaScript. Hidden when the app starts (html.js). For humans with JS off and for AI agents reading the HTML. -->
   <section id="static-readme" class="static-readme container" aria-label="Clover Kingdom plain text guide">
     <h1>Clover Kingdom</h1>
-    <p>The public front door. A place with a standard and a gate, for people who want to build their own SI and level up their life.</p>
+    <p>A builders community for people who want to build the future. Leaders and followers alike. Everyone is welcome.</p>
+
+    <h2>Three doors</h2>
+    <ol>
+      <li><strong>Read the book.</strong> <em>My AI and I Against the World</em> by Saint Chevalier. The purchase link is not posted yet.</li>
+      <li><strong>Explore this site.</strong> The pages listed below.</li>
+      <li><strong>Join the Discord</strong> (free today): <a href="https://discord.gg/2BrNPwUuTB">https://discord.gg/2BrNPwUuTB</a></li>
+    </ol>
     <p><strong>Everyone is welcome.</strong> The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk.</p>
     <p>Build your own SI. Level up your life. Find your people.</p>
 
@@ -181,7 +197,7 @@
     <style>.site-nav, .kingdom-bg, #page-content { display: none !important; } .static-readme { display: block !important; }</style>
     <p class="container" style="padding:12px 0;color:#e8c35a">JavaScript is off. The plain guide on this page is the whole site for you. Join the Discord and apply when you can.</p>
   </noscript>
-  <main id="page-content" class="container">
+  <main id="page-content" class="container" tabindex="-1">
     <!-- Rendered by app.js -->
   </main>
 
@@ -189,13 +205,12 @@
     <div class="container">
       <div>&copy; 2026 Clover Kingdom &middot; Unlock your magic.</div>
       <div>
-        <a href="https://x.com/Saint_Chevalier" target="_blank" rel="noopener">X &middot; @Saint_Chevalier</a>
+        <a href="https://x.com/Saint_Chevalier" target="_blank" rel="noopener noreferrer">X &middot; @Saint_Chevalier</a>
       </div>
-      <div class="site-credit">Music: &ldquo;Epic Cinematic Bold Drums&rdquo; by alex-morgan (<a href="https://pixabay.com/music/orchestral-epic-cinematic-bold-drums-573877/" target="_blank" rel="noopener">Pixabay</a>)</div>
+      <div class="site-credit">Music: &ldquo;Epic Cinematic Bold Drums&rdquo; by alex-morgan (<a href="https://pixabay.com/music/orchestral-epic-cinematic-bold-drums-573877/" target="_blank" rel="noopener noreferrer">Pixabay</a>)</div>
     </div>
   </footer>
 
-  <script>document.documentElement.classList.add("js");</script>
   <script src="app.js"></script>
 
 </body>

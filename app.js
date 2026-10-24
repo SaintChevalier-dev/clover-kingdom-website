@@ -2,12 +2,50 @@
    CLOVER KINGDOM — ritual + routing + Sage mouth (v1)
    ============================================================ */
 
+/* Moved here from an inline <script> so the page can use a strict Content-Security-Policy (no inline scripts). */
+document.documentElement.classList.add("js");
+
 const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
 
 /* ONE place for the Discord invite. FLAG: Discord's own lookup said this code was unknown
    (maybe expired or mistyped) when last checked on 2026-10-04. Change it here and it updates
    the front page buttons, the Links page and the Sage "ask in the Discord" reply. */
-const DISCORD_URL = "https://discord.gg/2BrNPwUuTB";
+const DISCORD_URL = "https://discord.gg/2BrNPwUuTB"; /* re-checked 2026-10-23: valid */
+
+/* Jacob's book. BOOK_URL stays null until the real purchase page exists. While it is null the
+   book door shows "link not posted yet" and is NOT a link. Never put a guessed URL here. */
+const BOOK_TITLE = "My AI and I Against the World";
+const BOOK_URL = null; // PLACEHOLDER: paste the real purchase URL (https://...) when Jacob gives it
+
+function threeDoorsHtml() {
+  const book = BOOK_URL
+    ? `<a class="door-cta cta cta-primary" href="${escHtml(BOOK_URL)}" target="_blank" rel="noopener noreferrer">Get the book</a>`
+    : `<span class="door-cta door-pending" role="note">Purchase link not posted yet</span>`;
+  return `
+    <section class="three-doors" aria-labelledby="doors-title">
+      <h2 class="section-title doors-title" id="doors-title">Three doors in</h2>
+      <div class="door-grid">
+        <div class="door-card">
+          <div class="door-num" aria-hidden="true">1</div>
+          <h3 class="door-name">Read the book</h3>
+          <p class="door-text"><em>${escHtml(BOOK_TITLE)}</em>. How one builder and his AI built what no one else would.</p>
+          ${book}
+        </div>
+        <div class="door-card">
+          <div class="door-num" aria-hidden="true">2</div>
+          <h3 class="door-name">Explore the site</h3>
+          <p class="door-text">See what the Kingdom offers, meet the SI helpers, and read the Standard.</p>
+          <a class="door-cta cta cta-secondary" href="#/offers">Start exploring</a>
+        </div>
+        <div class="door-card">
+          <div class="door-num" aria-hidden="true">3</div>
+          <h3 class="door-name">Join the Discord</h3>
+          <p class="door-text">Free today. Quests, the Merchants Guild and the people building with you.</p>
+          <a class="door-cta cta cta-secondary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+        </div>
+      </div>
+    </section>`;
+}
 
 /* Public links (single place to edit). Each one is shown on the Links page. */
 const LINKS = [
@@ -383,12 +421,14 @@ function buildGate() {
       <div class="container" style="display:block;text-align:center">
         <img class="hero-crest" src="images/crest-hero.jpg" alt="The five-leaf black clover crest, the mark of the Clover Kingdom" width="96" height="96">
         <div class="gate-name">CLOVER<span> KINGDOM</span></div>
-        <div class="gate-sub">The public front door</div>
-        <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
+        <div class="gate-sub">A builders community</div>
+        <h1 class="hero-line">For people who want to build the future.</h1>
+        <p class="hero-sub">Leaders and followers alike. Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
           <button type="button" class="cta cta-primary" data-scroll="apply">Apply</button>
           <a class="cta cta-secondary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
         </div>
+        ${threeDoorsHtml()}
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
           This is a place, not a landing page. Say the name, then use the box.
