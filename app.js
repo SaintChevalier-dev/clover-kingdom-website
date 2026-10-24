@@ -817,97 +817,25 @@ function buildArchetypes() {
 }
 
 /* ------------------------------------------------
-   Merchants Guild page (#/merchants-guild), added 2026-10-18.
-   Copy is word for word from SITE_DRAFT_MERCHANTS_GUILD_v4_2026-10-18.md
-   (sha256 7d6aa0b4..., sealed R480, SAGE GREEN). Do not edit these strings
-   without a new sealed draft.
+   Merchants Guild page (#/merchants-guild). Public version trimmed 2026-10-24.
+   Full Guild copy (v4 sealed) is held for the future members-only page:
+   D:\Kingdom\notes\ck-calendar-join\CKW_MEMBERS_ONLY_GUILD_CONTENT_2026-10-24.md
    ------------------------------------------------ */
-const GUILD_PAGE = {
-  "title": "Clover Kingdom Merchants Guild",
-  "lead": "A place for Magic Knights to trade with each other honestly: goods, services, intelligence and new things. DRAGON leads the Guild.",
-  "sections": [
-    {
-      "h": "What you need",
-      "p": [
-        "One account you already hold money in and can send money to others from. We never name or pick an app for you. Trades happen through the payment app you already use, under that app's own rules."
-      ]
-    },
-    {
-      "h": "How we play",
-      "p": [
-        "Build in truth. How far you grow your numbers depends on you and the chances you find, and we only teach doing it for real. Risky play is not what we teach. Trading comes in all shapes and sizes, and a value counts only when both sides understand it and agree to it freely, so nobody gets scammed. We're only as strong as our weakest link, so no member gets left behind. The Guild exists so no one gets to take advantage of another member, and anyone who hurts the group loses their place."
-      ]
-    },
-    {
-      "h": "How to use it",
-      "p": [
-        "Join the Clover Kingdom Discord (free today): https://discord.gg/2BrNPwUuTB. The Guild lives in #merchants-guild. You have to join the Discord to use it."
-      ]
-    },
-    {
-      "h": "Rewards",
-      "p": [
-        "Rewards are XP and rank on your MK# only. Planned, not live yet: 10 XP for setting up a stall, 10 XP for reporting a quest, 25 XP for a trade both sides confirm, and advancement for contributing intelligence through the glyph and essentials channels."
-      ]
-    },
-    {
-      "h": "Planned, not live yet",
-      "list": [
-        "The trade log: each trade by date, MK# of both members, what, why, agreement step and size as a ratio. It counts only when both sides confirm it.",
-        "DRAGON answering trade questions in #merchants-guild.",
-        "Purchase-audit threads in #merchants-guild, where members share a purchase or a plan and others check whether it's fair and needed. Members only.",
-        "The Guild scoreboard of confirmed trades.",
-        "Member pages and signing in."
-      ]
-    },
-    {
-      "h": "Who sees what",
-      "p": [
-        "On this site, anyone can read this page. The trade log is open inside the Guild and closed to everyone else: a visitor sees nothing from it, a Magic Knight reads every confirmed row and adds rows for trades they were part of, a Squad Leader (Wizard) can also flag a row for review, and an admin can do everything, fixing a wrong row with a dated correction line. Rows are never deleted."
-      ]
-    },
-    {
-      "h": "What we keep",
-      "p": [
-        "You get a fair place to trade and credit on your MK#. We keep only the trade log row: date, MK# of both members, what, why, agreement step and size as a ratio. We never keep account details, handles, balances or chat (planned, not live yet; confirmed Guild trades so far: 0)."
-      ]
-    }
-  ],
-  "closing": [
-    "Results may vary. Nothing on this page is a sale, a price or a promise.",
-    "Logged actions can open doors, a missing action never counts against anyone, nothing we've seen someone do is ever used against them."
-  ]
-};
-
-/* Escape, then turn the Discord invite inside the copy into a real link (text stays the same). */
-function guildText(t) {
-  return escHtml(t).split(DISCORD_URL).join(`<a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">${DISCORD_URL}</a>`);
-}
-
 function buildMerchantsGuild() {
-  const g = GUILD_PAGE;
-  const rows = g.sections.map((s) => {
-    const body = s.list
-      ? `<ul class="guild-planned">${s.list.map((li) => `<li>${guildText(li)}</li>`).join("")}</ul>`
-      : s.p.map((p) => `<p class="offer-text">${guildText(p)}</p>`).join("");
-    return `<div class="offer-row guild-row${s.list ? " guild-row-planned" : ""}"><h3 class="offer-name">${escHtml(s.h)}</h3>${body}</div>`;
-  }).join("");
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="container guild-page">
       <a class="back-link" href="#/">\u2190 Back to the gate</a>
       <div class="section">
         <header class="guild-hero">
-          <!-- PAINTER crest slot: drop the final sealed Guild crest image here (img.guild-crest inside this div). Empty until PAINTER's crest repaint is ready. -->
-          <div class="guild-crest-slot" aria-hidden="true"></div>
-          <h2 class="section-title guild-title">${escHtml(g.title)}</h2>
-          <p class="section-lead guild-lead">${guildText(g.lead)}</p>
+          <h2 class="section-title guild-title">Clover Kingdom Merchants Guild</h2>
+          <p class="section-lead guild-lead">A place for Magic Knights to trade with each other honestly. Details are for members.</p>
         </header>
-        <div class="offer-rows guild-rows">${rows}</div>
-        <div class="law-block face guild-closing">${g.closing.map((c) => `<p>${guildText(c)}</p>`).join("")}</div>
+        <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Join</button></div>
       </div>
     </div>
   `;
+  wirePageButtons(wrap);
   return wrap;
 }
 
