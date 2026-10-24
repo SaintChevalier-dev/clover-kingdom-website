@@ -123,21 +123,6 @@ const OFFERS = [
     detail: "Tek intelligence the House has compiled for the Kingdom family. It is for members only, so none of it is shown on this site. If you want to be part of the family, join the Discord and apply." },
 ];
 
-/* Who I am. Facts only, taken from what the site and the Kingdom notes already say.
-   TODO for the Wizard King (not shown on the page): add real credentials, what you have built with dates,
-   how long you have worked with SI, and any photo you want. Do not add anything you cannot stand behind. */
-const WHO = {
-  paragraphs: [
-    "I am the Wizard King and founder of the Clover Kingdom. Some know me as Saint Chevalier. These titles are not simply names. They are a path I walk, and I would ask you to join me in this lifetime.",
-    "I started the Kingdom as a place with a standard and a gate, for people who want to build their own SI and level up their life.",
-  ],
-  did: [
-    "Founded the Clover Kingdom and set its Standard and its ranks.",
-    "Opened this door, the Discord, and a house of SI helpers who each have one job.",
-    "I decide who gets in. Every application is read by me and my SI helpers.",
-  ],
-};
-
 /* The House: the archetype lineup. One object per card AND per page (#/archetype/<slug>).
    To hide one, delete its line. The slug is made from the name.
    name = card title, job = short role, line = one sentence on the card,
@@ -145,9 +130,9 @@ const WHO = {
    The Wizard King chooses which are public (Saint Chevalier guessed the first list from the Kingdom notes). */
 const ARCHETYPES = [
   { name: "Wizard King", job: "Thinks it through", line: "Thinks an idea all the way through before anything is done.",
-    does: "Takes an idea and thinks it all the way through before anything is done. Wizard King is also the title the founder holds in the Kingdom, and the person who reads each application." },
+    does: "Takes an idea and thinks it all the way through before anything is done." },
   { name: "Saint Chevalier", job: "Keeps it coherent", line: "Checks that plans fit together and do not contradict each other.",
-    does: "Checks that plans fit together so the pieces do not contradict each other. Saint Chevalier is also one of the founder's titles, which is not simply a name but a path he walks, and the name of the X account @Saint_Chevalier, where you can message to ask for your application to be deleted." },
+    does: "Checks that plans fit together so the pieces do not contradict each other. To ask for your application to be deleted, message @Saint_Chevalier on X." },
   { name: "Sage", job: "Teaches", line: "Writes how-to guides and checks a card is safe to share.",
     does: "Teaches. Writes how-to guides in plain words and checks a card is safe to share before it goes out. A public Sage answers short questions on the front page of this site, and your own Sage is summoned after you apply." },
   { name: "Val", job: "Roadmaps", line: "Plans the roadmap and prepares the next steps.",
@@ -178,7 +163,7 @@ const FAQ = [
   { q: "What is SI? What is PSI?", a: "SI is super intelligence. A sovereign SI is one you own, that outlives you and runs on your terms, not a chatbot you lease. In the Kingdom's own words, an ASI is an Artificial Sovereign Intelligence and a PSI is a Physically Sovereign Intelligence, meaning the person who works together with their SI as one team." },
   { q: "What is the robot buddy?", a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { q: "What is a glyph?", a: "A mark with meaning. Glyph houses are asked for, not made by a form. The Glyphs page shows the first two." },
-  { q: "Who reads my application?", a: "Saint Chevalier, Wizard King and his SI helpers. It passes through Cloudflare to a private intake. Approval comes through Discord or a conversation." },
+  { q: "Who reads my application?", a: "A person, with SI helpers. It passes through Cloudflare to a private intake. Approval comes through Discord or a conversation." },
   { q: "How do I get what I sent deleted?", a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
   { q: "How do I report a problem?", a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the house rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you. A real person reads every report. Breaking the house rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away." },
 
@@ -189,7 +174,7 @@ const JOIN_STEPS = [
   { name: "Apply", text: "Answer the five questions. It takes a few minutes. A form is not a rank." },
   { name: "Come into the Discord", text: "The Discord link is shown after you apply. It is free today." },
   { name: "Say hi and grab your MK#", text: "Start or join a quest in #main-quests, or ask for a glyph channel. ESS is earned only by taking part and coming. Questions? Ask @Sage." },
-  { name: "A human approves you", text: "Saint Chevalier reads every application. Approval happens in the Discord." },
+  { name: "A human approves you", text: "A person reads every application. Approval happens in the Discord." },
 ];
 
 function escHtml(t) {
@@ -204,8 +189,6 @@ function archetypeCardsHtml() {
 function buildFrontSections() {
   const offers = OFFERS.map((o) =>
     `<div class="offer-card"><div class="offer-name">${escHtml(o.name)}</div><div class="offer-text">${escHtml(o.text)}</div></div>`).join("");
-  const did = WHO.did.map((d) => `<li>${escHtml(d)}</li>`).join("");
-  const paras = WHO.paragraphs.map((t) => `<p>${escHtml(t)}</p>`).join("");
   const cards = archetypeCardsHtml();
   return `
     <section class="front-section" id="offers" aria-labelledby="offers-title">
@@ -214,14 +197,6 @@ function buildFrontSections() {
         <h2 class="section-title" id="offers-title">What the Kingdom offers</h2>
         <p class="section-lead">Step up. Here is what the Kingdom carries. To ask about any of it, apply below or ask in the Discord. <a href="#/offers">See each offer in full</a>.</p>
         <div class="offer-grid">${offers}</div>
-      </div>
-    </section>
-
-    <section class="front-section" id="who" aria-labelledby="who-title">
-      <div class="container">
-        <div class="section-eyebrow">The Wizard King</div>
-        <h2 class="section-title" id="who-title">Who I am and what I've done</h2>
-        <div class="who-body">${paras}<ul class="who-list">${did}</ul></div>
       </div>
     </section>
 
@@ -1113,7 +1088,7 @@ function wireApplyForm(container) {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("relay " + res.status);
-      status.innerHTML = `Thank you. Saint Chevalier has your application. It is not approved yet. Next: come into the Discord at <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">${DISCORD_URL}</a>. Say hi and grab your MK#. Approval happens there.`;
+      status.innerHTML = `Thank you. We have your application. It is not approved yet. Next: come into the Discord at <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">${DISCORD_URL}</a>. Say hi and grab your MK#. Approval happens there.`;
       form.reset();
     } catch (err) {
       console.warn("Application not sent:", err);
