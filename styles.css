@@ -18,7 +18,7 @@
   --amber-glow: #d98c3a;
   --text: #e8e6df;
   --text-muted: #8a8780;
-  --text-faint: #5c5955;
+  --text-faint: #858179; /* was #5c5955; raised for WCAG AA contrast on dark backgrounds */
   --border: #2e2e33;
   --border-bright: #3f3f46;
   --black-crest: #000000;
@@ -1642,4 +1642,26 @@ html.js .static-readme { display: none !important; }
   .guild-crest-slot { width: 84px; height: 84px; }
   .guild-hero { margin-bottom: 26px; padding-bottom: 22px; }
   .guild-page a[href^="https://discord.gg/"] { word-break: break-all; }
+}
+
+/* ===== 2026-10-23 upgrade: three doors, skip link, hero sub-line ===== */
+.skip-link { position: absolute; left: 8px; top: -60px; z-index: 1000; padding: 10px 14px; background: var(--gold); color: #0a0a0b; font-weight: 700; border-radius: 4px; text-decoration: none; }
+.skip-link:focus { top: 8px; outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+#page-content:focus { outline: none; }
+h1.hero-line { font-weight: 400; margin-bottom: 10px; }
+.hero-sub { color: var(--text); max-width: 560px; margin: 0 auto 26px; line-height: 1.5; text-shadow: 0 2px 10px rgba(0,0,0,0.7); }
+.hero-sub + .cta-row { margin-bottom: 36px; }
+.three-doors { max-width: 980px; margin: 8px auto 34px; text-align: left; }
+.three-doors .doors-title { text-align: center; margin-bottom: 18px; }
+.door-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.door-card { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 22px 20px 20px; background: rgba(10,10,11,0.72); border: 1px solid var(--border-bright); border-radius: 6px; }
+.door-num { position: absolute; top: 12px; right: 16px; font-family: var(--font-display); color: var(--gold); opacity: 0.55; font-size: 1.4rem; }
+.door-name { font-family: var(--font-display); color: var(--gold-bright); font-size: 1.15rem; letter-spacing: 0.04em; font-weight: 400; }
+.door-text { color: var(--text); line-height: 1.5; flex: 1; }
+.door-cta { align-self: flex-start; }
+.door-pending { display: inline-block; padding: 10px 14px; border: 1px dashed var(--border-bright); color: var(--text-muted); font-size: 0.9rem; border-radius: 4px; }
+@media (max-width: 768px) {
+  .door-grid { grid-template-columns: 1fr; gap: 12px; }
+  .door-card { padding: 18px 16px; }
+  .door-cta, .door-pending { align-self: stretch; text-align: center; }
 }
