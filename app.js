@@ -1,11 +1,10 @@
-﻿/* ============================================================
+/* ============================================================
    CLOVER KINGDOM — ritual + routing + Sage mouth (v1)
    ============================================================ */
 
 const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
 
-/* ONE place for the Discord invite. FLAG: Discord's own lookup said this code was unknown
-   (maybe expired or mistyped) when last checked on 2026-10-04. Change it here and it updates
+/* ONE place for the Discord invite. Change it here and it updates
    the front page buttons, the Links page and the Sage "ask in the Discord" reply. */
 const DISCORD_URL = "https://discord.gg/2BrNPwUuTB";
 
@@ -187,10 +186,10 @@ const FAQ = [
 
 /* Join steps (shown on #/join). */
 const JOIN_STEPS = [
-  { name: "Join the Discord", text: "The Discord is the classroom, and it is free today. Come in and look around." },
-  { name: "Say what you want", text: "Tell us what you are building, what you want to learn, or what you want a robot buddy to do. A sentence is enough." },
-  { name: "Apply", text: "Fill in the five questions on the front page. It takes a few minutes. A form is not a rank." },
-  { name: "A human reads it", text: "Saint Chevalier and Wizard King read it, with his SI helpers. Approval comes through Discord or a conversation." },
+  { name: "Apply", text: "Answer the five questions. It takes a few minutes. A form is not a rank." },
+  { name: "Come into the Discord", text: "The Discord link is shown after you apply. It is free today." },
+  { name: "Say hi and grab your MK#", text: "Start or join a quest in #main-quests, or ask for a glyph channel. ESS is earned only by taking part and coming. Questions? Ask @Sage." },
+  { name: "A human approves you", text: "Saint Chevalier reads every application. Approval happens in the Discord." },
 ];
 
 function escHtml(t) {
@@ -788,9 +787,10 @@ function buildJoin() {
   const steps = JOIN_STEPS.map((st, i) =>
     `<li class="join-step"><span class="join-num">${i + 1}</span><div><h3 class="offer-name">${escHtml(st.name)}</h3><p class="offer-text">${escHtml(st.text)}</p></div></li>`).join("");
   const wrap = pageShell("Join", "How to join",
-    "Four steps. Everyone is welcome. A form is not a rank, and approval comes through Discord or a conversation.",
+    "Four steps. Everyone is welcome. While others doom, we lift in preparedness.",
     `<ol class="join-steps">${steps}</ol>
-     <div class="cta-row cta-left">${DISCORD_BUTTON()}${APPLY_BUTTON}</div>
+     <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Join</button></div>
+     <p class="muted" style="margin-top:12px">Already a member? <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Open the Discord</a>.</p>
      <p class="muted" style="margin-top:20px">Please read the <a href="#/welcome">welcome page</a> first. It is short.</p>`);
   wirePageButtons(wrap);
   return wrap;
@@ -1113,7 +1113,7 @@ function wireApplyForm(container) {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("relay " + res.status);
-      status.textContent = "Received. Saint Chevalier has your application. It is not approved yet; approval comes through Discord or a conversation.";
+      status.innerHTML = `Thank you. Saint Chevalier has your application. It is not approved yet. Next: come into the Discord at <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">${DISCORD_URL}</a>. Say hi and grab your MK#. Approval happens there.`;
       form.reset();
     } catch (err) {
       console.warn("Application not sent:", err);
