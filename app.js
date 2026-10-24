@@ -20,7 +20,7 @@ const BOOK_URL = null; // PLACEHOLDER: paste the real purchase URL (https://...)
 function threeDoorsHtml() {
   const book = BOOK_URL
     ? `<a class="door-cta cta cta-primary" href="${escHtml(BOOK_URL)}" target="_blank" rel="noopener noreferrer">Get the book</a>`
-    : `<span class="door-cta door-pending" role="note">Purchase link not posted yet</span>`;
+    : `<span class="door-cta door-pending" role="note">Coming soon</span>`;
   return `
     <section class="three-doors" aria-labelledby="doors-title">
       <h2 class="section-title doors-title" id="doors-title">Three doors in</h2>
