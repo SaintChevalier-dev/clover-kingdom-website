@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import initSqlJs from "sql.js";
 const SQL = await initSqlJs();
-import worker, { SESSION_HOURS, SECURITY_HEADERS } from "../src/index.js";
+import worker, { SESSION_HOURS, SECURITY_HEADERS, safeErr } from "../src/index.js";
 
 function fakeD1() {
   const db = new SQL.Database();
@@ -165,4 +165,26 @@ test("rate limit binding wired: used on login+callback, 429 when over or missing
   const toml = fs.readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   assert.match(toml, /\[\[ratelimits\]\][\s\S]*name = "AUTH_LIMITER"/);
   assert.match(toml, /workers_dev = false/);
+});
+
+test("not-member path revokes the old cookie's session by flag", async () => {
+  const e = env(); const { tok } = await fullLogin(e);
+  mockDiscord(false); const { loc, flow } = await startLogin(e);
+  const cb = await worker.fetch(req(`/auth/callback?code=c&state=${loc.searchParams.get("state")}`, { headers: { Cookie: "__Host-ckw_oauth=" + encodeURIComponent(flow) + "; __Host-ckw_session=" + tok } }), e);
+  assert.match(cb.headers.get("Location"), /login=not_member/);
+  assert.equal((await me(e, tok)).status, 401);
+  assert.equal(e.DB.raw.prepare("SELECT COUNT(*) n FROM sessions WHERE revoked_at IS NOT NULL").get().n, 1);
+});
+
+test("error audit never carries tokens", async () => {
+  assert.equal(safeErr(new Error("token_status_400")), "token_status_400");
+  assert.equal(safeErr(new Error("no_access_token")), "no_access_token");
+  assert.equal(safeErr(new Error("Bearer SECRET_TOK_123 rejected")), "unexpected");
+  assert.equal(safeErr(new Error("a".repeat(200))), "unexpected");
+  assert.equal(safeErr("SECRET_TOK_123"), "unexpected");
+  const e = env(); const { loc, flow } = await startLogin(e);
+  globalThis.fetch = async () => { throw new Error("leak ACCESS_TOK_X REFRESH_TOK_X sec"); };
+  await worker.fetch(req(`/auth/callback?code=c&state=${loc.searchParams.get("state")}`, { headers: { Cookie: "__Host-ckw_oauth=" + encodeURIComponent(flow) } }), e);
+  const row = e.DB.raw.prepare("SELECT detail FROM audit_log WHERE action = 'login_error'").get();
+  assert.equal(row.detail, JSON.stringify({ error: "unexpected" }));
 });

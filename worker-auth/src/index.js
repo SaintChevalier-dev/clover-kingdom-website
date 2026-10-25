@@ -69,6 +69,18 @@ async function login(env) {
   return redirect(u.toString(), [setCookie(FLOW, state + "." + verifier, 600)]);
 }
 
+// Revoke the session from any previous cookie (flag, not delete).
+async function revokePrev(env, req) {
+  const prev = parseCookies(req.headers.get("Cookie"))[COOKIE];
+  if (prev) await env.DB.prepare("UPDATE sessions SET revoked_at = ? WHERE id_hash = ? AND revoked_at IS NULL").bind(now(), await sha256(prev)).run();
+}
+
+// Audit-safe error code: only our own short snake_case codes pass; anything else (which could carry a token) becomes "unexpected".
+export function safeErr(err) {
+  const m = String((err && err.message) || "");
+  return /^[a-z_]{1,32}(_\d{3})?$/.test(m) ? m : "unexpected";
+}
+
 async function callback(env, req, url) {
   const clear = setCookie(FLOW, "", 0);
   const back = (why) => redirect(env.SITE_ORIGIN + "/#/me?login=" + why, [clear]);
@@ -92,7 +104,7 @@ async function callback(env, req, url) {
     actor = user.id;
     // Server-side gate, re-checked on every login: must be in the CKD server.
     const gr = await fetch(`${API}/users/@me/guilds/${env.CKD_GUILD_ID}/member`, auth);
-    if (!gr.ok) { await audit(env, user.id, "login_not_ckd_member", null); return back("not_member"); }
+    if (!gr.ok) { await revokePrev(env, req); await audit(env, user.id, "login_not_ckd_member", null); return back("not_member"); }
     const gm = await gr.json();
     const name = String(gm.nick || user.global_name || user.username || "member").slice(0, 64);
     const t = now();
@@ -103,15 +115,14 @@ async function callback(env, req, url) {
     const m = await env.DB.prepare("SELECT blocked, session_epoch FROM members WHERE discord_id = ?").bind(user.id).first();
     if (!m || m.blocked) { await audit(env, user.id, "login_blocked", null); return back("failed"); }
     // Revoke the session from any previous cookie (flag, not delete).
-    const prev = parseCookies(req.headers.get("Cookie"))[COOKIE];
-    if (prev) await env.DB.prepare("UPDATE sessions SET revoked_at = ? WHERE id_hash = ? AND revoked_at IS NULL").bind(t, await sha256(prev)).run();
+    await revokePrev(env, req);
     const tok = rand(32);
     const exp = new Date(Date.now() + SESSION_HOURS * 3600e3).toISOString();
     await env.DB.prepare("INSERT INTO sessions (id_hash, discord_id, session_epoch, created_at, expires_at) VALUES (?, ?, ?, ?, ?)").bind(await sha256(tok), user.id, m.session_epoch, t, exp).run();
     await audit(env, user.id, "login", null);
     return redirect(env.SITE_ORIGIN + "/#/me", [clear, setCookie(COOKIE, tok, SESSION_HOURS * 3600)]);
   } catch (err) {
-    try { await audit(env, actor, "login_error", { error: String(err && err.message || err).slice(0, 100) }); } catch (_) { /* still fail closed */ }
+    try { await audit(env, actor, "login_error", { error: safeErr(err) }); } catch (_) { /* still fail closed */ }
     return back("failed");
   }
 }
