@@ -1141,6 +1141,17 @@ function wireNav() {
     });
   });
 
+  // Skip link: move keyboard focus to the main content without touching the hash router.
+  const skip = document.getElementById("skip-link");
+  const mainEl = document.getElementById("page-content");
+  if (skip && mainEl) {
+    skip.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!mainEl.hasAttribute("tabindex")) mainEl.setAttribute("tabindex", "-1");
+      mainEl.focus();
+    });
+  }
+
   // "More" menu: closes when you pick a page, press Escape, or click elsewhere.
   const more = document.getElementById("nav-more");
   if (more) {
