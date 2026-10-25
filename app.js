@@ -586,7 +586,7 @@ function buildStandard() {
         </div>
         <div class="law-block">
           A form is not a rank. Applying does not make you a Magic Knight. It asks
-          whether the seat is worth the effort. The Wizard King reads it.
+          whether the seat is worth the effort. A person reads it.
         </div>
         <div class="law-block">
           Correction is positive. Brutal honesty is an eternal rule. If you lie in the
