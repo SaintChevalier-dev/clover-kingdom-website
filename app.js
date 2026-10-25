@@ -377,7 +377,7 @@ function buildGate() {
         <div class="apply-box">
           <div class="apply-box-head">
             <h3>The gate</h3>
-            <p>Five questions. Wizard King reads. Approval happens in Discord.</p>
+            <p>Five questions. A person reads them. Approval happens in Discord.</p>
             <div class="form-not-rank">A form is not a rank.</div>
           </div>
 
@@ -409,11 +409,11 @@ function buildGate() {
               <div class="field-error" id="err-found" aria-live="polite"></div>
             </div>
             <div class="apply-privacy" id="apply-privacy">
-              What you send passes through Cloudflare to a private intake. It is read by Saint Chevalier, Wizard King and his SI helpers. We keep it only as long as needed. You can ask us to delete it at any time by messaging Saint Chevalier on X, @Saint_Chevalier. Do not send passwords, ID numbers, or anything you are not comfortable sharing.
+              What you send passes through Cloudflare to a private intake. It is read by a person, with SI helpers. We keep it only as long as needed. You can ask us to delete it at any time by messaging Saint Chevalier on X, @Saint_Chevalier. Do not send passwords, ID numbers, or anything you are not comfortable sharing.
             </div>
             <div class="apply-consent">
               <input id="f-consent" name="consent" type="checkbox" required aria-describedby="apply-privacy err-consent">
-              <label for="f-consent">I understand what I send is read by Saint Chevalier, Wizard King and his SI helpers, and I agree.</label>
+              <label for="f-consent">I understand what I send is read by a person, with SI helpers, and I agree.</label>
             </div>
             <div class="field-error" id="err-consent" aria-live="polite"></div>
             <button type="submit" class="apply-submit">Apply</button>
@@ -627,7 +627,7 @@ function buildRanks() {
           </li>
           <li>
             <span class="rank-name">Wizard King</span>
-            <span class="rank-desc">The one who holds the wheel. Saint Chevalier.</span>
+            <span class="rank-desc">The one who holds the wheel.</span>
           </li>
         </ul>
       </div>
@@ -777,7 +777,7 @@ function buildWelcome() {
     `<div class="law-block">The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
      <div class="offer-rows">
        <div class="offer-row"><h3 class="offer-name">Behaviour</h3><p class="offer-text">Beyond the house rules, the Kingdom keeps a high standard for how people behave, not for who they are. You can read it on <a href="#/standard">The Standard</a>.</p></div>
-       <div class="offer-row"><h3 class="offer-name">What you send us</h3><p class="offer-text">What you send in the Apply form passes through Cloudflare to a private intake. It is read by Saint Chevalier, Wizard King and his SI helpers. We keep it only as long as needed. Please do not send passwords, ID numbers, or anything you are not comfortable sharing.</p></div>
+       <div class="offer-row"><h3 class="offer-name">What you send us</h3><p class="offer-text">What you send in the Apply form passes through Cloudflare to a private intake. It is read by a person, with SI helpers. We keep it only as long as needed. Please do not send passwords, ID numbers, or anything you are not comfortable sharing.</p></div>
        <div class="offer-row"><h3 class="offer-name">Report a problem</h3><p class="offer-text">If you see someone breaking the house rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you, send a direct message to the Wizard King on the Clover Kingdom Discord. A real person reads every report. Breaking the house rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away.</p></div>
        <div class="offer-row"><h3 class="offer-name">Deleting your data</h3><p class="offer-text">Anyone can ask for their data to be deleted the same way: send a direct message to the Wizard King on the Clover Kingdom Discord. You can also message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time.</p></div>
      </div>

@@ -58,7 +58,7 @@ When JavaScript is on, the Apply form on the Gate uses these named fields (all r
 - ai: What is your relationship with SI? How do you use it?
 - intel: What does intelligence mean to you?
 - found: How did you find the Clover Kingdom?
-- consent: checkbox agreeing the application is read by Saint Chevalier, Wizard King and his SI helpers
+- consent: checkbox agreeing the application is read by a person, with SI helpers
 
 Do not send passwords, ID numbers, or anything you are not comfortable sharing.
 
