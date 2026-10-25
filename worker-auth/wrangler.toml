@@ -1,7 +1,9 @@
 name = "ckw-auth"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
-# routes = [{ pattern = "auth.cloverkingdom.net", custom_domain = true }]   # Jacob enables at deploy
+# Deploy target: auth.cloverkingdom.net ONLY. Never workers.dev (cookie would be cross-site).
+workers_dev = false
+routes = [{ pattern = "auth.cloverkingdom.net", custom_domain = true }]
 
 [vars]
 SITE_ORIGIN = "https://cloverkingdom.net"
@@ -14,3 +16,14 @@ DISCORD_CLIENT_ID = "DISCORD_CLIENT_ID"
 binding = "DB"
 database_name = "ckw-members"
 database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Rate limit /auth/login and /auth/callback: 10 tries per IP per route per 60 s.
+# If this binding is missing at runtime the Worker answers 429 (fails closed).
+# Fallback if the binding is unavailable: Cloudflare dashboard > Security > WAF > Rate limiting rules,
+# path starts with /auth/ on auth.cloverkingdom.net, 10 requests / 1 minute per IP, action Block.
+[[ratelimits]]
+name = "AUTH_LIMITER"
+namespace_id = "1001"
+  [ratelimits.simple]
+  limit = 10
+  period = 60

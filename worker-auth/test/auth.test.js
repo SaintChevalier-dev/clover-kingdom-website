@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import initSqlJs from "sql.js";
 const SQL = await initSqlJs();
-import worker from "../src/index.js";
+import worker, { SESSION_HOURS, SECURITY_HEADERS } from "../src/index.js";
 
 function fakeD1() {
   const db = new SQL.Database();
@@ -15,13 +15,14 @@ function fakeD1() {
     const o = { bind(...x) { a = x; return o; }, async run() { db.run(sql, a); return {}; }, async first() { return all(sql, a)[0] || null; } }; return o; } };
 }
 const env = () => ({ DB: fakeD1(), SITE_ORIGIN: "https://cloverkingdom.net", AUTH_ORIGIN: "https://auth.cloverkingdom.net",
-  CKD_GUILD_ID: "123", DISCORD_CLIENT_ID: "cid", DISCORD_CLIENT_SECRET: "sec" });
+  CKD_GUILD_ID: "123", DISCORD_CLIENT_ID: "cid", DISCORD_CLIENT_SECRET: "sec",
+  AUTH_LIMITER: { calls: 0, async limit() { this.calls++; return { success: true }; } } });
 const req = (path, init = {}) => new Request("https://auth.cloverkingdom.net" + path, init);
 const cookieVal = (res, name) => res.headers.getSetCookie().find((c) => c.startsWith(name + "="))?.split(";")[0].slice(name.length + 1);
 
-function mockDiscord(member = true) {
+function mockDiscord(member = true, token = { access_token: "ACCESS_TOK_X", refresh_token: "REFRESH_TOK_X" }) {
   globalThis.fetch = async (u) => { u = String(u);
-    if (u.endsWith("/oauth2/token")) return Response.json({ access_token: "at" });
+    if (u.endsWith("/oauth2/token")) return Response.json(token);
     if (u.endsWith("/users/@me")) return Response.json({ id: "42", username: "jacob", global_name: "Jacob" });
     if (u.includes("/guilds/123/member")) return member ? Response.json({ nick: null }) : new Response("", { status: 404 });
     throw new Error("unexpected " + u); };
@@ -82,4 +83,86 @@ test("no cookie -> 401; unknown route 404; no DELETE route", async () => {
   const e = env();
   assert.equal((await worker.fetch(req("/api/me"), e)).status, 401);
   assert.equal((await worker.fetch(req("/api/me", { method: "DELETE" }), e)).status, 404);
+});
+
+async function fullLogin(e, extraCookie = "") {
+  mockDiscord(true); const { loc, flow } = await startLogin(e);
+  const cb = await worker.fetch(req(`/auth/callback?code=c&state=${loc.searchParams.get("state")}`, { headers: { Cookie: "__Host-ckw_oauth=" + encodeURIComponent(flow) + extraCookie } }), e);
+  return { cb, tok: cookieVal(cb, "__Host-ckw_session") };
+}
+const me = (e, tok) => worker.fetch(req("/api/me", { headers: { Cookie: "__Host-ckw_session=" + tok } }), e);
+
+test("blocked member: session rejected and re-login refused", async () => {
+  const e = env(); const { tok } = await fullLogin(e);
+  assert.equal((await me(e, tok)).status, 200);
+  e.DB.raw.exec("UPDATE members SET blocked = 1 WHERE discord_id = '42'");
+  assert.equal((await me(e, tok)).status, 401);
+  const { cb } = await fullLogin(e);
+  assert.match(cb.headers.get("Location"), /login=failed/);
+  assert.ok(e.DB.raw.prepare("SELECT action FROM audit_log").all().some((x) => x.action === "login_blocked"));
+});
+
+test("epoch bump revokes every session (no delete)", async () => {
+  const e = env(); const { tok } = await fullLogin(e);
+  e.DB.raw.exec("UPDATE members SET session_epoch = session_epoch + 1 WHERE discord_id = '42'");
+  assert.equal((await me(e, tok)).status, 401);
+  const { tok: t2 } = await fullLogin(e);
+  assert.equal((await me(e, t2)).status, 200);
+});
+
+test("sessions last 24h, cookie Max-Age 24h, last_verified_at set, no refresh token stored", async () => {
+  const e = env(); const { cb, tok } = await fullLogin(e);
+  assert.equal(SESSION_HOURS, 24);
+  assert.match(cb.headers.getSetCookie().find((c) => c.startsWith("__Host-ckw_session=")), /Max-Age=86400/);
+  const s = e.DB.raw.prepare("SELECT created_at, expires_at FROM sessions").get();
+  assert.ok(Math.abs(Date.parse(s.expires_at) - Date.parse(s.created_at) - 24 * 3600e3) < 1000);
+  assert.ok(e.DB.raw.prepare("SELECT last_verified_at FROM members").get().last_verified_at);
+  e.DB.raw.exec("UPDATE sessions SET expires_at = '2000-01-01T00:00:00.000Z'");
+  assert.equal((await me(e, tok)).status, 401);
+  const dump = JSON.stringify([e.DB.raw.prepare("SELECT * FROM sessions").all(), e.DB.raw.prepare("SELECT * FROM members").all(), e.DB.raw.prepare("SELECT * FROM audit_log").all()]);
+  assert.ok(!dump.includes("REFRESH_TOK_X"), "refresh token must not be stored");
+  assert.ok(!dump.includes("ACCESS_TOK_X"));
+});
+
+test("re-login revokes the previous cookie's session by flag", async () => {
+  const e = env(); const { tok } = await fullLogin(e);
+  const { tok: t2 } = await fullLogin(e, "; __Host-ckw_session=" + tok);
+  assert.equal((await me(e, tok)).status, 401);
+  assert.equal((await me(e, t2)).status, 200);
+  assert.equal(e.DB.raw.prepare("SELECT COUNT(*) n FROM sessions").get().n, 2);
+  assert.equal(e.DB.raw.prepare("SELECT COUNT(*) n FROM sessions WHERE revoked_at IS NOT NULL").get().n, 1);
+});
+
+test("callback fails closed: missing access_token, Discord down", async () => {
+  for (const setup of [() => mockDiscord(true, { refresh_token: "x" }), () => { globalThis.fetch = async () => { throw new Error("network"); }; }]) {
+    const e = env(); const { loc, flow } = await startLogin(e); setup();
+    const cb = await worker.fetch(req(`/auth/callback?code=c&state=${loc.searchParams.get("state")}`, { headers: { Cookie: "__Host-ckw_oauth=" + encodeURIComponent(flow) } }), e);
+    assert.equal(cb.status, 302); assert.match(cb.headers.get("Location"), /login=failed/);
+    assert.match(cb.headers.getSetCookie().find((c) => c.startsWith("__Host-ckw_oauth=")), /Max-Age=0/);
+    assert.equal(cookieVal(cb, "__Host-ckw_session"), undefined);
+    assert.equal(e.DB.raw.prepare("SELECT COUNT(*) n FROM sessions").get().n, 0);
+    assert.equal(e.DB.raw.prepare("SELECT action FROM audit_log").get().action, "login_error");
+  }
+});
+
+test("security headers on every response", async () => {
+  const e = env(); mockDiscord(true);
+  const rs = [await worker.fetch(req("/auth/login"), e), await worker.fetch(req("/api/me"), e), await worker.fetch(req("/nope"), e),
+    await worker.fetch(req("/auth/callback?code=x&state=y"), e), await worker.fetch(req("/auth/logout", { method: "POST" }), e)];
+  for (const r of rs) for (const [k, v] of Object.entries(SECURITY_HEADERS)) assert.equal(r.headers.get(k), v, k);
+  assert.equal(SECURITY_HEADERS["Content-Security-Policy"], "default-src 'none'; frame-ancestors 'none'");
+  assert.match(SECURITY_HEADERS["Strict-Transport-Security"], /max-age=\d+/);
+});
+
+test("rate limit binding wired: used on login+callback, 429 when over or missing; wrangler.toml declares it", async () => {
+  const e = env(); await worker.fetch(req("/auth/login"), e); await worker.fetch(req("/auth/callback"), e);
+  assert.equal(e.AUTH_LIMITER.calls, 2);
+  e.AUTH_LIMITER.limit = async () => ({ success: false });
+  assert.equal((await worker.fetch(req("/auth/login"), e)).status, 429);
+  assert.equal((await worker.fetch(req("/auth/callback"), e)).status, 429);
+  delete e.AUTH_LIMITER;
+  assert.equal((await worker.fetch(req("/auth/login"), e)).status, 429);
+  const toml = fs.readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
+  assert.match(toml, /\[\[ratelimits\]\][\s\S]*name = "AUTH_LIMITER"/);
+  assert.match(toml, /workers_dev = false/);
 });

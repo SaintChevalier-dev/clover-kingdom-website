@@ -4,12 +4,16 @@ CREATE TABLE IF NOT EXISTS members (
   display_name TEXT NOT NULL,
   is_si INTEGER NOT NULL DEFAULT 0,
   owner_discord_id TEXT,            -- set only for SI members, owner confirms (not self-declared)
+  blocked INTEGER NOT NULL DEFAULT 0,          -- revoke-by-flag (no delete)
+  session_epoch INTEGER NOT NULL DEFAULT 0,    -- bump to kill every session of this member
+  last_verified_at TEXT NOT NULL,              -- last time Discord confirmed CKD membership
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS sessions (
   id_hash TEXT PRIMARY KEY,         -- SHA-256 of the cookie token; raw token never stored
   discord_id TEXT NOT NULL REFERENCES members(discord_id),
+  session_epoch INTEGER NOT NULL,              -- copied from members at login
   created_at TEXT NOT NULL,
   expires_at TEXT NOT NULL,
   revoked_at TEXT                   -- logout sets this; rows are never deleted
