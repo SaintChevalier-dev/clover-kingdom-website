@@ -1,0 +1,16 @@
+name = "ckw-auth"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+# routes = [{ pattern = "auth.cloverkingdom.net", custom_domain = true }]   # Jacob enables at deploy
+
+[vars]
+SITE_ORIGIN = "https://cloverkingdom.net"
+AUTH_ORIGIN = "https://auth.cloverkingdom.net"
+CKD_GUILD_ID = "REPLACE_WITH_CKD_SERVER_ID"
+DISCORD_CLIENT_ID = "DISCORD_CLIENT_ID"
+# Secret (never commit): wrangler secret put DISCORD_CLIENT_SECRET
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ckw-members"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"

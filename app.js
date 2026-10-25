@@ -1032,7 +1032,46 @@ function wireApplyForm(container) {
 /* ------------------------------------------------
    Nav wiring
    ------------------------------------------------ */
+/* ===== #/me: Sign in with Discord (feature branch; Worker not deployed yet). Gating is server-side in worker-auth. ===== */
+const CKW_AUTH = "https://auth.cloverkingdom.net";
+function buildMe() {
+  const el = pageShell("Members", "Your page",
+    "<p>Sign in with your Discord account. Only members of the Clover Kingdom Discord can sign in.</p>",
+    '<div id="me-box"><p class="muted">Checking if you are signed in...</p></div>');
+  const box = el.querySelector("#me-box");
+  const why = (location.hash.split("login=")[1] || "");
+  const signIn = (msg) => {
+    box.innerHTML = (msg ? '<p class="muted">' + msg + "</p>" : "") +
+      '<a class="cta" href="' + CKW_AUTH + '/auth/login">Sign in with Discord</a>' +
+      '<p class="muted" style="margin-top:12px">Not in the Discord yet? <a href="https://discord.gg/2BrNPwUuTB">Join it first</a>.</p>';
+  };
+  fetch(CKW_AUTH + "/api/me", { credentials: "include" })
+    .then((r) => r.ok ? r.json() : null)
+    .then((me) => {
+      if (!me || !me.signedIn) {
+        return signIn(why === "not_member" ? "That Discord account is not in the Clover Kingdom Discord yet." : why === "failed" ? "Sign-in did not finish. Try again." : "");
+      }
+      box.innerHTML = "";
+      const p = document.createElement("p"); p.textContent = "Signed in as " + me.name + (me.isSI ? " (SI)" : "") + ".";
+      const t = document.createElement("div"); t.className = "me-cal-toggle";
+      t.innerHTML = '<button type="button" class="cta cta-secondary" data-cal="personal" aria-pressed="true">Personal</button> ' +
+        '<button type="button" class="cta cta-secondary" data-cal="kingdom" aria-pressed="false">Kingdom</button>' +
+        '<p class="muted" id="me-cal-note" style="margin-top:12px">Your personal calendar is coming soon.</p>';
+      t.addEventListener("click", (ev) => {
+        const b = ev.target.closest("button[data-cal]"); if (!b) return;
+        t.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        t.querySelector("#me-cal-note").textContent = b.dataset.cal === "kingdom" ? "The Kingdom calendar is coming soon." : "Your personal calendar is coming soon.";
+      });
+      const out = document.createElement("button"); out.type = "button"; out.className = "cta cta-secondary"; out.textContent = "Sign out"; out.style.marginTop = "20px";
+      out.addEventListener("click", () => fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" }).finally(() => signIn("You are signed out.")));
+      box.append(p, t, out);
+    })
+    .catch(() => signIn("Sign-in is not switched on yet."));
+  return el;
+}
+
 const SUBPAGES = {
+  "#/me": () => buildMe(),
   "#/sage": () => buildSage(),
   "#/standard": () => buildStandard(),
   "#/ranks": () => buildRanks(),
@@ -1063,12 +1102,14 @@ const TITLES = {
   "#/welcome": "Welcome and the house rules | CLOVER KINGDOM",
   "#/members": "Members area (coming soon) | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",
+  "#/me": "Your page | CLOVER KINGDOM",
   "#/archetypes": "The archetypes | CLOVER KINGDOM",
 };
 const NOT_FOUND_TITLE = "Page not found | CLOVER KINGDOM";
 
 /* Turn the address into { view, title, navHref } or null (not found). */
 function resolveRoute(page) {
+  page = page.split("?")[0];
   if (SUBPAGES[page]) return { build: SUBPAGES[page], title: TITLES[page], navHref: page };
   const m = /^#\/archetype\/([a-z0-9-]+)$/.exec(page);
   if (m) {
