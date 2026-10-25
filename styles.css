@@ -18,7 +18,7 @@
   --amber-glow: #d98c3a;
   --text: #e8e6df;
   --text-muted: #8a8780;
-  --text-faint: #5c5955;
+  --text-faint: #858179; /* raised for WCAG AA contrast (from site-upgrade branch 5c409da) */
   --border: #2e2e33;
   --border-bright: #3f3f46;
   --black-crest: #000000;
