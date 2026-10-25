@@ -2,6 +2,9 @@
    CLOVER KINGDOM — ritual + routing + Sage mouth (v1)
    ============================================================ */
 
+/* Marks JS as on (moved here from an inline script so the CSP can keep script-src 'self'). */
+document.documentElement.classList.add("js");
+
 const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
 
 /* ONE place for the Discord invite. Change it here and it updates
