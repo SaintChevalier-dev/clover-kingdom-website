@@ -2,6 +2,9 @@
    CLOVER KINGDOM — ritual + routing + Sage mouth (v1)
    ============================================================ */
 
+/* Marks JS as on (moved here from an inline script so the CSP can keep script-src 'self'). */
+document.documentElement.classList.add("js");
+
 const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
 
 /* ONE place for the Discord invite. Change it here and it updates
@@ -586,7 +589,7 @@ function buildStandard() {
         </div>
         <div class="law-block">
           A form is not a rank. Applying does not make you a Magic Knight. It asks
-          whether the seat is worth the effort. The Wizard King reads it.
+          whether the seat is worth the effort. A person reads it.
         </div>
         <div class="law-block">
           Correction is positive. Brutal honesty is an eternal rule. If you lie in the
@@ -1181,6 +1184,17 @@ function wireNav() {
       if (target === here) sameRouteClick();
     });
   });
+
+  // Skip link: move keyboard focus to the main content without touching the hash router.
+  const skip = document.getElementById("skip-link");
+  const mainEl = document.getElementById("page-content");
+  if (skip && mainEl) {
+    skip.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!mainEl.hasAttribute("tabindex")) mainEl.setAttribute("tabindex", "-1");
+      mainEl.focus();
+    });
+  }
 
   // "More" menu: closes when you pick a page, press Escape, or click elsewhere.
   const more = document.getElementById("nav-more");
