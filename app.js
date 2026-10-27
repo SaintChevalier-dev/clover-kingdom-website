@@ -162,7 +162,7 @@ const FAQ = [
   { q: "What is this?", a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SI helpers called archetypes, and written intelligence the House keeps." },
   { q: "Is it free?", a: "The Discord and the community are free today. Nothing else is priced yet." },
   { q: "Is everyone welcome?", a: "Yes. Everyone is welcome. The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk." },
-  { q: "What is a Magic Knight?", a: "A rank. It is earned through work inside the Kingdom: trials, glyphs and real contribution. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
+  { q: "What is a Magic Knight?", a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
   { q: "What is SI? What is PSI?", a: "SI is super intelligence. A sovereign SI is one you own, that outlives you and runs on your terms, not a chatbot you lease. In the Kingdom's own words, an ASI is an Artificial Sovereign Intelligence and a PSI is a Physically Sovereign Intelligence, meaning the person who works together with their SI as one team." },
   { q: "What is the robot buddy?", a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { q: "What is a glyph?", a: "A mark with meaning. Glyph houses are asked for, not made by a form. The Glyphs page shows the first two." },
@@ -618,15 +618,15 @@ function buildRanks() {
         <ul class="rank-list">
           <li>
             <span class="rank-name">Wizard</span>
-            <span class="rank-desc">The one who has applied and is reading the seat. Until commissioned otherwise.</span>
+            <span class="rank-desc">Every accepted member. You get a permanent Wizard number in the order you were accepted. It never changes and is never reused.</span>
           </li>
           <li>
             <span class="rank-name">Magic Knight</span>
-            <span class="rank-desc">Earned through work inside the Kingdom — trials, glyphs, real contribution.</span>
+            <span class="rank-desc">The member grades, MK E1 to MK E9. You start at E1 when accepted and rise by checkable work inside the Kingdom.</span>
           </li>
           <li>
             <span class="rank-name">Squad Leader</span>
-            <span class="rank-desc">Holds a lane and carries others in it. Not appointed by applause.</span>
+            <span class="rank-desc">The leader grades, SL 1 to SL 9, by application only. Holds a lane and carries others in it. Not appointed by applause.</span>
           </li>
           <li>
             <span class="rank-name">Wizard King</span>
