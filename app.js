@@ -218,8 +218,7 @@ function buildFrontSections() {
         <h2 class="section-title" id="rules-title">The house rules</h2>
         <div class="law-block">The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
         <div class="cta-row cta-left">
-          <button type="button" class="cta cta-primary" data-scroll="apply">Apply</button>
-          <a class="cta cta-secondary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+          <a class="cta cta-primary" href="#/login">Login</a>
         </div>
       </div>
     </section>
@@ -363,8 +362,7 @@ function buildGate() {
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
-          <button type="button" class="cta cta-primary" data-scroll="apply">Apply</button>
-          <a class="cta cta-secondary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+          <a class="cta cta-primary" href="#/login">Login</a>
         </div>
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
@@ -761,6 +759,24 @@ function buildTek() {
   return wrap;
 }
 
+/* Login page (#/login). Two choices only. Sign-in is not live yet, so the button is disabled.
+   At login merge: turn it into <a class="cta" href="https://auth.cloverkingdom.net/auth/login">. */
+function buildLogin() {
+  const wrap = pageShell("Login", "Login",
+    "Two doors. Pick the one that fits you.",
+    `<div class="offer-rows">
+       <div class="offer-row"><h3 class="offer-name">New here?</h3>
+         <p class="offer-text">Apply with five questions, then come into the Clover Kingdom Discord. Everyone is welcome.</p>
+         <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Apply and join the Discord</button></div>
+         <p class="muted" style="margin-top:8px">Or <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">open the Discord</a> first.</p></div>
+       <div class="offer-row"><h3 class="offer-name">Already a member?</h3>
+         <div class="cta-row cta-left"><button type="button" class="cta cta-secondary" disabled aria-disabled="true">Sign in with Discord</button></div>
+         <p class="muted" style="margin-top:8px">Sign-in opens soon. Signing in the first time creates your account.</p></div>
+     </div>`);
+  wirePageButtons(wrap);
+  return wrap;
+}
+
 function buildJoin() {
   const steps = JOIN_STEPS.map((st, i) =>
     `<li class="join-step"><span class="join-num">${i + 1}</span><div><h3 class="offer-name">${escHtml(st.name)}</h3><p class="offer-text">${escHtml(st.text)}</p></div></li>`).join("");
@@ -1045,6 +1061,7 @@ const SUBPAGES = {
   "#/merchants-guild": () => buildMerchantsGuild(),
   "#/tek": () => buildTek(),
   "#/join": () => buildJoin(),
+  "#/login": () => buildLogin(),
   "#/welcome": () => buildWelcome(),
   "#/members": () => buildMembers(),
   "#/faq": () => buildFaq(),
@@ -1063,6 +1080,7 @@ const TITLES = {
   "#/merchants-guild": "Clover Kingdom Merchants Guild | CLOVER KINGDOM",
   "#/tek": "Tek Tribe and Tek Stacks | CLOVER KINGDOM",
   "#/join": "How to join | CLOVER KINGDOM",
+  "#/login": "Login | CLOVER KINGDOM",
   "#/welcome": "Welcome and the house rules | CLOVER KINGDOM",
   "#/members": "Members area (coming soon) | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",

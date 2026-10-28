@@ -27,6 +27,7 @@ Most pages are hash routes on a single HTML file (https://cloverkingdom.net/). F
 
 - https://cloverkingdom.net/ - Gate (front page, Apply form, Sage box)
 - https://cloverkingdom.net/#/join - How to join
+- https://cloverkingdom.net/#/login - Login (new here, or sign in)
 - https://cloverkingdom.net/#/offers - Offers
 - https://cloverkingdom.net/#/merchants-guild - Merchants Guild
 - https://cloverkingdom.net/#/archetypes - The House (all archetypes)

@@ -1648,3 +1648,5 @@ html.js .static-readme { display: none !important; }
 .skip-link { position: absolute; left: 12px; top: -60px; z-index: 1000; padding: 10px 14px; background: #0b1a12; color: var(--gold-bright); border: 1px solid var(--gold); border-radius: 6px; text-decoration: none; }
 .skip-link:focus, .skip-link:focus-visible { top: 12px; }
 #page-content:focus { outline: none; }
+
+.cta:disabled { opacity: 0.5; cursor: not-allowed; }
