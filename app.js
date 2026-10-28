@@ -1062,7 +1062,7 @@ function buildMe() {
   const signIn = (msg) => {
     box.innerHTML = (msg ? '<p class="muted">' + msg + "</p>" : "") +
       '<a class="cta" href="' + CKW_AUTH + '/auth/login">Sign in with Discord</a>' +
-      '<p class="muted" style="margin-top:12px">Not in the Discord yet? <a href="https://discord.gg/2BrNPwUuTB">Join it first</a>.</p>';
+      '<p class="muted" style="margin-top:12px">Not in the Discord yet? <a href="' + DISCORD_URL + '" target="_blank" rel="noopener noreferrer">Join it first</a>.</p>';
   };
   fetch(CKW_AUTH + "/api/me", { credentials: "include" })
     .then((r) => r.ok ? r.json() : null)
