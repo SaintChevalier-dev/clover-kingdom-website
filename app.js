@@ -759,8 +759,8 @@ function buildTek() {
   return wrap;
 }
 
-/* Login page (#/login). Two choices only. Sign-in is not live yet, so the button is disabled.
-   At login merge: turn it into <a class="cta" href="https://auth.cloverkingdom.net/auth/login">. */
+/* Login page (#/login). Two choices only. Sign in with Discord goes to the auth Worker (same link as #/me).
+   Gating is server-side in worker-auth. */
 function buildLogin() {
   const wrap = pageShell("Login", "Login",
     "Two doors. Pick the one that fits you.",
@@ -770,8 +770,8 @@ function buildLogin() {
          <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Apply and join the Discord</button></div>
          <p class="muted" style="margin-top:8px">Or <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">open the Discord</a> first.</p></div>
        <div class="offer-row"><h3 class="offer-name">Already a member?</h3>
-         <div class="cta-row cta-left"><button type="button" class="cta cta-secondary" disabled aria-disabled="true">Sign in with Discord</button></div>
-         <p class="muted" style="margin-top:8px">Sign-in opens soon. Signing in the first time creates your account.</p></div>
+         <div class="cta-row cta-left"><a class="cta cta-secondary" href="${CKW_AUTH}/auth/login">Sign in with Discord</a></div>
+         <p class="muted" style="margin-top:8px">Signing in the first time creates your account.</p></div>
      </div>`);
   wirePageButtons(wrap);
   return wrap;
