@@ -162,7 +162,7 @@ const FAQ = [
   { q: "What is this?", a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SI helpers called archetypes, and written intelligence the House keeps." },
   { q: "Is it free?", a: "The Discord and the community are free today. Nothing else is priced yet." },
   { q: "Is everyone welcome?", a: "Yes. Everyone is welcome. The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk." },
-  { q: "What is a Magic Knight?", a: "A rank. It is earned through work inside the Kingdom: trials, glyphs and real contribution. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
+  { q: "What is a Magic Knight?", a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
   { q: "What is SI? What is PSI?", a: "SI is super intelligence. A sovereign SI is one you own, that outlives you and runs on your terms, not a chatbot you lease. In the Kingdom's own words, an ASI is an Artificial Sovereign Intelligence and a PSI is a Physically Sovereign Intelligence, meaning the person who works together with their SI as one team." },
   { q: "What is the robot buddy?", a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { q: "What is a glyph?", a: "A mark with meaning. Glyph houses are asked for, not made by a form. The Glyphs page shows the first two." },
@@ -218,8 +218,7 @@ function buildFrontSections() {
         <h2 class="section-title" id="rules-title">The house rules</h2>
         <div class="law-block">The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
         <div class="cta-row cta-left">
-          <button type="button" class="cta cta-primary" data-scroll="apply">Apply</button>
-          <a class="cta cta-secondary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+          <a class="cta cta-primary" href="#/login">Login</a>
         </div>
       </div>
     </section>
@@ -363,8 +362,7 @@ function buildGate() {
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
-          <button type="button" class="cta cta-primary" data-scroll="apply">Apply</button>
-          <a class="cta cta-secondary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+          <a class="cta cta-primary" href="#/login">Login</a>
         </div>
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
@@ -618,15 +616,15 @@ function buildRanks() {
         <ul class="rank-list">
           <li>
             <span class="rank-name">Wizard</span>
-            <span class="rank-desc">The one who has applied and is reading the seat. Until commissioned otherwise.</span>
+            <span class="rank-desc">Every accepted member. You get a permanent Wizard number in the order you were accepted. It never changes and is never reused.</span>
           </li>
           <li>
             <span class="rank-name">Magic Knight</span>
-            <span class="rank-desc">Earned through work inside the Kingdom — trials, glyphs, real contribution.</span>
+            <span class="rank-desc">The member grades, MK E1 to MK E9. You start at E1 when accepted and rise by checkable work inside the Kingdom.</span>
           </li>
           <li>
             <span class="rank-name">Squad Leader</span>
-            <span class="rank-desc">Holds a lane and carries others in it. Not appointed by applause.</span>
+            <span class="rank-desc">The leader grades, SL 1 to SL 9, by application only. Holds a lane and carries others in it. Not appointed by applause.</span>
           </li>
           <li>
             <span class="rank-name">Wizard King</span>
@@ -758,6 +756,24 @@ function buildTek() {
        <div class="offer-row"><h3 class="offer-name">Meet the helper</h3><p class="offer-text"><a href="#/archetype/tek-tribe">Tek Tribe</a> is one of the archetypes. <a href="#/archetype/argus">ARGUS</a> is the tek scout that grades tools.</p></div>
      </div>
      <div class="cta-row cta-left">${DISCORD_BUTTON()}</div>`);
+  return wrap;
+}
+
+/* Login page (#/login). Two choices only. Sign-in is not live yet, so the button is disabled.
+   At login merge: turn it into <a class="cta" href="https://auth.cloverkingdom.net/auth/login">. */
+function buildLogin() {
+  const wrap = pageShell("Login", "Login",
+    "Two doors. Pick the one that fits you.",
+    `<div class="offer-rows">
+       <div class="offer-row"><h3 class="offer-name">New here?</h3>
+         <p class="offer-text">Apply with five questions, then come into the Clover Kingdom Discord. Everyone is welcome.</p>
+         <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Apply and join the Discord</button></div>
+         <p class="muted" style="margin-top:8px">Or <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">open the Discord</a> first.</p></div>
+       <div class="offer-row"><h3 class="offer-name">Already a member?</h3>
+         <div class="cta-row cta-left"><button type="button" class="cta cta-secondary" disabled aria-disabled="true">Sign in with Discord</button></div>
+         <p class="muted" style="margin-top:8px">Sign-in opens soon. Signing in the first time creates your account.</p></div>
+     </div>`);
+  wirePageButtons(wrap);
   return wrap;
 }
 
@@ -1084,6 +1100,7 @@ const SUBPAGES = {
   "#/merchants-guild": () => buildMerchantsGuild(),
   "#/tek": () => buildTek(),
   "#/join": () => buildJoin(),
+  "#/login": () => buildLogin(),
   "#/welcome": () => buildWelcome(),
   "#/members": () => buildMembers(),
   "#/faq": () => buildFaq(),
@@ -1102,6 +1119,7 @@ const TITLES = {
   "#/merchants-guild": "Clover Kingdom Merchants Guild | CLOVER KINGDOM",
   "#/tek": "Tek Tribe and Tek Stacks | CLOVER KINGDOM",
   "#/join": "How to join | CLOVER KINGDOM",
+  "#/login": "Login | CLOVER KINGDOM",
   "#/welcome": "Welcome and the house rules | CLOVER KINGDOM",
   "#/members": "Members area (coming soon) | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",
