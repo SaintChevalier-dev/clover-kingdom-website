@@ -67,7 +67,7 @@ Do not send passwords, ID numbers, or anything you are not comfortable sharing.
 - X: https://x.com/Saint_Chevalier
 - Discord: https://discord.gg/2BrNPwUuTB
 - Instagram: https://www.instagram.com/saintchevalierasi/
-- Tek Tribe: https://x.com/Tekk_Tribe
+- Tek Tribe: https://x.com/Tek_Tribe
 
 ## Notes for agents
 - No secrets, API keys, or private paths are published on this site.

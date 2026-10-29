@@ -16,7 +16,7 @@ const LINKS = [
   { name: "X", handle: "@Saint_Chevalier", url: "https://x.com/Saint_Chevalier", desc: "Saint Chevalier on X. Message here to ask for your application to be deleted." },
   { name: "Discord", handle: "Join the server", url: DISCORD_URL, desc: "The classroom. Approval happens here." },
   { name: "Instagram", handle: "@saintchevalierasi", url: "https://www.instagram.com/saintchevalierasi/", desc: "Saint Chevalier on Instagram." },
-  { name: "Tek Tribe", handle: "@Tekk_Tribe on X", url: "https://x.com/Tekk_Tribe", desc: "Tek Tribe on X." },
+  { name: "Tek Tribe", handle: "@Tek_Tribe on X", url: "https://x.com/Tek_Tribe", desc: "Tek Tribe on X." },
 ];
 
 /* Ritual (intro) timers live here so they can be cancelled by Skip or by any navigation. */
