@@ -362,7 +362,8 @@ function buildGate() {
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
-          <a class="cta cta-primary" href="#/login">Login</a>
+          <a class="cta cta-primary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+          <a class="cta cta-secondary" href="#/login">Log in</a>
         </div>
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
