@@ -357,7 +357,7 @@ function buildGate() {
   wrap.innerHTML = `
     <section class="gate gate-hero">
       <div class="container" style="display:block;text-align:center">
-        <img class="hero-crest" src="images/crest-hero-red.jpg" alt="The five-leaf black clover crest, the mark of the Clover Kingdom" width="96" height="96">
+        <img class="hero-crest" src="images/logo-crimson-seal.svg" alt="The five-leaf black clover crest, the mark of the Clover Kingdom" width="96" height="96">
         <div class="gate-name">CLOVER<span> KINGDOM</span></div>
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
