@@ -763,16 +763,12 @@ function buildTek() {
 /* Login page (#/login). Two choices only. Sign-in is not live yet, so the button is disabled.
    At login merge: turn it into <a class="cta" href="https://auth.cloverkingdom.net/auth/login">. */
 function buildLogin() {
-  const wrap = pageShell("Login", "Login",
-    "Two doors. Pick the one that fits you.",
+  const wrap = pageShell("Login", "Member login",
+    "Sign in to the Clover Kingdom website as a website member. This is separate from the Discord.",
     `<div class="offer-rows">
-       <div class="offer-row"><h3 class="offer-name">New here?</h3>
-         <p class="offer-text">Apply with five questions, then come into the Clover Kingdom Discord. Everyone is welcome.</p>
-         <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Apply and join the Discord</button></div>
-         <p class="muted" style="margin-top:8px">Or <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">open the Discord</a> first.</p></div>
-       <div class="offer-row"><h3 class="offer-name">Already a member?</h3>
-         <div class="cta-row cta-left"><button type="button" class="cta cta-secondary" disabled aria-disabled="true">Sign in with Discord</button></div>
-         <p class="muted" style="margin-top:8px">Sign-in opens soon. Signing in the first time creates your account.</p></div>
+       <div class="offer-row"><h3 class="offer-name">Sign in</h3>
+         <div class="cta-row cta-left"><button type="button" class="cta cta-primary" disabled aria-disabled="true">Sign in</button></div>
+         <p class="muted" style="margin-top:8px">Website member sign-in opens soon. Signing in the first time creates your account.</p></div>
      </div>`);
   wirePageButtons(wrap);
   return wrap;
