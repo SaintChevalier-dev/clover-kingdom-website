@@ -1650,3 +1650,216 @@ html.js .static-readme { display: none !important; }
 #page-content:focus { outline: none; }
 
 .cta:disabled { opacity: 0.5; cursor: not-allowed; }
+
+
+/* ============================================================
+   Join pop-out panel.
+   Dark panel, gold trim. Background of the page stays as-is.
+   ============================================================ */
+body.join-panel-open {
+  overflow: hidden;
+}
+
+.join-panel-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.join-panel-root[hidden] {
+  display: none !important;
+}
+
+.join-panel-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 11, 0.72);
+}
+
+.join-panel {
+  position: relative;
+  z-index: 1;
+  width: min(600px, 100%);
+  max-height: min(92vh, 900px);
+  overflow: auto;
+  background: var(--charcoal);
+  color: var(--text);
+  border: 1px solid var(--metal-line);
+  border-top: 2px solid var(--gold);
+  box-shadow: 0 0 0 1px rgba(212, 168, 67, 0.18), 0 24px 60px rgba(0, 0, 0, 0.55);
+  padding: 28px 24px 24px;
+  outline: none;
+}
+
+.join-panel-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-bright);
+  background: var(--charcoal-elevated);
+  color: var(--gold-bright);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.join-panel-close:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.join-panel-close:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+.join-panel-head {
+  margin-bottom: 18px;
+  padding-right: 36px;
+}
+
+.join-panel-title {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+  margin: 0 0 6px;
+}
+
+.join-panel-lead {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0 0 16px;
+}
+
+.join-panel-steps {
+  list-style: none;
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.join-panel-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.join-panel-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-bright);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.join-panel-step.is-active {
+  color: var(--gold-bright);
+  border-bottom-color: var(--gold);
+}
+
+.join-panel-step.is-active .join-panel-step-num {
+  border-color: var(--gold);
+  color: var(--obsidian);
+  background: var(--gold);
+}
+
+.join-panel-step.is-done {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.join-panel-step.is-done .join-panel-step-num {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.join-pane-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.join-pane-text {
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+.join-panel-honest {
+  margin-top: 14px;
+  font-size: 0.88rem;
+}
+
+.join-panel-locked {
+  border: 1px dashed var(--border-bright);
+  background: var(--obsidian);
+  color: var(--text-muted);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.join-panel-apply {
+  text-align: left;
+  margin: 0 auto;
+  box-shadow: none;
+  background: transparent;
+  border: none;
+  border-top: none;
+  padding: 0;
+  max-width: none;
+}
+
+.join-panel-apply .apply-box-head {
+  display: none;
+}
+
+.join-panel-step.is-done .join-panel-step-num::after {
+  content: none;
+}
+
+.join-panel-step.is-done .join-panel-step-num {
+  background: transparent;
+}
+
+@media (max-width: 480px) {
+  .join-panel {
+    padding: 22px 14px 18px;
+    max-height: 96vh;
+  }
+  .join-panel-title {
+    font-size: 1.3rem;
+  }
+  .join-panel-step-label {
+    font-size: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .join-panel,
+  .join-panel-backdrop {
+    transition: none !important;
+    animation: none !important;
+  }
+}

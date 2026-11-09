@@ -10,6 +10,7 @@ const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
 /* ONE place for the Discord invite. Change it here and it updates
    the front page buttons, the Links page and the Sage "ask in the Discord" reply. */
 const DISCORD_URL = "https://discord.gg/2BrNPwUuTB";
+const X_FOLLOW_URL = "https://x.com/intent/follow?screen_name=Saint_Chevalier";
 
 /* Public links (single place to edit). Each one is shown on the Links page. */
 const LINKS = [
@@ -340,11 +341,15 @@ function wireGate(container) {
   }
 }
 
-/* "Apply" buttons on other pages: go to the front page and land on the form. */
-function goApply() {
+/* "Apply" / "Join" buttons: open the Join pop-out.
+   Old behaviour (jump to front-page apply form) kept as goApplyLegacy. */
+function goApplyLegacy() {
   markSkipped();
   pendingApplyScroll = true;
   if ((window.location.hash || "#/") === "#/") { renderMain(); } else { window.location.hash = "#/"; }
+}
+function goApply() {
+  openJoinPanel();
 }
 
 /* ------------------------------------------------
@@ -958,7 +963,226 @@ function validateApplication(values, consented) {
   return errors;
 }
 
-function wireApplyForm(container) {
+/* ------------------------------------------------
+   Join pop-out panel
+   Background stays. Join opens a dark gold-trimmed panel:
+   1 Follow @Saint_Chevalier on X
+   2 Same five apply questions (unlock after Follow click)
+   3 Discord link after apply
+   ------------------------------------------------ */
+function applyFormFieldsHtml(idPrefix) {
+  const p = idPrefix || "";
+  return `
+          <form class="apply-form" novalidate>
+            <div class="field">
+              <label for="${p}f-handle">Discord handle or how to reach you</label>
+              <input id="${p}f-handle" name="handle" type="text" autocomplete="off" maxlength="100" required aria-describedby="${p}hint-handle ${p}err-handle">
+              <div class="field-hint" id="${p}hint-handle">A handle is enough. No real name needed.</div>
+              <div class="field-error" id="${p}err-handle" aria-live="polite"></div>
+            </div>
+            <div class="field">
+              <label for="${p}f-building">What are you building or working on right now?</label>
+              <textarea id="${p}f-building" name="building" rows="3" maxlength="1000" required aria-describedby="${p}err-building"></textarea>
+              <div class="field-error" id="${p}err-building" aria-live="polite"></div>
+            </div>
+            <div class="field">
+              <label for="${p}f-ai">What is your relationship with SI? How do you use it?</label>
+              <textarea id="${p}f-ai" name="ai" rows="3" maxlength="1000" required aria-describedby="${p}err-ai"></textarea>
+              <div class="field-error" id="${p}err-ai" aria-live="polite"></div>
+            </div>
+            <div class="field">
+              <label for="${p}f-intel">What does intelligence mean to you?</label>
+              <textarea id="${p}f-intel" name="intel" rows="3" maxlength="1000" required aria-describedby="${p}err-intel"></textarea>
+              <div class="field-error" id="${p}err-intel" aria-live="polite"></div>
+            </div>
+            <div class="field">
+              <label for="${p}f-found">How did you find the Clover Kingdom?</label>
+              <textarea id="${p}f-found" name="found" rows="2" maxlength="500" required aria-describedby="${p}err-found"></textarea>
+              <div class="field-error" id="${p}err-found" aria-live="polite"></div>
+            </div>
+            <div class="apply-privacy" id="${p}apply-privacy">
+              What you send passes through Cloudflare to a private intake. It is read by a person, with SI helpers. We keep it only as long as needed. You can ask us to delete it at any time by messaging Saint Chevalier on X, @Saint_Chevalier. Do not send passwords, ID numbers, or anything you are not comfortable sharing.
+            </div>
+            <div class="apply-consent">
+              <input id="${p}f-consent" name="consent" type="checkbox" required aria-describedby="${p}apply-privacy ${p}err-consent">
+              <label for="${p}f-consent">I understand what I send is read by a person, with SI helpers, and I agree.</label>
+            </div>
+            <div class="field-error" id="${p}err-consent" aria-live="polite"></div>
+            <button type="submit" class="apply-submit">Apply</button>
+          </form>`;
+}
+
+let joinPanelState = { open: false, step: 1, followed: false, lastFocus: null, onKey: null };
+
+function joinPanelMarkup() {
+  return `
+  <div class="join-panel-root" id="join-panel-root" hidden>
+    <div class="join-panel-backdrop" data-join-close="1" tabindex="-1"></div>
+    <div class="join-panel" role="dialog" aria-modal="true" aria-labelledby="join-panel-title" tabindex="-1">
+      <button type="button" class="join-panel-close" data-join-close="1" aria-label="Close">\u00d7</button>
+      <header class="join-panel-head">
+        <h2 id="join-panel-title" class="join-panel-title">Join the Kingdom</h2>
+        <p class="join-panel-lead">Three steps. Everyone is welcome.</p>
+        <ol class="join-panel-steps" aria-label="Join steps">
+          <li class="join-panel-step is-active" data-step-ind="1"><span class="join-panel-step-num">1</span><span class="join-panel-step-label">Follow</span></li>
+          <li class="join-panel-step" data-step-ind="2"><span class="join-panel-step-num">2</span><span class="join-panel-step-label">Apply</span></li>
+          <li class="join-panel-step" data-step-ind="3"><span class="join-panel-step-num">3</span><span class="join-panel-step-label">Discord</span></li>
+        </ol>
+      </header>
+      <div class="join-panel-body">
+        <section class="join-panel-pane is-active" data-pane="1" aria-labelledby="join-step1-title">
+          <h3 id="join-step1-title" class="join-pane-title">Follow Saint Chevalier on X</h3>
+          <p class="join-pane-text">The main Kingdom account is @Saint_Chevalier. Press the button to open X&rsquo;s follow screen in a new tab.</p>
+          <div class="cta-row cta-left">
+            <a class="cta cta-primary" id="join-follow-btn" href="${X_FOLLOW_URL}" target="_blank" rel="noopener noreferrer">Follow @Saint_Chevalier</a>
+          </div>
+          <p class="join-panel-honest muted">This site can&rsquo;t check follows. Step 2 opens after you press the button.</p>
+        </section>
+        <section class="join-panel-pane" data-pane="2" hidden aria-labelledby="join-step2-title">
+          <h3 id="join-step2-title" class="join-pane-title">Apply</h3>
+          <p class="join-pane-text">Five questions. A person reads them. Approval happens in Discord. A form is not a rank.</p>
+          <div class="join-panel-locked" id="join-step2-lock">
+            <p>Step 2 is locked until you press Follow @Saint_Chevalier above.</p>
+          </div>
+          <div class="join-panel-form-wrap" id="join-step2-form" hidden>
+            <div class="apply-box join-panel-apply">
+              ${applyFormFieldsHtml("jp-")}
+            </div>
+          </div>
+        </section>
+        <section class="join-panel-pane" data-pane="3" hidden aria-labelledby="join-step3-title">
+          <h3 id="join-step3-title" class="join-pane-title">Come into the Discord</h3>
+          <p class="join-pane-text">Thank you. We have your application. Next: come into the Discord, say hi, and grab your MK#. Approval happens there.</p>
+          <div class="cta-row cta-left">
+            <a class="cta cta-primary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Open the Discord</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ensureJoinPanel() {
+  let root = document.getElementById("join-panel-root");
+  if (root) return root;
+  const holder = document.createElement("div");
+  holder.innerHTML = joinPanelMarkup().trim();
+  root = holder.firstElementChild;
+  document.body.appendChild(root);
+  wireJoinPanel(root);
+  return root;
+}
+
+function setJoinStep(step) {
+  joinPanelState.step = step;
+  const root = document.getElementById("join-panel-root");
+  if (!root) return;
+  root.querySelectorAll("[data-step-ind]").forEach((el) => {
+    const n = Number(el.getAttribute("data-step-ind"));
+    el.classList.toggle("is-active", n === step);
+    el.classList.toggle("is-done", n < step);
+  });
+  root.querySelectorAll("[data-pane]").forEach((pane) => {
+    const n = Number(pane.getAttribute("data-pane"));
+    const on = n === step;
+    pane.hidden = !on;
+    pane.classList.toggle("is-active", on);
+  });
+  // Unlock form UI when followed
+  const lock = root.querySelector("#join-step2-lock");
+  const formWrap = root.querySelector("#join-step2-form");
+  if (lock && formWrap) {
+    if (joinPanelState.followed) {
+      lock.hidden = true;
+      formWrap.hidden = false;
+    } else {
+      lock.hidden = false;
+      formWrap.hidden = true;
+    }
+  }
+}
+
+function unlockJoinStep2() {
+  joinPanelState.followed = true;
+  const root = document.getElementById("join-panel-root");
+  if (!root) return;
+  setJoinStep(2);
+  const first = root.querySelector("#jp-f-handle");
+  if (first) first.focus();
+}
+
+function getFocusable(container) {
+  return Array.from(container.querySelectorAll(
+    'a[href], button:not([disabled]), textarea, input:not([disabled]), select, [tabindex]:not([tabindex="-1"])'
+  )).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null && !el.getAttribute("aria-hidden"));
+}
+
+function wireJoinPanel(root) {
+  root.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-join-close]");
+    if (t) { e.preventDefault(); closeJoinPanel(); }
+  });
+  const follow = root.querySelector("#join-follow-btn");
+  if (follow) {
+    follow.addEventListener("click", () => {
+      // Unlock after the click; X opens in the new tab from the href.
+      unlockJoinStep2();
+    });
+  }
+  const formWrap = root.querySelector("#join-step2-form");
+  if (formWrap) {
+    wireApplyForm(formWrap, {
+      idPrefix: "jp-",
+      onSuccess: () => setJoinStep(3),
+    });
+  }
+}
+
+function openJoinPanel() {
+  const root = ensureJoinPanel();
+  joinPanelState.lastFocus = document.activeElement;
+  joinPanelState.followed = false;
+  root.hidden = false;
+  document.body.classList.add("join-panel-open");
+  setJoinStep(1);
+  joinPanelState.open = true;
+  const dialog = root.querySelector(".join-panel");
+  const onKey = (e) => {
+    if (!joinPanelState.open) return;
+    if (e.key === "Escape") { e.preventDefault(); closeJoinPanel(); return; }
+    if (e.key === "Tab" && dialog) {
+      const nodes = getFocusable(dialog);
+      if (!nodes.length) return;
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+  joinPanelState.onKey = onKey;
+  document.addEventListener("keydown", onKey);
+  const focusStart = root.querySelector("#join-follow-btn") || root.querySelector(".join-panel-close");
+  if (focusStart) focusStart.focus();
+  else if (dialog) dialog.focus();
+}
+
+function closeJoinPanel() {
+  const root = document.getElementById("join-panel-root");
+  if (!root) return;
+  joinPanelState.open = false;
+  root.hidden = true;
+  document.body.classList.remove("join-panel-open");
+  if (joinPanelState.onKey) {
+    document.removeEventListener("keydown", joinPanelState.onKey);
+    joinPanelState.onKey = null;
+  }
+  const back = joinPanelState.lastFocus;
+  if (back && typeof back.focus === "function") back.focus();
+}
+
+function wireApplyForm(container, opts) {
+  opts = opts || {};
+  const idPrefix = opts.idPrefix || "";
+  const onSuccess = opts.onSuccess || null;
   const form = container.querySelector(".apply-form");
   if (!form) return;
   const RELAY = "https://clover-apply-relay.cloverkingdom.workers.dev";
@@ -977,8 +1201,8 @@ function wireApplyForm(container) {
   let sending = false;
 
   const ids = ["handle", "building", "ai", "intel", "found", "consent"];
-  const fieldEl = (k) => form.querySelector("#f-" + k);
-  const errEl = (k) => form.querySelector("#err-" + k);
+  const fieldEl = (k) => form.querySelector("#" + idPrefix + "f-" + k);
+  const errEl = (k) => form.querySelector("#" + idPrefix + "err-" + k);
   function showError(k, msg) {
     const e = errEl(k), f = fieldEl(k);
     if (e) e.textContent = msg || "";
@@ -1034,6 +1258,7 @@ function wireApplyForm(container) {
       if (!res.ok) throw new Error("relay " + res.status);
       status.innerHTML = `Thank you. We have your application. It is not approved yet. Next: come into the Discord at <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">${DISCORD_URL}</a>. Say hi and grab your MK#. Approval happens there.`;
       form.reset();
+      if (typeof onSuccess === "function") onSuccess(payload);
     } catch (err) {
       console.warn("Application not sent:", err);
       status.textContent = "Your application did not go through. Nothing was saved. Please try again, or message Saint Chevalier on X: @Saint_Chevalier.";
