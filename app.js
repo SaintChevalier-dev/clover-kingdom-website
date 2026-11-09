@@ -175,10 +175,9 @@ const FAQ = [
 
 /* Join steps (shown on #/join). */
 const JOIN_STEPS = [
+  { name: "Follow Saint Chevalier on X", text: "Press Join, then follow @Saint_Chevalier. It is the main Kingdom account." },
   { name: "Apply", text: "Answer the five questions. It takes a few minutes. A form is not a rank." },
-  { name: "Come into the Discord", text: "The Discord link is shown after you apply. It is free today." },
-  { name: "Say hi and grab your MK#", text: "Start or join a quest in #main-quests, or ask for a glyph channel. ESS is earned only by taking part and coming. Questions? Ask @Sage." },
-  { name: "A human approves you", text: "A person reads every application. Approval happens in the Discord." },
+  { name: "Come into the Discord", text: "The Discord link shows after you apply. Say hi, grab your MK#, and a human approves you there. Questions? Ask @Sage." },
 ];
 
 function escHtml(t) {
@@ -783,7 +782,7 @@ function buildJoin() {
   const steps = JOIN_STEPS.map((st, i) =>
     `<li class="join-step"><span class="join-num">${i + 1}</span><div><h3 class="offer-name">${escHtml(st.name)}</h3><p class="offer-text">${escHtml(st.text)}</p></div></li>`).join("");
   const wrap = pageShell("Join", "How to join",
-    "Four steps. Everyone is welcome. While others doom, we lift in preparedness.",
+    "Three steps. Everyone is welcome. While others doom, we lift in preparedness.",
     `<ol class="join-steps">${steps}</ol>
      <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Join</button></div>
      <p class="muted" style="margin-top:12px">Already a member? <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Open the Discord</a>.</p>
