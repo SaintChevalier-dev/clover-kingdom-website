@@ -218,7 +218,7 @@ function buildFrontSections() {
         <h2 class="section-title" id="rules-title">The house rules</h2>
         <div class="law-block">The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
         <div class="cta-row cta-left">
-          <a class="cta cta-primary" href="#/login">Login</a>
+          <a class="cta cta-primary" href="${memberLoginHref()}">Login</a>
         </div>
       </div>
     </section>
@@ -367,7 +367,7 @@ function buildGate() {
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
           <a class="cta cta-primary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
-          <a class="cta cta-secondary" href="#/login">Log in</a>
+          <a class="cta cta-secondary" href="${memberLoginHref()}">Log in</a>
         </div>
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
@@ -778,19 +778,6 @@ function buildLogin() {
   return wrap;
 }
 
-function buildJoin() {
-  const steps = JOIN_STEPS.map((st, i) =>
-    `<li class="join-step"><span class="join-num">${i + 1}</span><div><h3 class="offer-name">${escHtml(st.name)}</h3><p class="offer-text">${escHtml(st.text)}</p></div></li>`).join("");
-  const wrap = pageShell("Join", "How to join",
-    "Three steps. Everyone is welcome. While others doom, we lift in preparedness.",
-    `<ol class="join-steps">${steps}</ol>
-     <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Join</button></div>
-     <p class="muted" style="margin-top:12px">Already a member? <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Open the Discord</a>.</p>
-     <p class="muted" style="margin-top:20px">Please read the <a href="#/welcome">welcome page</a> first. It is short.</p>`);
-  wirePageButtons(wrap);
-  return wrap;
-}
-
 function buildWelcome() {
   return pageShell("Everyone is welcome", "Welcome and the house rules",
     "Come as you are. The house rules live on the Discord.",
@@ -804,19 +791,235 @@ function buildWelcome() {
      <p class="muted" style="margin-top:20px">Ready? <a href="#/join">See how to join</a>.</p>`);
 }
 
-function buildMembers() {
-  const wrap = pageShell("Coming soon", "Members area",
-    "A members area is planned. It is not built yet, so there is nothing to sign in to today.",
-    `<div class="soon-badge">Coming soon</div>
-     <div class="offer-rows">
-       <div class="offer-row"><h3 class="offer-name">Archetype alignment</h3><p class="offer-text">Choose which archetypes you align with and want to help make.</p></div>
-       <div class="offer-row"><h3 class="offer-name">Tek stacks</h3><p class="offer-text">Say which sovereign tek stacks you run and help with.</p></div>
-       <div class="offer-row"><h3 class="offer-name">Ideas and feedback</h3><p class="offer-text">Send project ideas and feedback. Feedback from a signed-in member is trusted because you are known.</p></div>
-       <div class="offer-row"><h3 class="offer-name">Connections by personal code</h3><p class="offer-text">Connect with other members by personal code. Nothing is browsable. A request goes through only if you know the other person and enter their code.</p></div>
-       <div class="offer-row"><h3 class="offer-name">Members-only intelligence</h3><p class="offer-text">Tek intelligence the House has compiled for the Kingdom family will live here, for members only.</p></div>
-     </div>
-     <p class="muted" style="margin-top:20px">Want to be there when it opens? <a href="#/join">Join and apply</a>.</p>`);
+/* ------------------------------------------------
+   v2 (2026-11-09): Join page + members gateway.
+   MEMBERS_URL is the members site (Cloudflare Pages + Discord sign-in, MK Proven and up).
+   MEMBERS_OPEN: the one line to change when members.cloverkingdom.net is live.
+     false = the "Member login" button opens the #/members gateway and sign-in shows "Opening soon".
+     true  = "Member login" goes straight to MEMBERS_URL and the Discord button signs in.
+   ------------------------------------------------ */
+const MEMBERS_URL = "https://members.cloverkingdom.net";
+const MEMBERS_OPEN = false;
+const MEMBERS_SIGNIN_URL = MEMBERS_URL + "/auth/discord";
+
+/* Inline icons (stroke = currentColor). Drawn here, no icon font, no outside requests. */
+const ICONS = {
+  follow: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="20" cy="16" r="7"/><path d="M6 40c1.5-8 7-12 14-12s12.5 4 14 12"/><path d="M38 14v12M32 20h12"/></svg>`,
+  scroll: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M12 8h22a4 4 0 0 1 4 4v26a4 4 0 0 1-4 4H14"/><path d="M12 8a4 4 0 0 0-4 4v2h8v-2a4 4 0 0 0-4-4z"/><path d="M14 42a4 4 0 0 1-4-4V14"/><path d="M18 18h14M18 24h14M18 30h9"/></svg>`,
+  hall: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M8 18L24 8l16 10"/><path d="M10 18v22M38 18v22M6 40h36"/><path d="M19 40V29a5 5 0 0 1 10 0v11"/><path d="M16 22h0M32 22h0"/></svg>`,
+  lock: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`,
+  key: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg>`,
+  intel: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M10 10h20l8 8v20H10z"/><path d="M30 10v8h8"/><path d="M16 24h16M16 30h16M16 36h10"/></svg>`,
+  guild: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M24 6v34"/><path d="M14 40h20"/><path d="M8 14h32"/><path d="M12 14l-6 12a6 6 0 0 0 12 0z"/><path d="M36 14l-6 12a6 6 0 0 0 12 0z"/></svg>`,
+  sky: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="12" cy="14" r="2.5"/><circle cx="30" cy="10" r="2.5"/><circle cx="38" cy="26" r="2.5"/><circle cx="20" cy="32" r="2.5"/><circle cx="10" cy="40" r="1.5"/><path d="M14 15l14-4M31 12l6 12M36 27l-14 5M19 30l-6-14"/></svg>`,
+  code: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="16" cy="18" r="6"/><circle cx="32" cy="18" r="6"/><path d="M4 40c1-7 6-10 12-10 3 0 5.5.8 7.5 2.3M44 40c-1-7-6-10-12-10-3 0-5.5.8-7.5 2.3"/><path d="M20 40h8"/></svg>`,
+  discord: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="fill" d="M19.6 5.3A16.7 16.7 0 0 0 15.5 4l-.5 1a15.4 15.4 0 0 0-6 0l-.5-1a16.7 16.7 0 0 0-4.1 1.3C1.8 9.2 1.1 13 1.4 16.7a16.8 16.8 0 0 0 5.1 2.6l1.1-1.8a10.9 10.9 0 0 1-1.7-.8l.4-.3a12 12 0 0 0 11.4 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.8a16.8 16.8 0 0 0 5.1-2.6c.4-4.3-.7-8-3-11.4zM8.7 14.5c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg>`,
+  arrow: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`,
+};
+
+/* What members get. Only things the site already names as real or planned. */
+const MEMBER_UNLOCKS = [
+  { icon: "intel", name: "Members-only tek intelligence", text: "Tek intelligence the House has compiled for the Kingdom family. None of it is shown on the public site." },
+  { icon: "guild", name: "The Merchants Guild", text: "A place for Magic Knights to trade with each other honestly. The details are for members." },
+  { icon: "sky", name: "The Night Sky", text: "A map of the Kingdom's SI helpers and how they connect. It opens to members with the MK Proven rank and up." },
+  { icon: "code", name: "Connections by personal code", text: "Connect with members you already know by entering their personal code. Nothing is browsable." },
+];
+/* Planned for the members area (from the earlier members page). */
+const MEMBER_PLANNED = [
+  { name: "Archetype alignment", text: "Choose which archetypes you align with and want to help make." },
+  { name: "Tek stacks", text: "Say which sovereign tek stacks you run and help with." },
+  { name: "Ideas and feedback", text: "Send project ideas and feedback. Feedback from a signed-in member is trusted because you are known." },
+];
+
+const JOIN_STEP_ICONS = ["follow", "scroll", "hall"];
+const ROMAN = ["I", "II", "III"];
+
+function unlockCardsHtml() {
+  return MEMBER_UNLOCKS.map((u) => `
+        <li class="v2-unlock reveal">
+          <span class="v2-unlock-badge">${ICONS.lock}<span>Members only</span></span>
+          <span class="v2-unlock-icon">${ICONS[u.icon]}</span>
+          <h3 class="v2-unlock-name">${escHtml(u.name)}</h3>
+          <p class="v2-unlock-text">${escHtml(u.text)}</p>
+        </li>`).join("");
+}
+
+function soonBadge() {
+  return MEMBERS_OPEN ? "" : `<span class="v2-soon">Opening soon</span>`;
+}
+
+/* Fade/rise cards in as they scroll into view. Reduced motion or no IntersectionObserver: shown at once. */
+function wireReveal(root) {
+  const items = Array.from(root.querySelectorAll(".reveal"));
+  if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+    items.forEach((el) => el.classList.add("is-in"));
+    return;
+  }
+  root.classList.add("reveal-on");
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); }
+    });
+  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+  items.forEach((el, i) => { el.style.setProperty("--d", (i % 4) * 90 + "ms"); io.observe(el); });
+}
+
+function memberLoginHref() {
+  return MEMBERS_OPEN ? MEMBERS_URL : "#/members";
+}
+
+function buildJoin() {
+  const steps = JOIN_STEPS.map((st, i) => `
+        <li class="v2-step reveal">
+          <div class="v2-step-top">
+            <span class="v2-step-num" aria-hidden="true">${ROMAN[i]}</span>
+            <span class="v2-step-icon">${ICONS[JOIN_STEP_ICONS[i]]}</span>
+          </div>
+          <div class="v2-step-kicker">Step ${i + 1}</div>
+          <h3 class="v2-step-name">${escHtml(st.name)}</h3>
+          <p class="v2-step-text">${escHtml(st.text)}</p>
+        </li>`).join("");
+  const wrap = document.createElement("div");
+  wrap.className = "v2-page v2-join";
+  wrap.innerHTML = `
+    <section class="v2-hero" aria-labelledby="join-title">
+      <div class="container v2-hero-inner">
+        <img class="v2-hero-seal" src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="112" height="112">
+        <div class="v2-eyebrow">The gate is open</div>
+        <h1 class="v2-title" id="join-title">Join the <span>Kingdom</span></h1>
+        <div class="v2-rule" aria-hidden="true"><span></span></div>
+        <p class="v2-line">Everyone is welcome. While others doom, we lift in preparedness.</p>
+        <p class="v2-sub">Three steps. A person reads every application, and approval happens in the Discord.</p>
+        <div class="v2-hero-cta">
+          <button type="button" class="v2-btn v2-btn-primary v2-btn-xl" data-apply="1">Join the Kingdom ${ICONS.arrow}</button>
+          <a class="v2-btn v2-btn-ghost" href="${memberLoginHref()}">${ICONS.key}Member login</a>
+        </div>
+        <ul class="v2-facts" aria-label="Good to know">
+          <li>The Discord is free today</li>
+          <li>A form is not a rank</li>
+          <li>Everyone is welcome</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="v2-section" aria-labelledby="path-title">
+      <div class="container">
+        <div class="v2-section-head">
+          <div class="v2-eyebrow">The path in</div>
+          <h2 class="v2-h2" id="path-title">Three steps</h2>
+        </div>
+        <ol class="v2-steps">${steps}
+        </ol>
+        <div class="v2-center">
+          <button type="button" class="v2-btn v2-btn-primary" data-apply="1">Start with step one ${ICONS.arrow}</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="v2-section v2-vault" aria-labelledby="unlock-title">
+      <div class="container">
+        <div class="v2-section-head">
+          <div class="v2-eyebrow">${ICONS.lock} Behind the gate</div>
+          <h2 class="v2-h2" id="unlock-title">What members get</h2>
+          <p class="v2-lead">Some of the Kingdom is for members only. Here is what waits behind the gate.</p>
+        </div>
+        <ul class="v2-unlocks">${unlockCardsHtml()}
+        </ul>
+      </div>
+    </section>
+
+    <section class="v2-section v2-closing" aria-label="Already a member">
+      <div class="container v2-center">
+        <p class="v2-already">Already a member? <a class="v2-link" href="${memberLoginHref()}">Member login ${ICONS.arrow}</a></p>
+        <p class="v2-small">New here? Read the short <a href="#/welcome">welcome page</a> first.</p>
+      </div>
+    </section>
+  `;
+  wirePageButtons(wrap);
+  wireReveal(wrap);
   return wrap;
+}
+
+function buildMembers() {
+  const planned = MEMBER_PLANNED.map((p) =>
+    `<li><span class="v2-planned-lock">${ICONS.lock}</span><div><strong>${escHtml(p.name)}</strong><span>${escHtml(p.text)}</span></div></li>`).join("");
+  const wrap = document.createElement("div");
+  wrap.className = "v2-page v2-members";
+  wrap.innerHTML = `
+    <section class="v2-hero v2-hero-members" aria-labelledby="members-title">
+      <div class="container v2-gateway">
+        <div class="v2-gateway-copy">
+          <div class="v2-eyebrow">${ICONS.key} Members</div>
+          <h1 class="v2-title v2-title-left" id="members-title">Member <span>login</span></h1>
+          <div class="v2-rule v2-rule-left" aria-hidden="true"><span></span></div>
+          <p class="v2-line v2-line-left">Sign in with the Discord account you use in the Clover Kingdom. Members get more of the Kingdom.</p>
+          <p class="v2-sub v2-sub-left">Not a member yet? <a href="#/join">See how to join</a>.</p>
+        </div>
+        <div class="v2-signin-card">
+          <img class="v2-signin-seal" src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="72" height="72">
+          <h2 class="v2-signin-title">Sign in ${soonBadge()}</h2>
+          <a class="v2-btn v2-btn-discord" id="members-signin" href="${MEMBERS_SIGNIN_URL}" rel="noopener"${MEMBERS_OPEN ? "" : ` aria-describedby="members-signin-note"`}>${ICONS.discord}Sign in with Discord</a>
+          <p class="v2-signin-note" id="members-signin-note" role="status">${MEMBERS_OPEN
+            ? "Discord sign-in only. No password to remember."
+            : "Member sign-in is opening soon. Until then, members meet in the Discord."}</p>
+          <ul class="v2-signin-facts">
+            <li>Discord sign-in only, no password</li>
+            <li>You must be in the Clover Kingdom Discord</li>
+            <li>The Night Sky opens at MK Proven and up</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="v2-section v2-vault" aria-labelledby="m-unlock-title">
+      <div class="container">
+        <div class="v2-section-head">
+          <div class="v2-eyebrow">${ICONS.lock} Behind the gate</div>
+          <h2 class="v2-h2" id="m-unlock-title">What members unlock</h2>
+        </div>
+        <ul class="v2-unlocks">${unlockCardsHtml()}
+        </ul>
+        <div class="v2-planned reveal">
+          <div class="v2-planned-head">Also planned for members</div>
+          <ul>${planned}</ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="v2-section" aria-labelledby="become-title">
+      <div class="container">
+        <div class="v2-become reveal">
+          <div>
+            <div class="v2-eyebrow">Not a member yet</div>
+            <h2 class="v2-h2 v2-h2-left" id="become-title">How to become a member</h2>
+            <ol class="v2-mini-steps">
+              ${JOIN_STEPS.map((st, i) => `<li><span>${ROMAN[i]}</span>${escHtml(st.name)}</li>`).join("")}
+            </ol>
+          </div>
+          <div class="v2-become-cta">
+            <button type="button" class="v2-btn v2-btn-primary" data-apply="1">Join the Kingdom ${ICONS.arrow}</button>
+            <a class="v2-link" href="#/join">See how joining works ${ICONS.arrow}</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+  wirePageButtons(wrap);
+  wireReveal(wrap);
+  const signin = wrap.querySelector("#members-signin");
+  if (signin && !MEMBERS_OPEN) {
+    signin.addEventListener("click", (e) => {
+      e.preventDefault();
+      const note = wrap.querySelector("#members-signin-note");
+      if (note) { note.classList.remove("flash"); void note.offsetWidth; note.classList.add("flash"); }
+    });
+  }
+  return wrap;
+}
+
+/* Point every "Member login" link at the right place (gateway now, members site once MEMBERS_OPEN). */
+function wireMemberLogin() {
+  document.querySelectorAll("[data-member-login]").forEach((a) => { a.setAttribute("href", memberLoginHref()); });
 }
 
 function buildFaq() {
@@ -1250,7 +1453,7 @@ const SUBPAGES = {
   "#/merchants-guild": () => buildMerchantsGuild(),
   "#/tek": () => buildTek(),
   "#/join": () => buildJoin(),
-  "#/login": () => buildLogin(),
+  "#/login": () => buildMembers(), /* v2: one member door; old buildLogin kept above, unused */
   "#/welcome": () => buildWelcome(),
   "#/members": () => buildMembers(),
   "#/faq": () => buildFaq(),
@@ -1269,9 +1472,9 @@ const TITLES = {
   "#/merchants-guild": "Clover Kingdom Merchants Guild | CLOVER KINGDOM",
   "#/tek": "Tek Tribe and Tek Stacks | CLOVER KINGDOM",
   "#/join": "How to join | CLOVER KINGDOM",
-  "#/login": "Login | CLOVER KINGDOM",
+  "#/login": "Member login | CLOVER KINGDOM",
   "#/welcome": "Welcome and the house rules | CLOVER KINGDOM",
-  "#/members": "Members area (coming soon) | CLOVER KINGDOM",
+  "#/members": "Member login | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",
   "#/archetypes": "The archetypes | CLOVER KINGDOM",
 };
@@ -1293,6 +1496,9 @@ function markNav(href) {
   document.querySelectorAll(".site-nav-links a").forEach((a) => {
     if (a.getAttribute("href") === href) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
+  });
+  document.querySelectorAll(".nav-login").forEach((a) => {
+    if (href === "#/members" || href === "#/login") a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
   const more = document.querySelector(".nav-more");
   if (more) more.classList.toggle("has-current", !!more.querySelector('a[aria-current="page"]'));
@@ -1427,6 +1633,7 @@ function wireBgSound() {
 
 window.addEventListener("DOMContentLoaded", () => {
   wireNav();
+  wireMemberLogin();
   wireBgSound();
   routeFromHash();
 });
