@@ -1,5 +1,5 @@
 /* ============================================================
-   CLOVER KINGDOM â€” ritual + routing + Sage mouth (v1)
+   CLOVER KINGDOM — ritual + routing + Sage mouth (v1)
    ============================================================ */
 
 /* Marks JS as on (moved here from an inline script so the CSP can keep script-src 'self'). */
@@ -93,7 +93,7 @@ function buildBookScene() {
         <div class="grimoire-cover">
           <img
             src="images/crest.svg"
-            alt="Five-leaf black clover crest â€” the grimoire mark"
+            alt="Five-leaf black clover crest — the grimoire mark"
             class="grimoire-crest"
           >
         </div>
@@ -439,7 +439,7 @@ function buildGate() {
             </div>
             <div>
               <div class="sage-mouth-name">SAGE</div>
-              <div class="sage-mouth-tag">Public teacher mouth Â· summoned, not ambient</div>
+              <div class="sage-mouth-tag">Public teacher mouth · summoned, not ambient</div>
             </div>
           </div>
           <div class="sage-mouth-body" id="sage-body">
@@ -502,7 +502,7 @@ function wireSageMouth(container) {
     input.value = "";
     body.classList.remove("speaking");
 
-    // Teach, don't echo. Filter strategic revealing â€” the public mouth
+    // Teach, don't echo. Filter strategic revealing — the public mouth
     // answers from the public-intel spine, not from private files.
     const answer = pickSageResponse(question);
     body.innerHTML = `<span>${answer}</span>`;
@@ -544,12 +544,12 @@ function buildSage() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="container">
-      <a class="back-link" href="#/">â† Back to the gate</a>
+      <a class="back-link" href="#/">← Back to the gate</a>
       <div class="section">
         <div class="section-eyebrow">Inner room</div>
         <h2 class="section-title">Sage</h2>
         <p class="section-lead">
-          Sage is a summoned teacher â€” a signed-in memory that meets the human
+          Sage is a summoned teacher — a signed-in memory that meets the human
           who has passed the gate. Not a chatbot widget for everyone. Not ambient.
           Summoned when the gate has decided the seat is earned.
         </p>
@@ -571,7 +571,7 @@ function buildStandard() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="container">
-      <a class="back-link" href="#/">â† Back to the gate</a>
+      <a class="back-link" href="#/">← Back to the gate</a>
       <div class="section">
         <div class="section-eyebrow">Law</div>
         <h2 class="section-title">The Standard</h2>
@@ -611,7 +611,7 @@ function buildRanks() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="container">
-      <a class="back-link" href="#/">â† Back to the gate</a>
+      <a class="back-link" href="#/">← Back to the gate</a>
       <div class="section">
         <div class="section-eyebrow">Ranks</div>
         <h2 class="section-title">Ranks</h2>
@@ -646,7 +646,7 @@ function buildGlyphs() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="container">
-      <a class="back-link" href="#/">â† Back to the gate</a>
+      <a class="back-link" href="#/">← Back to the gate</a>
       <div class="section">
         <div class="section-eyebrow">Glyph houses</div>
         <h2 class="section-title">Glyphs</h2>
@@ -655,7 +655,7 @@ function buildGlyphs() {
           meaning. Not stickers. Not spam.
         </p>
         <div class="glyph-house">
-          <div class="glyph-house-mark">â§‰</div>
+          <div class="glyph-house-mark">⧉</div>
           <div class="glyph-house-name">Glyph Black Clover</div>
           <div class="glyph-house-desc">
             The five-leaf black clover is the grimoire mark. Five heart-leaves.
@@ -663,7 +663,7 @@ function buildGlyphs() {
           </div>
         </div>
         <div class="glyph-house">
-          <div class="glyph-house-mark">âŒ˜</div>
+          <div class="glyph-house-mark">⌘</div>
           <div class="glyph-house-name">Glyph Gate</div>
           <div class="glyph-house-desc">
             The apply-and-approve path between the website and Discord. Not an open
@@ -893,7 +893,7 @@ function buildNotFound() {
 }
 
 /* ------------------------------------------------
-   Main render â€” decides ritual or gate
+   Main render — decides ritual or gate
    ------------------------------------------------ */
 const main = document.getElementById("page-content");
 
@@ -905,7 +905,6 @@ function renderMain() {
   main.appendChild(buildGate());
   wireGate(main);
 }
-
 
 /* ------------------------------------------------
    Apply form wiring
