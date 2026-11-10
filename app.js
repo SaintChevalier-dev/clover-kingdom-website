@@ -1441,6 +1441,201 @@ function wireApplyForm(container, opts) {
 }
 
 /* ------------------------------------------------
+   #/tek-tribe-game: members-only Tek Tribe game shell (2026-11-10)
+   Gate: GET https://auth.cloverkingdom.net/api/me with credentials.
+   Catalog names and art statuses come from TEK_TRIBE_DRAW_LIBRARY_2026-10-08
+   (compiled in the Tek Tribe Library, 2026-11-10). Shell only: no moves,
+   no invented balances, no claim that login is already live.
+   ------------------------------------------------ */
+const CKW_AUTH = "https://auth.cloverkingdom.net";
+
+const TTG_FAMILIES = [
+  { id: "01", name: "AI chat / reasoning / SI", body: "round dome-headed metal bot, two thin antenna stalks, lit chest ring", art: "EXISTS" },
+  { id: "02", name: "Code builders", body: "heavy squat metal bot, thick arms, hide work apron", art: "PARTIAL" },
+  { id: "03", name: "Notes / knowledge / source of truth", body: "tall slim metal bot, very big round ear-dishes, long arms, rolled-scroll chest relief", art: "PARTIAL" },
+  { id: "04", name: "Storage / local disk / self-host", body: "squat wide boxy metal bot, small round ear-dishes, concentric-ring chest relief", art: "PARTIAL" },
+  { id: "05", name: "Comms / community", body: "pear-shaped metal bot, speech-bubble chest relief", art: "PARTIAL" },
+  { id: "06", name: "Automation / agents / schedulers", body: "short wide metal bot, long jointed arms, cog chest relief", art: "PARTIAL" },
+  { id: "07", name: "Media generation", body: "round metal bot, coiled-wire tufts, triple-spiral chest relief", art: "PARTIAL" },
+  { id: "08", name: "Money / payments (soft hold)", body: "slim round metal bot, long jointed tail, diamond chest gem", art: "PARTIAL" },
+  { id: "09", name: "Security / identity", body: "broad sturdy metal bot, heavy shoulder mantle, plain shield chest relief", art: "PARTIAL" },
+  { id: "10", name: "Games / play", body: "springy ball-shaped metal bot, short piston legs, star chest relief", art: "PARTIAL" },
+];
+
+const TTG_JOBS = [
+  { id: "J01", job: "Grader / tester / reviewer", species: "Protoceratops", art: "PARTIAL" },
+  { id: "J02", job: "Data cleaner", species: "Protoceratops (testing line)", art: "NEEDED" },
+  { id: "J03", job: "Scout / researcher", species: "Troodon", art: "PARTIAL" },
+  { id: "J04", job: "Scribe / writer", species: "Therizinosaurus", art: "PARTIAL" },
+  { id: "J05", job: "Sentry / alerts / monitoring", species: "Ankylosaurus", art: "PARTIAL" },
+  { id: "J06", job: "Keys keeper", species: "Ankylosaurus (security line)", art: "NEEDED" },
+  { id: "J07", job: "Scheduler / organizer", species: "Stegosaurus", art: "PARTIAL" },
+  { id: "J08", job: "Builder", species: "Triceratops", art: "PARTIAL" },
+  { id: "J09", job: "Code hauler", species: "Triceratops (builder line)", art: "PARTIAL" },
+  { id: "J10", job: "Hauler / backup / sync / memory", species: "Apatosaurus", art: "PARTIAL" },
+  { id: "J11", job: "Connector", species: "long-neck sauropod (exact species not yet named)", art: "PARTIAL" },
+  { id: "J12", job: "Messenger / sender", species: "Microraptor", art: "PARTIAL" },
+  { id: "J13", job: "Personal aide / translator", species: "Microraptor", art: "NEEDED" },
+  { id: "J14", job: "Painter / designer", species: "Sinosauropteryx", art: "PARTIAL" },
+  { id: "J15", job: "Musician / voice", species: "Parasaurolophus", art: "NEEDED" },
+  { id: "J16", job: "Teacher / coach", species: "Maiasaura", art: "NEEDED" },
+  { id: "J17", job: "Seller / negotiator", species: "Pachycephalosaurus", art: "NEEDED" },
+  { id: "J18", job: "Money counter", species: "Psittacosaurus", art: "HELD" },
+  { id: "J19", job: "Health coach", species: "Struthiomimus", art: "NEEDED" },
+  { id: "J20", job: "Analyst / overview", species: "Quetzalcoatlus (pterosaur)", art: "NEEDED" },
+];
+
+const TTG_CATEGORIES = [
+  { id: "C01", name: "AI assistant / SI / chat model" },
+  { id: "C02", name: "AI agent seats / bot crews" },
+  { id: "C03", name: "Local models / compute" },
+  { id: "C04", name: "Code editor / IDE / coding agent" },
+  { id: "C05", name: "Version control / code hosting" },
+  { id: "C06", name: "Website / hosting / deploy" },
+  { id: "C07", name: "Domains / DNS" },
+  { id: "C08", name: "Notes / knowledge base" },
+  { id: "C09", name: "Docs / office / writing" },
+  { id: "C10", name: "Calendar / tasks / planning" },
+  { id: "C11", name: "Database / storage / backup" },
+  { id: "C12", name: "Cloud drive / file sync" },
+  { id: "C13", name: "Chat / community server" },
+  { id: "C14", name: "Social / posting" },
+  { id: "C15", name: "Email / newsletter" },
+  { id: "C16", name: "CRM / leads / contacts" },
+  { id: "C17", name: "Automation / scheduling / workflows" },
+  { id: "C18", name: "Marketplaces / gig / hire-a-human" },
+  { id: "C19", name: "Design / image" },
+  { id: "C20", name: "Video" },
+  { id: "C21", name: "Audio / music / voice" },
+  { id: "C22", name: "3D / CAD / game engines" },
+  { id: "C23", name: "Browser" },
+  { id: "C24", name: "OS / devices / PC parts" },
+  { id: "C25", name: "Security / passwords / keys" },
+  { id: "C26", name: "Sign-in / identity account" },
+  { id: "C27", name: "Finance / banking / payments (HOLD)" },
+  { id: "C28", name: "Commerce / shop" },
+  { id: "C29", name: "Analytics / dashboards" },
+  { id: "C30", name: "Monitoring / alerts / uptime" },
+  { id: "C31", name: "Learning / courses / language" },
+  { id: "C32", name: "Health / fitness" },
+  { id: "C33", name: "Gaming / play" },
+  { id: "C34", name: "Home / IoT / smart home" },
+  { id: "C35", name: "Other / unknown" },
+];
+
+function ttgArtLabel(s) {
+  if (s === "EXISTS") return "Exists";
+  if (s === "PARTIAL") return "Partial";
+  if (s === "HELD") return "Held";
+  return "Not designed yet";
+}
+
+function buildTekTribeGame() {
+  const wrap = document.createElement("div");
+  wrap.className = "ttg-page";
+  wrap.innerHTML = `
+    <section class="ttg-shell" aria-labelledby="ttg-title">
+      <div class="container">
+        <a class="back-link" href="#/">\u2190 Back to the gate</a>
+        <div class="ttg-eyebrow">Members only</div>
+        <h1 class="ttg-title" id="ttg-title">Tek Tribe <span>game</span></h1>
+        <p class="ttg-lead">A members-only game on this site. Login is how the game tracks each player.</p>
+        <div id="ttg-box" role="status"><p class="ttg-note">Checking if you are signed in...</p></div>
+      </div>
+    </section>
+  `;
+  const box = wrap.querySelector("#ttg-box");
+
+  const showLocked = (msg) => {
+    box.innerHTML =
+      `<div class="ttg-locked">` +
+        (msg ? `<p class="ttg-note">${escHtml(msg)}</p>` : "") +
+        `<a class="ttg-login" href="${CKW_AUTH}/auth/login">${ICONS.discord}<span>Log in with Discord</span></a>` +
+        `<p class="ttg-note">The game stays locked until you are signed in with the Discord account you use in the Clover Kingdom.</p>` +
+        `<p class="ttg-small">Not in the Discord yet? <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join it first</a>, then apply.</p>` +
+      `</div>`;
+  };
+
+  const showMember = (me) => {
+    const name = me && me.name ? String(me.name) : "member";
+    const siBit = me && me.isSI ? " (SI)" : "";
+    const families = TTG_FAMILIES.map((f) =>
+      `<li class="ttg-piece">` +
+        `<span class="ttg-stamp ttg-stamp-${escHtml(f.art.toLowerCase())}">${escHtml(ttgArtLabel(f.art))}</span>` +
+        `<h3 class="ttg-piece-name">${escHtml(f.name)}</h3>` +
+        `<p class="ttg-piece-body">${escHtml(f.body)}</p>` +
+        `<p class="ttg-piece-id">Family ${escHtml(f.id)}${f.art === "EXISTS" ? " \u2014 metal body" : " \u2014 plush so far; metal rebuild still needed"}</p>` +
+      `</li>`
+    ).join("");
+    const dinos = TTG_JOBS.map((j) =>
+      `<li class="ttg-piece">` +
+        `<span class="ttg-stamp ttg-stamp-${escHtml(j.art.toLowerCase())}">${escHtml(ttgArtLabel(j.art))}</span>` +
+        `<h3 class="ttg-piece-name">${escHtml(j.job)}</h3>` +
+        `<p class="ttg-piece-body">${escHtml(j.species)}</p>` +
+        `<p class="ttg-piece-id">${escHtml(j.id)}</p>` +
+      `</li>`
+    ).join("");
+    const catalog = TTG_CATEGORIES.map((c) =>
+      `<li class="ttg-card">` +
+        `<span class="ttg-card-kicker">${escHtml(c.id)} \u00b7 Catalog</span>` +
+        `<h3 class="ttg-card-name">${escHtml(c.name)}</h3>` +
+      `</li>`
+    ).join("");
+    box.innerHTML = `
+      <p class="ttg-signed">Signed in as ${escHtml(name)}${escHtml(siBit)}.</p>
+      <p class="ttg-ess">Essence (ESS): not live yet. ESS is points only. It cannot be cashed out or traded.</p>
+
+      <section class="ttg-panel" aria-labelledby="ttg-chief-title">
+        <h2 class="ttg-h2" id="ttg-chief-title">Your Chief</h2>
+        <div class="ttg-chief">
+          <div class="ttg-chief-mark" aria-hidden="true"></div>
+          <div>
+            <p>The player Chief cavebot and banner are not designed yet. This is a reserved spawn slot.</p>
+            <p class="ttg-small">When the Chief is drawn, it stands here. The banner has no letters unless you describe a motif.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="ttg-panel" aria-labelledby="ttg-family-title">
+        <h2 class="ttg-h2" id="ttg-family-title">Cavebot family</h2>
+        <p class="ttg-panel-lead">Ten family bodies from the Library. One Exists in metal. The other nine are still Partial (plush) and need a metal rebuild.</p>
+        <ul class="ttg-pieces">${families}</ul>
+      </section>
+
+      <section class="ttg-panel" aria-labelledby="ttg-dino-title">
+        <h2 class="ttg-h2" id="ttg-dino-title">Skill-dinos</h2>
+        <p class="ttg-panel-lead">Twenty skill jobs from the Library. None have finished art yet. Four species swaps locked on 8 Oct 2026 still need a repaint: Scribe, Sentry, Messenger, and Painter. The money-counter is Held.</p>
+        <ul class="ttg-pieces">${dinos}</ul>
+      </section>
+
+      <section class="ttg-panel" aria-labelledby="ttg-stack-title">
+        <h2 class="ttg-h2" id="ttg-stack-title">Your tek stack</h2>
+        <p class="ttg-panel-lead">No personal stack is saved yet. When it is, your tools show here as Kingdom cards (Exists or Desired). The catalog below is the 35 locked tek categories, not a claim that you already own them.</p>
+        <ul class="ttg-cards">${catalog}</ul>
+      </section>
+
+      <button type="button" class="ttg-signout" id="ttg-signout">Sign out</button>
+    `;
+    const out = box.querySelector("#ttg-signout");
+    if (out) {
+      out.addEventListener("click", () => {
+        fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" }).finally(() => showLocked("You are signed out."));
+      });
+    }
+  };
+
+  fetch(CKW_AUTH + "/api/me", { credentials: "include" })
+    .then((r) => r.ok ? r.json() : null)
+    .then((me) => {
+      if (!me || !me.signedIn) showLocked("");
+      else showMember(me);
+    })
+    .catch(() => showLocked("The login service at auth.cloverkingdom.net is not live yet. The button is in place for when it is."));
+
+  return wrap;
+}
+
+/* ------------------------------------------------
    Nav wiring
    ------------------------------------------------ */
 const SUBPAGES = {
@@ -1456,6 +1651,7 @@ const SUBPAGES = {
   "#/login": () => buildMembers(), /* v2: one member door; old buildLogin kept above, unused */
   "#/welcome": () => buildWelcome(),
   "#/members": () => buildMembers(),
+  "#/tek-tribe-game": () => buildTekTribeGame(),
   "#/faq": () => buildFaq(),
   "#/archetypes": () => buildArchetypes(),
 };
@@ -1475,6 +1671,7 @@ const TITLES = {
   "#/login": "Member login | CLOVER KINGDOM",
   "#/welcome": "Welcome and the house rules | CLOVER KINGDOM",
   "#/members": "Member login | CLOVER KINGDOM",
+  "#/tek-tribe-game": "Tek Tribe game | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",
   "#/archetypes": "The archetypes | CLOVER KINGDOM",
 };
