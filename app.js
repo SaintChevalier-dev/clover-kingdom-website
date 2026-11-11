@@ -1793,7 +1793,7 @@ function mountSageMouth() {
       <div class="sage-mouth" id="sage-mouth">
         <div class="sage-mouth-head">
           <div class="sage-mouth-mark">
-            <img src="images/crest.svg" alt="" aria-hidden="true">
+            <img src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="40" height="40">
           </div>
           <div>
             <div class="sage-mouth-name">SAGE</div>
@@ -1819,7 +1819,7 @@ function mountSageMouth() {
       </div>
     </div>
     <button type="button" class="sage-dock-btn" id="sage-dock-btn" aria-expanded="false" aria-controls="sage-dock-panel" aria-label="Ask Sage">
-      <img src="images/crest.svg" alt="" aria-hidden="true" width="28" height="28">
+      <img src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="40" height="40">
     </button>
   `;
   document.body.appendChild(dock);
@@ -1849,7 +1849,12 @@ function mountSageMouth() {
   const savePos = (p) => {
     try { localStorage.setItem(SAGE_DOCK_POS_KEY, JSON.stringify(p)); } catch (_) {}
   };
-  const defaultPos = () => applyPos(window.innerWidth - 56 - 18, window.innerHeight - 56 - 80);
+  const defaultPos = () => {
+    const narrow = window.innerWidth <= 680;
+    const insetR = narrow ? 16 : 18;
+    const insetB = narrow ? 16 : 80;
+    return applyPos(window.innerWidth - 56 - insetR, window.innerHeight - 56 - insetB);
+  };
   try {
     const saved = JSON.parse(localStorage.getItem(SAGE_DOCK_POS_KEY) || "null");
     if (saved && typeof saved.left === "number" && typeof saved.top === "number") applyPos(saved.left, saved.top);

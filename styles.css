@@ -998,19 +998,21 @@ a:hover {
   width: 40px;
   height: 40px;
   flex-shrink: 0;
-  border: 1px solid var(--metal-line);
+  border: 0;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.7), 0 0 10px rgba(138,26,26,0.15);
+  overflow: hidden;
+  background: transparent;
+  box-shadow: 0 0 10px rgba(138,26,26,0.25);
 }
 
 .sage-mouth-mark img {
-  width: 26px;
-  height: 26px;
-  filter: drop-shadow(0 0 4px rgba(138,26,26,0.3));
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  filter: none;
 }
 
 .sage-mouth-name {
@@ -2224,13 +2226,18 @@ body.join-panel-open {
    Same obsidian / gold / crimson palette. No slow or looping animations. */
 .ttg-page { width: 100%; padding: 8px 0 72px; }
 .ttg-shell { position: relative; isolation: isolate; }
+.ttg-shell .back-link {
+  display: block;
+  margin-bottom: 28px;
+}
 .ttg-eyebrow {
-  display: inline-block;
+  display: block;
   color: var(--gold);
   font-size: 0.76rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  margin-top: 8px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .ttg-title {
   font-family: var(--font-display);
@@ -2419,10 +2426,12 @@ body.join-panel-open {
   padding: 0;
 }
 .sage-dock-btn img {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
   pointer-events: none;
-  filter: drop-shadow(0 0 4px rgba(138,26,26,0.35));
+  filter: none;
 }
 .sage-dock-btn:focus-visible {
   outline: 2px solid var(--gold-bright);
@@ -2473,5 +2482,8 @@ body.join-panel-open {
   font: inherit;
 }
 @media (max-width: 680px) {
-  .sage-dock { right: 12px; bottom: 72px; }
+  .sage-dock { right: 16px; bottom: 16px; }
+  .site-footer { padding-bottom: 88px; }
+  .v2-hero-members { padding: 32px 0 108px; }
+  .v2-gateway { gap: 28px; }
 }
