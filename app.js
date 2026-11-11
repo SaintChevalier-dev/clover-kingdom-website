@@ -198,7 +198,7 @@ function buildFrontSections() {
       <div class="container">
         <div class="section-eyebrow">The merchant's table</div>
         <h2 class="section-title" id="offers-title">What the Kingdom offers</h2>
-        <p class="section-lead">Step up. Here is what the Kingdom carries. To ask about any of it, apply below or ask in the Discord. <a href="#/offers">See each offer in full</a>.</p>
+        <p class="section-lead">Step up. Here is what the Kingdom carries. To ask about any of it, <a href="#/join">apply on the Join page</a> or ask in the Discord. <a href="#/offers">See each offer in full</a>.</p>
         <div class="offer-grid">${offers}</div>
       </div>
     </section>
@@ -218,7 +218,8 @@ function buildFrontSections() {
         <h2 class="section-title" id="rules-title">The house rules</h2>
         <div class="law-block">The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
         <div class="cta-row cta-left">
-          <a class="cta cta-primary" href="${memberLoginHref()}">Login</a>
+          <a class="cta cta-primary" href="#/join">Apply</a>
+          <a class="cta cta-secondary" href="${memberLoginHref()}">Login</a>
         </div>
       </div>
     </section>
@@ -330,14 +331,8 @@ if (ACC_MQ.addEventListener) ACC_MQ.addEventListener("change", () => accApply(do
 /* Everything that must be switched on after the Gate (front page) is drawn. */
 let pendingApplyScroll = false;
 function wireGate(container) {
-  wireApplyForm(container);
-  wireSageMouth(container);
   wireFrontPage(container);
   accApply(container);
-  if (pendingApplyScroll) {
-    pendingApplyScroll = false;
-    setTimeout(scrollToApply, 60);
-  }
 }
 
 /* "Apply" / "Join" buttons: open the Join pop-out.
@@ -347,8 +342,12 @@ function goApplyLegacy() {
   pendingApplyScroll = true;
   if ((window.location.hash || "#/") === "#/") { renderMain(); } else { window.location.hash = "#/"; }
 }
+let pendingJoinOpen = false;
 function goApply() {
-  openJoinPanel();
+  const page = hashRoute(window.location.hash || "#/");
+  if (page === "#/join") { openJoinPanel(); return; }
+  pendingJoinOpen = true;
+  window.location.hash = "#/join";
 }
 
 /* ------------------------------------------------
@@ -366,97 +365,18 @@ function buildGate() {
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
-          <a class="cta cta-primary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join the Discord</a>
+          <a class="cta cta-primary" href="#/join">Join the Kingdom</a>
           <a class="cta cta-secondary" href="${memberLoginHref()}">Log in</a>
         </div>
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
-          This is a place, not a landing page. Say the name, then use the box.
+          This is a place, not a landing page.
         </div>
       </div>
     </section>
 
     ${buildFrontSections()}
 
-    <section class="gate gate-form" id="apply">
-      <div class="container" style="display:block;text-align:center">
-        <div class="apply-box">
-          <div class="apply-box-head">
-            <h3>The gate</h3>
-            <p>Five questions. A person reads them. Approval happens in Discord.</p>
-            <div class="form-not-rank">A form is not a rank.</div>
-          </div>
-
-          <form class="apply-form" novalidate>
-            <div class="field">
-              <label for="f-handle">Discord handle or how to reach you</label>
-              <input id="f-handle" name="handle" type="text" autocomplete="off" maxlength="100" required aria-describedby="hint-handle err-handle">
-              <div class="field-hint" id="hint-handle">A handle is enough. No real name needed.</div>
-              <div class="field-error" id="err-handle" aria-live="polite"></div>
-            </div>
-            <div class="field">
-              <label for="f-building">What are you building or working on right now?</label>
-              <textarea id="f-building" name="building" rows="3" maxlength="1000" required aria-describedby="err-building"></textarea>
-              <div class="field-error" id="err-building" aria-live="polite"></div>
-            </div>
-            <div class="field">
-              <label for="f-ai">What is your relationship with SI? How do you use it?</label>
-              <textarea id="f-ai" name="ai" rows="3" maxlength="1000" required aria-describedby="err-ai"></textarea>
-              <div class="field-error" id="err-ai" aria-live="polite"></div>
-            </div>
-            <div class="field">
-              <label for="f-intel">What does intelligence mean to you?</label>
-              <textarea id="f-intel" name="intel" rows="3" maxlength="1000" required aria-describedby="err-intel"></textarea>
-              <div class="field-error" id="err-intel" aria-live="polite"></div>
-            </div>
-            <div class="field">
-              <label for="f-found">How did you find the Clover Kingdom?</label>
-              <textarea id="f-found" name="found" rows="2" maxlength="500" required aria-describedby="err-found"></textarea>
-              <div class="field-error" id="err-found" aria-live="polite"></div>
-            </div>
-            <div class="apply-privacy" id="apply-privacy">
-              What you send passes through Cloudflare to a private intake. It is read by a person, with SI helpers. We keep it only as long as needed. You can ask us to delete it at any time by messaging Saint Chevalier on X, @Saint_Chevalier. Do not send passwords, ID numbers, or anything you are not comfortable sharing.
-            </div>
-            <div class="apply-consent">
-              <input id="f-consent" name="consent" type="checkbox" required aria-describedby="apply-privacy err-consent">
-              <label for="f-consent">I understand what I send is read by a person, with SI helpers, and I agree.</label>
-            </div>
-            <div class="field-error" id="err-consent" aria-live="polite"></div>
-            <button type="submit" class="apply-submit">Apply</button>
-          </form>
-
-          <div class="apply-note">
-            A form is not a rank.<br>
-            Approval is Discord, or you talk to Saint Chevalier.<br>
-            Find us on the <a href="#/links">Links</a> page.
-          </div>
-        </div>
-
-        <div class="sage-mouth" id="sage-mouth">
-          <div class="sage-mouth-head">
-            <div class="sage-mouth-mark">
-              <img src="images/crest.svg" alt="" aria-hidden="true">
-            </div>
-            <div>
-              <div class="sage-mouth-name">SAGE</div>
-              <div class="sage-mouth-tag">Public teacher mouth · summoned, not ambient</div>
-            </div>
-          </div>
-          <div class="sage-mouth-body" id="sage-body">
-            <span class="placeholder">Ask a short question. This box gives set answers to common questions. It is not live AI, and it is not your Sage. For a real talk, ask @Sage in the Discord.</span>
-          </div>
-          <form class="sage-mouth-form" id="sage-form">
-            <input class="sage-mouth-input" id="sage-input" type="text" placeholder="Ask SAGE something" aria-label="Ask SAGE something" autocomplete="off">
-            <button class="sage-mouth-send" type="submit">Ask</button>
-          </form>
-          <div class="sage-mouth-foot">
-            SAGE lives past the gate. This mouth teaches in public.<br>
-            Your Sage is summoned after you apply.
-          </div>
-        </div>
-
-      </div>
-    </section>
   `;
 
   return wrap;
@@ -514,6 +434,18 @@ function wireSageMouth(container) {
 const SAGE_NO_ANSWER =
   'I don\'t have an answer for that yet. Ask in the <a href="' + DISCORD_URL + '" target="_blank" rel="noopener noreferrer">Discord</a>.';
 
+/* Extra static answers copied from the published FAQ. Used by the public mouth only. */
+const SAGE_FAQ = [
+  { re: /\b(free|cost|price|priced|pay|payment|subscription)\b/, a: "The Discord and the community are free today. Nothing else is priced yet." },
+  { re: /\b(welcome|who can join|anyone)\b/, a: "Yes. Everyone is welcome. The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk." },
+  { re: /\b(magic knight|mk\b|what is a rank)\b/, a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
+  { re: /\b(what is this|what is the clover kingdom|what is clover kingdom)\b/, a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SI helpers called archetypes, and written intelligence the House keeps." },
+  { re: /\b(robot buddy|robot)\b/, a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
+  { re: /\b(delete|deleted|deleting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
+  { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the house rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
+  { re: /\b(how (do i |to )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps: follow @Saint_Chevalier on X, apply with five questions, then come into the Discord. The Discord link shows after you apply. A form is not a rank. The Join page walks you through it." },
+];
+
 /* Whole-word matching, most specific first. Each entry points at one line of SAGE_RESPONSES. */
 const SAGE_RULES = [
   { re: /\b(sovereign|sovereignty|ownership)\b|\bown (it|my|an? (ai|si))\b/, say: 0 },
@@ -533,6 +465,9 @@ function pickSageResponse(question) {
   const q = question.toLowerCase();
   for (const rule of SAGE_RULES) {
     if (rule.re.test(q)) return SAGE_RESPONSES[rule.say];
+  }
+  for (const f of SAGE_FAQ) {
+    if (f.re.test(q)) return f.a;
   }
   return SAGE_NO_ANSWER; // honest fallback, no invented answer
 }
@@ -794,13 +729,13 @@ function buildWelcome() {
 /* ------------------------------------------------
    v2 (2026-11-09): Join page + members gateway.
    MEMBERS_URL is the members site (Cloudflare Pages + Discord sign-in, MK Proven and up).
-   MEMBERS_OPEN: the one line to change when members.cloverkingdom.net is live.
-     false = the "Member login" button opens the #/members gateway and sign-in shows "Opening soon".
-     true  = "Member login" goes straight to MEMBERS_URL and the Discord button signs in.
+   MEMBERS_OPEN is kept false so "Member login" stays on #/members.
+   The Discord button on that page already points at auth.cloverkingdom.net.
    ------------------------------------------------ */
 const MEMBERS_URL = "https://members.cloverkingdom.net";
-const MEMBERS_OPEN = false;
-const MEMBERS_SIGNIN_URL = MEMBERS_URL + "/auth/discord";
+const MEMBERS_OPEN = false; /* nav still goes to #/members; do not point at members.cloverkingdom.net */
+const CKW_AUTH = "https://auth.cloverkingdom.net";
+const MEMBERS_SIGNIN_URL = CKW_AUTH + "/auth/login";
 
 /* Inline icons (stroke = currentColor). Drawn here, no icon font, no outside requests. */
 const ICONS = {
@@ -937,6 +872,10 @@ function buildJoin() {
   `;
   wirePageButtons(wrap);
   wireReveal(wrap);
+  if (pendingJoinOpen) {
+    pendingJoinOpen = false;
+    setTimeout(() => openJoinPanel(), 0);
+  }
   return wrap;
 }
 
@@ -957,16 +896,15 @@ function buildMembers() {
         </div>
         <div class="v2-signin-card">
           <img class="v2-signin-seal" src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="72" height="72">
-          <h2 class="v2-signin-title">Sign in ${soonBadge()}</h2>
-          <a class="v2-btn v2-btn-discord" id="members-signin" href="${MEMBERS_SIGNIN_URL}" rel="noopener"${MEMBERS_OPEN ? "" : ` aria-describedby="members-signin-note"`}>${ICONS.discord}Sign in with Discord</a>
-          <p class="v2-signin-note" id="members-signin-note" role="status">${MEMBERS_OPEN
-            ? "Discord sign-in only. No password to remember."
-            : "Member sign-in is opening soon. Until then, members meet in the Discord."}</p>
+          <h2 class="v2-signin-title">Sign in</h2>
+          <a class="v2-btn v2-btn-discord" id="members-signin" href="${MEMBERS_SIGNIN_URL}" rel="noopener">${ICONS.discord}Sign in with Discord</a>
+          <p class="v2-signin-note" id="members-signin-note" role="status">Discord sign-in only. No password to remember.</p>
           <ul class="v2-signin-facts">
             <li>Discord sign-in only, no password</li>
             <li>You must be in the Clover Kingdom Discord</li>
             <li>The Night Sky opens at MK Proven and up</li>
           </ul>
+          <button type="button" class="v2-link" id="members-signout">Sign out</button>
         </div>
       </div>
     </section>
@@ -1006,12 +944,12 @@ function buildMembers() {
   `;
   wirePageButtons(wrap);
   wireReveal(wrap);
-  const signin = wrap.querySelector("#members-signin");
-  if (signin && !MEMBERS_OPEN) {
-    signin.addEventListener("click", (e) => {
-      e.preventDefault();
-      const note = wrap.querySelector("#members-signin-note");
-      if (note) { note.classList.remove("flash"); void note.offsetWidth; note.classList.add("flash"); }
+  const signout = wrap.querySelector("#members-signout");
+  if (signout) {
+    signout.addEventListener("click", () => {
+      fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" })
+        .then((r) => { const note = wrap.querySelector("#members-signin-note"); if (note) note.textContent = r.ok ? "You are signed out." : "Sign-out did not complete. Please try again."; })
+        .catch(() => { const note = wrap.querySelector("#members-signin-note"); if (note) note.textContent = "Sign-out did not complete. Please try again."; });
     });
   }
   return wrap;
@@ -1447,8 +1385,6 @@ function wireApplyForm(container, opts) {
    (compiled in the Tek Tribe Library, 2026-11-10). Shell only: no moves,
    no invented balances, no claim that login is already live.
    ------------------------------------------------ */
-const CKW_AUTH = "https://auth.cloverkingdom.net";
-
 const TTG_FAMILIES = [
   { id: "01", name: "AI chat / reasoning / SI", body: "round dome-headed metal bot, two thin antenna stalks, lit chest ring", art: "EXISTS" },
   { id: "02", name: "Code builders", body: "heavy squat metal bot, thick arms, hide work apron", art: "PARTIAL" },
@@ -1624,13 +1560,23 @@ function buildTekTribeGame() {
     }
   };
 
+  const loginWhy = (() => {
+    const raw = window.location.hash || "";
+    const i = raw.indexOf("?");
+    if (i === -1) return "";
+    const why = new URLSearchParams(raw.slice(i + 1)).get("login");
+    if (why === "not_member") return "You need to be in the Clover Kingdom Discord to sign in.";
+    if (why === "failed") return "Sign-in did not complete. Please try again.";
+    return "";
+  })();
+
   fetch(CKW_AUTH + "/api/me", { credentials: "include" })
     .then((r) => r.ok ? r.json() : null)
     .then((me) => {
-      if (!me || !me.signedIn) showLocked("");
+      if (!me || !me.signedIn) showLocked(loginWhy);
       else showMember(me);
     })
-    .catch(() => showLocked("The login service at auth.cloverkingdom.net is not live yet. The button is in place for when it is."));
+    .catch(() => showLocked(loginWhy || "The login service at auth.cloverkingdom.net could not be reached. Please try again."));
 
   return wrap;
 }
@@ -1701,8 +1647,15 @@ function markNav(href) {
   if (more) more.classList.toggle("has-current", !!more.querySelector('a[aria-current="page"]'));
 }
 
+/* Hash path without ?query. Login redirects use #/tek-tribe-game?login=failed. */
+function hashRoute(hash) {
+  const raw = hash || "#/";
+  const q = raw.indexOf("?");
+  return q === -1 ? raw : raw.slice(0, q);
+}
+
 function routeFromHash() {
-  const page = window.location.hash || "#/";
+  const page = hashRoute(window.location.hash || "#/");
   const main = document.getElementById("page-content");
   // Any navigation ends the intro for good: stop its timers so it can never repaint over this page.
   if (ritualActive()) { cancelRitual(); markSkipped(); }
@@ -1828,9 +1781,163 @@ function wireBgSound() {
   btn.hidden = false;
 }
 
+const SAGE_DOCK_POS_KEY = "ckw-sage-dock-pos";
+
+function mountSageMouth() {
+  if (document.getElementById("sage-dock")) return;
+  const dock = document.createElement("div");
+  dock.className = "sage-dock";
+  dock.id = "sage-dock";
+  dock.innerHTML = `
+    <div class="sage-dock-panel" id="sage-dock-panel" hidden>
+      <div class="sage-mouth" id="sage-mouth">
+        <div class="sage-mouth-head">
+          <div class="sage-mouth-mark">
+            <img src="images/crest.svg" alt="" aria-hidden="true">
+          </div>
+          <div>
+            <div class="sage-mouth-name">SAGE</div>
+            <div class="sage-mouth-tag">Public teacher · set answers, not live AI</div>
+          </div>
+        </div>
+        <div class="sage-starters" id="sage-starters">
+          <button type="button" data-sage-q="How do I join?">How do I join?</button>
+          <button type="button" data-sage-q="Is it free?">Is it free?</button>
+          <button type="button" data-sage-q="Is everyone welcome?">Is everyone welcome?</button>
+        </div>
+        <div class="sage-mouth-body" id="sage-body">
+          <span class="placeholder">Ask a short question about the Clover Kingdom, this website, what is offered, or how to get involved. This box gives set answers to common questions. It is not live AI, and it is not your Sage. For a real talk, ask @Sage in the Discord.</span>
+        </div>
+        <form class="sage-mouth-form" id="sage-form">
+          <input class="sage-mouth-input" id="sage-input" type="text" placeholder="Ask SAGE something" aria-label="Ask SAGE something" autocomplete="off">
+          <button class="sage-mouth-send" type="submit">Ask</button>
+        </form>
+        <div class="sage-mouth-foot">
+          This public mouth uses set answers from the site. It does not call a model from your browser.<br>
+          Your Sage is summoned after you apply.
+        </div>
+      </div>
+    </div>
+    <button type="button" class="sage-dock-btn" id="sage-dock-btn" aria-expanded="false" aria-controls="sage-dock-panel" aria-label="Ask Sage">
+      <img src="images/crest.svg" alt="" aria-hidden="true" width="28" height="28">
+    </button>
+  `;
+  document.body.appendChild(dock);
+  wireSageMouth(dock);
+
+  const btn = dock.querySelector("#sage-dock-btn");
+  const panel = dock.querySelector("#sage-dock-panel");
+  const body = dock.querySelector("#sage-body");
+  const input = dock.querySelector("#sage-input");
+  const starters = dock.querySelector("#sage-starters");
+
+  const clamp = (left, top) => {
+    const w = dock.offsetWidth || 56;
+    const h = dock.offsetHeight || 56;
+    const maxL = Math.max(8, window.innerWidth - w - 8);
+    const maxT = Math.max(8, window.innerHeight - h - 8);
+    return { left: Math.min(maxL, Math.max(8, left)), top: Math.min(maxT, Math.max(8, top)) };
+  };
+  const applyPos = (left, top) => {
+    const p = clamp(left, top);
+    dock.style.left = p.left + "px";
+    dock.style.top = p.top + "px";
+    dock.style.right = "auto";
+    dock.style.bottom = "auto";
+    return p;
+  };
+  const savePos = (p) => {
+    try { localStorage.setItem(SAGE_DOCK_POS_KEY, JSON.stringify(p)); } catch (_) {}
+  };
+  const defaultPos = () => applyPos(window.innerWidth - 56 - 18, window.innerHeight - 56 - 80);
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAGE_DOCK_POS_KEY) || "null");
+    if (saved && typeof saved.left === "number" && typeof saved.top === "number") applyPos(saved.left, saved.top);
+    else defaultPos();
+  } catch (_) { defaultPos(); }
+
+  const placePanel = () => {
+    if (panel.hidden) return;
+    panel.style.left = panel.style.right = panel.style.top = panel.style.bottom = "";
+    const br = btn.getBoundingClientRect();
+    const pw = panel.offsetWidth || 320;
+    const ph = panel.offsetHeight || 280;
+    if (br.top >= ph + 12 || br.top >= (window.innerHeight - br.bottom)) panel.style.bottom = "calc(100% + 10px)";
+    else panel.style.top = "calc(100% + 10px)";
+    if (br.left + pw + 8 > window.innerWidth) panel.style.right = "0";
+    else panel.style.left = "0";
+  };
+
+  const setOpen = (open) => {
+    panel.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    dock.classList.toggle("is-open", open);
+    if (open) {
+      placePanel();
+      if (input) input.focus();
+    }
+  };
+
+  if (starters) {
+    starters.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-sage-q]");
+      if (!b || !body) return;
+      const q = b.getAttribute("data-sage-q") || "";
+      body.innerHTML = `<span>${pickSageResponse(q)}</span>`;
+    });
+  }
+
+  let dragging = false, moved = false, startX = 0, startY = 0, origL = 0, origT = 0;
+  btn.addEventListener("pointerdown", (e) => {
+    if (e.button != null && e.button !== 0) return;
+    dragging = true;
+    moved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    const r = dock.getBoundingClientRect();
+    origL = r.left;
+    origT = r.top;
+    btn.setPointerCapture(e.pointerId);
+  });
+  btn.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (!moved && (dx * dx + dy * dy) < 36) return;
+    moved = true;
+    dock.classList.add("is-dragging");
+    const p = applyPos(origL + dx, origT + dy);
+    savePos(p);
+    placePanel();
+  });
+  const endDrag = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    dock.classList.remove("is-dragging");
+    try { btn.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (!moved) setOpen(panel.hidden);
+  };
+  btn.addEventListener("pointerup", endDrag);
+  btn.addEventListener("pointercancel", endDrag);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !panel.hidden && !document.body.classList.contains("join-panel-open")) {
+      setOpen(false);
+      btn.focus();
+    }
+  });
+  window.addEventListener("resize", () => {
+    const r = dock.getBoundingClientRect();
+    const p = applyPos(r.left, r.top);
+    savePos(p);
+    placePanel();
+  });
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   wireNav();
   wireMemberLogin();
   wireBgSound();
+  mountSageMouth();
   routeFromHash();
 });

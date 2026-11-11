@@ -1194,6 +1194,9 @@ a:hover {
 .sage-mouth-body.speaking {
   animation: sageSpeak 0.4s ease-out;
 }
+@media (prefers-reduced-motion: reduce) {
+  .sage-mouth-body.speaking { animation: none; }
+}
 
 /* ------------------------------------------------
    Responsive
@@ -2385,4 +2388,90 @@ body.join-panel-open {
 @media (max-width: 680px) {
   .ttg-chief { flex-direction: column; }
   .ttg-pieces, .ttg-cards { grid-template-columns: 1fr; }
+}
+
+
+/* ================= 2026-11-11: floating Sage button (public mouth)
+   Light, no heavy animation. Position is stored in localStorage.
+   Lives outside #page-content so it stays on every hash route.
+   ================= */
+.sage-dock {
+  position: fixed;
+  z-index: 30;
+  width: 56px;
+  height: 56px;
+  right: 18px;
+  bottom: 80px;
+}
+.sage-dock-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--border-bright);
+  background: #0c0b10;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.45), inset 0 0 10px rgba(0,0,0,0.5);
+  color: var(--gold-bright);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  padding: 0;
+}
+.sage-dock-btn img {
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px rgba(138,26,26,0.35));
+}
+.sage-dock-btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+.sage-dock.is-dragging .sage-dock-btn,
+.sage-dock-btn:active { cursor: grabbing; }
+.sage-dock-panel {
+  position: absolute;
+  width: min(360px, calc(100vw - 16px));
+  z-index: 1;
+}
+.sage-dock-panel[hidden] { display: none; }
+.sage-dock .sage-mouth {
+  margin-top: 0;
+  width: 100%;
+  max-width: none;
+  padding: 18px 16px 14px;
+}
+.sage-starters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+.sage-starters button {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+.sage-starters button:hover,
+.sage-starters button:focus-visible {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+}
+.sage-starters button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+#members-signout {
+  display: inline-block;
+  margin-top: 12px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+@media (max-width: 680px) {
+  .sage-dock { right: 12px; bottom: 72px; }
 }
