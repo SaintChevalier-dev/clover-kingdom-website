@@ -29,6 +29,7 @@ Most pages are hash routes on a single HTML file (https://cloverkingdom.net/). F
 - https://cloverkingdom.net/#/join - How to join
 - https://cloverkingdom.net/#/login - Login (new here, or sign in)
 - https://cloverkingdom.net/#/offers - Offers
+- https://cloverkingdom.net/#/guilds - Guilds and clubs (Merchants Guild is listed here)
 - https://cloverkingdom.net/#/merchants-guild - Merchants Guild
 - https://cloverkingdom.net/#/archetypes - The House (all archetypes)
 - https://cloverkingdom.net/#/archetype/wizard-king - Wizard King
@@ -45,7 +46,10 @@ Most pages are hash routes on a single HTML file (https://cloverkingdom.net/). F
 - https://cloverkingdom.net/#/tek - Tek Tribe and tek stacks
 - https://cloverkingdom.net/#/faq - FAQ
 - https://cloverkingdom.net/#/welcome - Welcome, the Kingdom's rules, report path
-- https://cloverkingdom.net/#/members - Members area (coming soon; no login)
+- https://cloverkingdom.net/#/members - Member login (Discord sign-in)
+- https://cloverkingdom.net/#/tek-tribe - Tek Tribe (members only; log in to see it)
+- https://cloverkingdom.net/#/ckc - CKC, Clover Kingdom Calendar (members only; the calendar is coming)
+- https://cloverkingdom.net/#/tek-tribe-game - Tek Tribe game (members only)
 - https://cloverkingdom.net/#/sage - Sage
 - https://cloverkingdom.net/#/standard - The Standard
 - https://cloverkingdom.net/#/ranks - Ranks

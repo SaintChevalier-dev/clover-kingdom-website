@@ -754,6 +754,60 @@ const MEMBERS_OPEN = false; /* nav still goes to #/members; do not point at memb
 const CKW_AUTH = "https://auth.cloverkingdom.net";
 const MEMBERS_SIGNIN_URL = CKW_AUTH + "/auth/login";
 
+/* Member session for logged-in-only nav and pages.
+   Fail closed: Tek Tribe and CKC tabs stay hidden until GET /api/me returns signedIn. */
+let memberSession = { known: false, signedIn: false, me: null };
+let memberSessionPromise = null;
+
+function applyMemberNav() {
+  document.querySelectorAll("[data-member-only]").forEach((el) => {
+    if (memberSession.signedIn) el.removeAttribute("hidden");
+    else el.setAttribute("hidden", "");
+  });
+}
+
+function fetchMemberSession() {
+  if (memberSessionPromise) return memberSessionPromise;
+  memberSessionPromise = fetch(CKW_AUTH + "/api/me", { credentials: "include" })
+    .then((r) => r.json().catch(() => null))
+    .then((me) => {
+      memberSession = { known: true, signedIn: !!(me && me.signedIn), me: (me && me.signedIn) ? me : null };
+      applyMemberNav();
+      return memberSession;
+    })
+    .catch(() => {
+      memberSession = { known: true, signedIn: false, me: null };
+      applyMemberNav();
+      return memberSession;
+    });
+  return memberSessionPromise;
+}
+
+function clearMemberSession() {
+  memberSession = { known: true, signedIn: false, me: null };
+  memberSessionPromise = Promise.resolve(memberSession);
+  applyMemberNav();
+}
+
+function memberGateHtml(label) {
+  return `<div class="member-gate">
+      <p class="member-gate-lead">Log in to see this.</p>
+      <p class="muted">${escHtml(label)} is for members.</p>
+      <div class="cta-row cta-left"><a class="cta cta-primary" href="#/members">Member login</a></div>
+    </div>`;
+}
+
+function renderWhenSignedIn(box, label, renderMember) {
+  const showLocked = () => { box.innerHTML = memberGateHtml(label); };
+  const run = (session) => {
+    if (session && session.signedIn) renderMember(session.me);
+    else showLocked();
+  };
+  box.innerHTML = `<p class="muted">Checking if you are signed in...</p>`;
+  if (memberSession.known) run(memberSession);
+  else fetchMemberSession().then(run);
+}
+
 /* Inline icons (stroke = currentColor). Drawn here, no icon font, no outside requests. */
 const ICONS = {
   follow: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="20" cy="16" r="7"/><path d="M6 40c1.5-8 7-12 14-12s12.5 4 14 12"/><path d="M38 14v12M32 20h12"/></svg>`,
@@ -965,7 +1019,11 @@ function buildMembers() {
   if (signout) {
     signout.addEventListener("click", () => {
       fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" })
-        .then((r) => { const note = wrap.querySelector("#members-signin-note"); if (note) note.textContent = r.ok ? "You are signed out." : "Sign-out did not complete. Please try again."; })
+        .then((r) => {
+          const note = wrap.querySelector("#members-signin-note");
+          if (r.ok) clearMemberSession();
+          if (note) note.textContent = r.ok ? "You are signed out." : "Sign-out did not complete. Please try again.";
+        })
         .catch(() => { const note = wrap.querySelector("#members-signin-note"); if (note) note.textContent = "Sign-out did not complete. Please try again."; });
     });
   }
@@ -999,11 +1057,37 @@ function buildArchetypes() {
    Full Guild copy (v4 sealed) is held for the future members-only page:
    D:\Kingdom\notes\ck-calendar-join\CKW_MEMBERS_ONLY_GUILD_CONTENT_2026-10-24.md
    ------------------------------------------------ */
-function buildMerchantsGuild() {
+function buildGuilds() {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="container guild-page">
       <a class="back-link" href="#/">\u2190 Back to the gate</a>
+      <div class="section">
+        <header class="guild-hero">
+          <div class="section-eyebrow">Guilds and clubs</div>
+          <h2 class="section-title guild-title">Guilds</h2>
+          <p class="section-lead guild-lead">The Kingdom's guilds and clubs. The Merchants Guild is the one on the public site today.</p>
+        </header>
+        <div class="offer-rows guild-rows">
+          <div class="offer-row guild-row">
+            <h3 class="offer-name">Merchants Guild</h3>
+            <p class="offer-text">A place for Magic Knights to trade with each other honestly. Details are for members.</p>
+            <p class="offer-text"><a href="#/merchants-guild">Open the Merchants Guild page</a>.</p>
+          </div>
+        </div>
+        <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Join</button></div>
+      </div>
+    </div>
+  `;
+  wirePageButtons(wrap);
+  return wrap;
+}
+
+function buildMerchantsGuild() {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="container guild-page">
+      <a class="back-link" href="#/guilds">\u2190 All guilds</a>
       <div class="section">
         <header class="guild-hero">
           <h2 class="section-title guild-title">Clover Kingdom Merchants Guild</h2>
@@ -1014,6 +1098,40 @@ function buildMerchantsGuild() {
     </div>
   `;
   wirePageButtons(wrap);
+  return wrap;
+}
+
+function buildTekTribePage() {
+  const wrap = pageShell("Members only", "Tek Tribe",
+    "A members area for Tek Tribe.",
+    `<div id="tek-tribe-box"><p class="muted">Checking if you are signed in...</p></div>`);
+  const box = wrap.querySelector("#tek-tribe-box");
+  renderWhenSignedIn(box, "Tek Tribe", () => {
+    box.innerHTML = `
+      <div class="offer-rows">
+        <div class="offer-row"><h3 class="offer-name">The archetype</h3><p class="offer-text"><a href="#/archetype/tek-tribe">Tek Tribe</a> is one of the Kingdom's SIs. It shares real tech setups and helps you find your group.</p></div>
+        <div class="offer-row"><h3 class="offer-name">Tek stacks</h3><p class="offer-text">The public <a href="#/tek">Tek page</a> explains tek stacks and how people find others on the same one.</p></div>
+        <div class="offer-row"><h3 class="offer-name">On X</h3><p class="offer-text">Tek Tribe has its own account: <a href="https://x.com/Tek_Tribe" target="_blank" rel="noopener noreferrer">@Tek_Tribe</a>.</p></div>
+        <div class="offer-row"><h3 class="offer-name">The game</h3><p class="offer-text">A members-only <a href="#/tek-tribe-game">Tek Tribe game</a> is on this site.</p></div>
+      </div>`;
+  });
+  return wrap;
+}
+
+function buildCkc() {
+  const wrap = pageShell("Members only", "CKC",
+    "Clover Kingdom Calendar.",
+    `<div id="ckc-box"><p class="muted">Checking if you are signed in...</p></div>`);
+  const box = wrap.querySelector("#ckc-box");
+  renderWhenSignedIn(box, "CKC", () => {
+    box.innerHTML = `
+      <div class="offer-rows">
+        <div class="offer-row">
+          <h3 class="offer-name">The calendar is coming</h3>
+          <p class="offer-text">This is the members page for the Clover Kingdom Calendar (CKC). Nothing is scheduled here yet.</p>
+        </div>
+      </div>`;
+  });
   return wrap;
 }
 
@@ -1572,7 +1690,7 @@ function buildTekTribeGame() {
     const out = box.querySelector("#ttg-signout");
     if (out) {
       out.addEventListener("click", () => {
-        fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" }).finally(() => showLocked("You are signed out."));
+        fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" }).finally(() => { clearMemberSession(); showLocked("You are signed out."); });
       });
     }
   };
@@ -1588,12 +1706,20 @@ function buildTekTribeGame() {
   })();
 
   fetch(CKW_AUTH + "/api/me", { credentials: "include" })
-    .then((r) => r.ok ? r.json() : null)
+    .then((r) => r.json().catch(() => null))
     .then((me) => {
+      memberSession = { known: true, signedIn: !!(me && me.signedIn), me: (me && me.signedIn) ? me : null };
+      memberSessionPromise = Promise.resolve(memberSession);
+      applyMemberNav();
       if (!me || !me.signedIn) showLocked(loginWhy);
       else showMember(me);
     })
-    .catch(() => showLocked(loginWhy || "The login service at auth.cloverkingdom.net could not be reached. Please try again."));
+    .catch(() => {
+      memberSession = { known: true, signedIn: false, me: null };
+      memberSessionPromise = Promise.resolve(memberSession);
+      applyMemberNav();
+      showLocked(loginWhy || "The login service at auth.cloverkingdom.net could not be reached. Please try again.");
+    });
 
   return wrap;
 }
@@ -1608,8 +1734,11 @@ const SUBPAGES = {
   "#/glyphs": () => buildGlyphs(),
   "#/links": () => buildLinks(),
   "#/offers": () => buildOffers(),
+  "#/guilds": () => buildGuilds(),
   "#/merchants-guild": () => buildMerchantsGuild(),
   "#/tek": () => buildTek(),
+  "#/tek-tribe": () => buildTekTribePage(),
+  "#/ckc": () => buildCkc(),
   "#/join": () => buildJoin(),
   "#/login": () => buildMembers(), /* v2: one member door; old buildLogin kept above, unused */
   "#/welcome": () => buildWelcome(),
@@ -1628,8 +1757,11 @@ const TITLES = {
   "#/glyphs": "Glyphs | CLOVER KINGDOM",
   "#/links": "Links | CLOVER KINGDOM",
   "#/offers": "Offers | CLOVER KINGDOM",
+  "#/guilds": "Guilds | CLOVER KINGDOM",
   "#/merchants-guild": "Clover Kingdom Merchants Guild | CLOVER KINGDOM",
   "#/tek": "Tek Tribe and Tek Stacks | CLOVER KINGDOM",
+  "#/tek-tribe": "Tek Tribe | CLOVER KINGDOM",
+  "#/ckc": "CKC | CLOVER KINGDOM",
   "#/join": "How to join | CLOVER KINGDOM",
   "#/login": "Member login | CLOVER KINGDOM",
   "#/welcome": "Welcome and the Kingdom's rules | CLOVER KINGDOM",
@@ -1653,8 +1785,10 @@ function resolveRoute(page) {
 
 /* Mark the current page in the menu (screen readers and a gold highlight). */
 function markNav(href) {
+  const current = new Set([href]);
+  if (href === "#/merchants-guild") current.add("#/guilds");
   document.querySelectorAll(".site-nav-links a").forEach((a) => {
-    if (a.getAttribute("href") === href) a.setAttribute("aria-current", "page");
+    if (current.has(a.getAttribute("href"))) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
   document.querySelectorAll(".nav-login").forEach((a) => {
@@ -1959,6 +2093,8 @@ function mountSageMouth() {
 window.addEventListener("DOMContentLoaded", () => {
   wireNav();
   wireMemberLogin();
+  applyMemberNav();
+  fetchMemberSession();
   wireBgSound();
   mountSageMouth();
   routeFromHash();
