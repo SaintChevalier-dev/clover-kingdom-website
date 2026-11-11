@@ -2816,3 +2816,268 @@ a.hall-tile-in:focus-visible { outline: 2px solid var(--gold-bright); outline-of
   .hall-welcome-lock svg { width: 22px; height: 22px; }
   .hall-login { padding: 12px 18px; font-size: 0.9rem; }
 }
+
+/* ================= 2026-11-11: Login / sign-up popup =================
+   Dark gold and crimson, no enter/exit animation. Stacks on phones. */
+
+body.gate-modal-open {
+  overflow: hidden;
+}
+
+.gate-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.gate-modal-root[hidden] {
+  display: none !important;
+}
+
+.gate-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 11, 0.78);
+}
+
+.gate-modal {
+  position: relative;
+  z-index: 1;
+  width: min(840px, 100%);
+  max-height: min(92vh, 900px);
+  overflow: auto;
+  background: var(--charcoal);
+  color: var(--text);
+  border: 1px solid var(--metal-line);
+  border-top: 3px solid var(--gold);
+  box-shadow: 0 0 0 1px rgba(212, 168, 67, 0.18), 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(138, 26, 26, 0.18);
+  padding: 28px 26px 22px;
+  outline: none;
+}
+
+.gate-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-bright);
+  background: var(--charcoal-elevated);
+  color: var(--gold-bright);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.gate-modal-close:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  background: var(--metal);
+}
+
+.gate-modal-close:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+.gate-modal-head {
+  text-align: center;
+  margin: 0 0 22px;
+  padding: 0 40px;
+}
+
+.gate-modal-seal {
+  width: 64px;
+  height: 64px;
+  display: block;
+  margin: 0 auto 10px;
+}
+
+.gate-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  letter-spacing: 0.06em;
+  color: var(--gold-bright);
+  margin: 0 0 10px;
+}
+
+.gate-modal-explain {
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  margin: 0 auto;
+  max-width: 38em;
+}
+
+.gate-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(280px, 1.15fr);
+  gap: 0;
+  border: 1px solid var(--metal-line);
+  background: var(--obsidian);
+}
+
+.gate-modal-pane {
+  padding: 22px 20px 20px;
+}
+
+.gate-modal-member {
+  border-right: 1px solid var(--metal-line);
+  background: linear-gradient(180deg, rgba(30, 27, 21, 0.65), rgba(14, 13, 12, 0.9));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.gate-pane-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+  margin: 0 0 14px;
+}
+
+.gate-login-btn {
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+}
+
+.gate-login-btn:hover {
+  transform: none;
+}
+
+.gate-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gate-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.gate-step-num {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  background: rgba(212, 168, 67, 0.12);
+  color: var(--gold-bright);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.gate-step-name {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.gate-step-text {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+.gate-step .cta-row {
+  margin: 4px 0 0;
+}
+
+.gate-step .cta {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.gate-modal-more {
+  margin: 16px 0 0;
+  font-size: 0.9rem;
+}
+
+.gate-modal-fallback {
+  margin: 16px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .gate-modal-root {
+    padding: 8px;
+    align-items: stretch;
+  }
+  .gate-modal {
+    width: 100%;
+    max-height: none;
+    height: 100%;
+    padding: 16px 12px 12px;
+    margin: 0;
+  }
+  .gate-modal-head {
+    padding: 0 40px 0 0;
+    text-align: left;
+    margin: 0 0 12px;
+  }
+  .gate-modal-seal {
+    width: 48px;
+    height: 48px;
+    margin: 0 0 6px;
+  }
+  .gate-modal-title {
+    font-size: 1.35rem;
+    margin-bottom: 6px;
+  }
+  .gate-modal-explain {
+    font-size: 0.9rem;
+  }
+  .gate-modal-grid {
+    grid-template-columns: 1fr;
+  }
+  .gate-modal-member {
+    border-right: none;
+    border-bottom: 1px solid var(--metal-line);
+  }
+  .gate-modal-pane {
+    padding: 14px 12px 12px;
+  }
+  .gate-steps {
+    gap: 10px;
+  }
+  .gate-step-text {
+    margin: 0 0 6px;
+  }
+  .gate-modal-more,
+  .gate-modal-fallback {
+    margin-top: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gate-modal,
+  .gate-modal-backdrop,
+  .gate-login-btn {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}

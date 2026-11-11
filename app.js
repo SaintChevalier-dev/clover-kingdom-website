@@ -236,7 +236,7 @@ function buildFrontSections() {
         </div>
         <div class="cta-row cta-left">
           <a class="cta cta-primary" href="#/join">Apply</a>
-          <a class="cta cta-secondary" href="${memberLoginHref()}">Login</a>
+          <a class="cta cta-secondary" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">Login</a>
         </div>
       </div>
     </section>
@@ -383,7 +383,7 @@ function buildGate() {
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
           <a class="cta cta-primary" href="#/join">Join the Kingdom</a>
-          <a class="cta cta-secondary" href="${memberLoginHref()}">Log in</a>
+          <a class="cta cta-secondary" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">Log in</a>
         </div>
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
@@ -754,6 +754,36 @@ const MEMBERS_OPEN = false; /* nav still goes to #/members; do not point at memb
 const CKW_AUTH = "https://auth.cloverkingdom.net";
 const MEMBERS_SIGNIN_URL = CKW_AUTH + "/auth/login";
 
+/* Data-driven sign-up steps shown in the login popup.
+   Add a step here and the modal picks it up. Login itself only checks
+   Discord membership, so this path is: join the server, read #rules, then log in.
+   The official apply path stays on the Join page. */
+const GATE_SIGNUP_STEPS = [
+  {
+    name: "Join the Clover Kingdom Discord",
+    text: "The Discord and the community are free today. Open the server, then come back here to keep going.",
+    action: { href: DISCORD_URL, label: "Open the Discord", external: true },
+  },
+  {
+    name: "Read #rules",
+    text: "The Kingdom's Rules live in #rules on the Clover Kingdom Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.",
+  },
+  {
+    name: "Come back and log in",
+    text: "Press Log in with Discord. You'll land in the Member Hall.",
+  },
+];
+const GATE_MODAL_COPY = {
+  title: "Enter the Kingdom",
+  memberTitle: "I'm a member",
+  joinTitle: "New here? Join the Kingdom",
+  explain: "Login checks Discord membership, so outside connections stay outside until they're ready to join.",
+  fallback: "Login page not loading? Your network may still be catching up on our new address; try again in a bit or on mobile data.",
+  loginLabel: "Log in with Discord",
+  joinMore: "Want the full path in?",
+  joinMoreLink: "See how to join",
+};
+
 /* Member session for logged-in-only nav and pages.
    Fail closed: Tek Tribe and CKC tabs stay hidden until GET /api/me returns signedIn. */
 let memberSession = { known: false, signedIn: false, me: null };
@@ -793,7 +823,7 @@ function memberGateHtml(label) {
   return `<div class="member-gate">
       <p class="member-gate-lead">Log in to see this.</p>
       <p class="muted">${escHtml(label)} is for members.</p>
-      <div class="cta-row cta-left"><a class="cta cta-primary" href="#/members">Member login</a></div>
+      <div class="cta-row cta-left"><a class="cta cta-primary" href="#/members" data-gate-login="1" aria-haspopup="dialog">Member login</a></div>
     </div>`;
 }
 
@@ -898,7 +928,7 @@ function buildJoin() {
         <p class="v2-sub">Three steps. A person reads every application, and approval happens in the Discord.</p>
         <div class="v2-hero-cta">
           <button type="button" class="v2-btn v2-btn-primary v2-btn-xl" data-apply="1">Join the Kingdom ${ICONS.arrow}</button>
-          <a class="v2-btn v2-btn-ghost" href="${memberLoginHref()}">${ICONS.key}Member login</a>
+          <a class="v2-btn v2-btn-ghost" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">${ICONS.key}Member login</a>
         </div>
         <ul class="v2-facts" aria-label="Good to know">
           <li>The Discord is free today</li>
@@ -936,7 +966,7 @@ function buildJoin() {
 
     <section class="v2-section v2-closing" aria-label="Already a member">
       <div class="container v2-center">
-        <p class="v2-already">Already a member? <a class="v2-link" href="${memberLoginHref()}">Member login ${ICONS.arrow}</a></p>
+        <p class="v2-already">Already a member? <a class="v2-link" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">Member login ${ICONS.arrow}</a></p>
         <p class="v2-small">New here? Read the short <a href="#/welcome">welcome page</a> first.</p>
       </div>
     </section>
@@ -1039,9 +1069,25 @@ function buildMembers() {
   return wrap;
 }
 
-/* Point every "Member login" link at the right place (gateway now, members site once MEMBERS_OPEN). */
+/* Point every "Member login" link at the right place (gateway now, members site once MEMBERS_OPEN).
+   Clicks open the login / sign-up popup. href stays as a no-JavaScript fallback. */
 function wireMemberLogin() {
-  document.querySelectorAll("[data-member-login]").forEach((a) => { a.setAttribute("href", memberLoginHref()); });
+  document.querySelectorAll("[data-member-login]").forEach((a) => {
+    a.setAttribute("href", memberLoginHref());
+    a.setAttribute("data-gate-login", "1");
+    a.setAttribute("aria-haspopup", "dialog");
+  });
+}
+
+function wireGateLoginOnce() {
+  if (document.documentElement.getAttribute("data-gate-login-wired") === "1") return;
+  document.documentElement.setAttribute("data-gate-login-wired", "1");
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-gate-login]");
+    if (!t) return;
+    e.preventDefault();
+    openGateModal();
+  });
 }
 
 function buildFaq() {
@@ -1391,6 +1437,7 @@ function wireJoinPanel(root) {
 }
 
 function openJoinPanel() {
+  if (typeof closeGateModal === "function") closeGateModal();
   const root = ensureJoinPanel();
   joinPanelState.lastFocus = document.activeElement;
   joinPanelState.followed = false;
@@ -1428,6 +1475,115 @@ function closeJoinPanel() {
     joinPanelState.onKey = null;
   }
   const back = joinPanelState.lastFocus;
+  if (back && typeof back.focus === "function") back.focus();
+}
+
+/* ------------------------------------------------
+   Login / sign-up popup (home Log in, nav Member login, and other login doors).
+   Two parts: members go to Discord sign-in; new people get a numbered path.
+   Steps come from GATE_SIGNUP_STEPS so more can be added later.
+   ------------------------------------------------ */
+let gateModalState = { open: false, lastFocus: null, onKey: null };
+
+function gateSignupStepsHtml() {
+  return GATE_SIGNUP_STEPS.map((st, i) => {
+    const action = st.action
+      ? `<div class="cta-row cta-left"><a class="cta cta-secondary" href="${escHtml(st.action.href)}"${st.action.external ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escHtml(st.action.label)}</a></div>`
+      : "";
+    return `<li class="gate-step">
+        <span class="gate-step-num" aria-hidden="true">${i + 1}</span>
+        <div class="gate-step-body">
+          <h4 class="gate-step-name">${escHtml(st.name)}</h4>
+          <p class="gate-step-text">${escHtml(st.text)}</p>
+          ${action}
+        </div>
+      </li>`;
+  }).join("");
+}
+
+function gateModalMarkup() {
+  const c = GATE_MODAL_COPY;
+  return `
+  <div class="gate-modal-root" id="gate-modal-root" hidden>
+    <div class="gate-modal-backdrop" data-gate-close="1" tabindex="-1"></div>
+    <div class="gate-modal" role="dialog" aria-modal="true" aria-labelledby="gate-modal-title" aria-describedby="gate-modal-explain" tabindex="-1">
+      <button type="button" class="gate-modal-close" data-gate-close="1" aria-label="Close">\u00d7</button>
+      <header class="gate-modal-head">
+        <img class="gate-modal-seal" src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="64" height="64">
+        <h2 id="gate-modal-title" class="gate-modal-title">${escHtml(c.title)}</h2>
+        <p id="gate-modal-explain" class="gate-modal-explain">${escHtml(c.explain)}</p>
+      </header>
+      <div class="gate-modal-grid">
+        <section class="gate-modal-pane gate-modal-member" aria-labelledby="gate-member-title">
+          <h3 id="gate-member-title" class="gate-pane-title">${escHtml(c.memberTitle)}</h3>
+          <a class="v2-btn v2-btn-discord gate-login-btn" id="gate-modal-login" href="${MEMBERS_SIGNIN_URL}" rel="noopener">${ICONS.discord}${escHtml(c.loginLabel)}</a>
+        </section>
+        <section class="gate-modal-pane gate-modal-join" aria-labelledby="gate-join-title">
+          <h3 id="gate-join-title" class="gate-pane-title">${escHtml(c.joinTitle)}</h3>
+          <ol class="gate-steps" aria-label="How to join">${gateSignupStepsHtml()}</ol>
+          <p class="gate-modal-more muted">${escHtml(c.joinMore)} <a href="#/join">${escHtml(c.joinMoreLink)}</a>.</p>
+        </section>
+      </div>
+      <p class="gate-modal-fallback muted">${escHtml(c.fallback)}</p>
+    </div>
+  </div>`;
+}
+
+function ensureGateModal() {
+  let root = document.getElementById("gate-modal-root");
+  if (root) return root;
+  const holder = document.createElement("div");
+  holder.innerHTML = gateModalMarkup().trim();
+  root = holder.firstElementChild;
+  document.body.appendChild(root);
+  root.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-gate-close]");
+    if (t) { e.preventDefault(); closeGateModal(); }
+  });
+  return root;
+}
+
+function openGateModal() {
+  if (memberSession && memberSession.signedIn) {
+    window.location.hash = "#/hall";
+    return;
+  }
+  if (typeof closeJoinPanel === "function") closeJoinPanel();
+  const root = ensureGateModal();
+  gateModalState.lastFocus = document.activeElement;
+  root.hidden = false;
+  document.body.classList.add("gate-modal-open");
+  gateModalState.open = true;
+  const dialog = root.querySelector(".gate-modal");
+  const onKey = (e) => {
+    if (!gateModalState.open) return;
+    if (e.key === "Escape") { e.preventDefault(); closeGateModal(); return; }
+    if (e.key === "Tab" && dialog) {
+      const nodes = getFocusable(dialog);
+      if (!nodes.length) return;
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+  gateModalState.onKey = onKey;
+  document.addEventListener("keydown", onKey);
+  const focusStart = root.querySelector("#gate-modal-login") || root.querySelector(".gate-modal-close");
+  if (focusStart) focusStart.focus();
+  else if (dialog) dialog.focus();
+}
+
+function closeGateModal() {
+  const root = document.getElementById("gate-modal-root");
+  if (!root || !gateModalState.open) return;
+  gateModalState.open = false;
+  root.hidden = true;
+  document.body.classList.remove("gate-modal-open");
+  if (gateModalState.onKey) {
+    document.removeEventListener("keydown", gateModalState.onKey);
+    gateModalState.onKey = null;
+  }
+  const back = gateModalState.lastFocus;
   if (back && typeof back.focus === "function") back.focus();
 }
 
@@ -1745,7 +1901,7 @@ function ckwMemberJson(path) {
 function ttgLockedHtml(msg, what) {
   return `<div class="ttg-locked">` +
     (msg ? `<p class="ttg-note">${escHtml(msg)}</p>` : "") +
-    `<a class="ttg-login" href="${CKW_AUTH}/auth/login">${ICONS.discord}<span>Member Login</span></a>` +
+    `<a class="ttg-login" href="${CKW_AUTH}/auth/login" data-gate-login="1" aria-haspopup="dialog">${ICONS.discord}<span>Member Login</span></a>` +
     `<p class="ttg-note">${escHtml(what)} stays locked until you are signed in with the Discord account you use in the Clover Kingdom.</p>` +
     `<p class="ttg-small">Not a member yet? <a href="#/join">See how to join</a>.</p>` +
     `<p class="ttg-small"><a href="#/hall">See everything in the Member Hall</a></p>` +
@@ -2169,6 +2325,8 @@ function hallWelcomeCard(msg) {
   const login = document.createElement("a");
   login.className = "ttg-login hall-login";
   login.href = MEMBERS_SIGNIN_URL;
+  login.setAttribute("data-gate-login", "1");
+  login.setAttribute("aria-haspopup", "dialog");
   login.innerHTML = ICONS.discord + "<span>Member Login</span>";
   who.appendChild(login);
   const join = el("p", "ttg-small hall-join-hint");
@@ -2477,6 +2635,7 @@ function hashRoute(hash) {
 }
 
 function routeFromHash() {
+  if (typeof closeGateModal === "function") closeGateModal();
   const page = hashRoute(window.location.hash || "#/");
   const main = document.getElementById("page-content");
   // Any navigation ends the intro for good: stop its timers so it can never repaint over this page.
@@ -2748,7 +2907,7 @@ function mountSageMouth() {
   btn.addEventListener("pointercancel", endDrag);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !panel.hidden && !document.body.classList.contains("join-panel-open")) {
+    if (e.key === "Escape" && !panel.hidden && !document.body.classList.contains("join-panel-open") && !document.body.classList.contains("gate-modal-open")) {
       setOpen(false);
       btn.focus();
     }
@@ -2764,6 +2923,7 @@ function mountSageMouth() {
 window.addEventListener("DOMContentLoaded", () => {
   wireNav();
   wireMemberLogin();
+  wireGateLoginOnce();
   applyMemberNav();
   fetchMemberSession();
   wireBgSound();
