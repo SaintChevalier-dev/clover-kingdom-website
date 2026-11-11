@@ -2642,3 +2642,86 @@ body.join-panel-open {
   .rt-board p { font-size: 0.72rem; }
   .rt-q { font-size: 1.2rem; }
 }
+
+/* ------------------------------------------------
+   Member Hall, member votes, My Quests (members only, 2026-11-11)
+   ------------------------------------------------ */
+.hall-head { display: flex; align-items: center; gap: 18px; margin: 6px 0 28px; padding: 18px 20px; max-width: 720px;
+  border: 1px solid var(--gold); background: linear-gradient(90deg, rgba(138,26,26,0.4), rgba(20,20,22,0.85)); }
+.hall-avatar { width: 72px; height: 72px; font-size: 1.2rem; }
+.hall-who p { margin: 0; }
+.hall-kicker { color: var(--gold); font-size: 0.74rem; letter-spacing: 0.2em; text-transform: uppercase; }
+.hall-name { font-family: var(--font-display); font-size: 1.7rem; color: var(--gold-bright); line-height: 1.2; overflow-wrap: anywhere; }
+.hall-tiles { list-style: none; margin: 0 0 24px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.hall-tile-in { position: relative; display: flex; flex-direction: column; height: 100%; padding: 20px 18px 18px; color: var(--text); text-decoration: none;
+  background: radial-gradient(circle at 20% 0%, rgba(212,168,67,0.10), transparent 60%), var(--charcoal-elevated);
+  border: 1px solid var(--border-bright); border-top: 3px solid var(--gold); }
+a.hall-tile-in:hover { border-color: var(--gold); color: var(--text); }
+a.hall-tile-in:hover .hall-icon { box-shadow: 0 0 18px rgba(212,168,67,0.45); }
+a.hall-tile-in:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+.hall-icon { display: inline-flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; margin-bottom: 12px;
+  background: radial-gradient(circle at 35% 30%, #a52424, var(--crimson) 60%, #3d0909); border: 2px solid var(--gold); }
+.hall-icon svg { width: 30px; height: 30px; stroke: var(--gold-bright); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hall-badge { position: absolute; top: 16px; right: 14px; font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; padding: 2px 8px;
+  border: 1px solid var(--gold); color: var(--gold-bright); background: rgba(212,168,67,0.1); }
+.hall-tile-name { font-family: var(--font-display); font-size: 1.25rem; color: var(--gold-bright); margin: 0 0 6px; letter-spacing: 0.03em; }
+.hall-tile-text { margin: 0 0 14px; color: #c4c0b6; font-size: 0.93rem; line-height: 1.5; flex: 1; }
+.hall-go { display: inline-flex; align-items: center; gap: 6px; color: var(--gold-bright); font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.hall-go svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+.hall-soon .hall-tile-in { border-top-color: var(--metal-line); opacity: 0.78; }
+.hall-soon .hall-icon { filter: grayscale(0.6) brightness(0.8); border-color: var(--metal-line); }
+.hall-soon .hall-badge { border-color: var(--metal-line); color: var(--text-muted); background: none; }
+.hall-soon .hall-tile-name { color: var(--text); }
+.hall-foot { max-width: 720px; }
+.ttg-doors { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 30px; }
+.ttg-doors .rt-enter { margin: 0; flex: 1 1 300px; }
+.rt-enter .rt-crest svg { width: 18px; height: 18px; stroke: var(--gold-bright); fill: none; stroke-width: 2.2; }
+.rt-vote { border-top: 1px solid var(--border); padding-top: 14px; margin-bottom: 8px; }
+.rt-cast { border-left: 2px solid var(--gold); background: rgba(138,26,26,0.16); padding: 12px 14px; margin: -6px 0 18px; }
+.rt-cast-head { margin: 0 0 10px; color: var(--text); }
+.rt-cast-head strong { color: var(--gold-bright); }
+.rt-cast-opts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.rt-cast-btn { min-height: 40px; padding: 8px 14px; background: var(--charcoal-elevated); color: var(--text); border: 1px solid var(--border-bright);
+  border-left: 4px solid var(--rt); font-family: var(--font-body); font-size: 0.95rem; cursor: pointer; }
+.rt-cast-btn:hover { border-color: var(--rt); }
+.rt-cast-btn.is-mine { background: rgba(212,168,67,0.16); border-color: var(--gold-bright); color: var(--gold-bright); font-weight: bold; }
+.rt-cast-btn:disabled { opacity: 0.6; cursor: wait; }
+.rt-cast-btn:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+.rt-cast-msg { margin: 4px 0 0; color: var(--gold-bright); font-size: 0.9rem; min-height: 1.2em; }
+.rt-cast-closed { margin: -6px 0 18px; }
+.qf-members { margin-top: 26px; }
+.qf-member { border-top-style: dashed; }
+.qf-member-crest { background: radial-gradient(circle at 35% 30%, #3a3a40, #1c1c20 70%); }
+.qf-bot { color: var(--text-muted); font-family: var(--font-body); font-size: 0.82rem; letter-spacing: 0; }
+.qf-note { white-space: pre-line; overflow-wrap: anywhere; }
+.qf-member .qf-quest { overflow-wrap: anywhere; }
+.qf-archived { opacity: 0.6; }
+.mq-form { max-width: 720px; margin: 0 0 34px; padding: 18px 20px; border: 1px solid var(--gold); background: rgba(20,20,22,0.85); }
+.mq-form-title { margin-top: 0; }
+.mq-label { display: flex; justify-content: space-between; gap: 8px; color: var(--gold); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; margin: 12px 0 6px; }
+.mq-count { color: var(--text-faint); letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
+.mq-input { width: 100%; box-sizing: border-box; padding: 10px 12px; background: var(--charcoal-elevated); color: var(--text); border: 1px solid var(--border-bright);
+  font-family: var(--font-body); font-size: 1rem; }
+.mq-input:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 1px; border-color: var(--gold); }
+.mq-note { resize: vertical; min-height: 76px; }
+.mq-row { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 14px; }
+.mq-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.mq-btn { min-height: 42px; padding: 8px 18px; background: transparent; color: var(--gold-bright); border: 1px solid var(--gold); font-family: var(--font-body);
+  font-size: 0.95rem; letter-spacing: 0.06em; cursor: pointer; }
+.mq-btn:hover { background: rgba(212,168,67,0.14); }
+.mq-btn:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+.mq-btn:disabled { opacity: 0.6; cursor: wait; }
+.mq-btn-primary { background: var(--crimson); border-color: var(--gold); color: #fff3d6; }
+.mq-btn-primary:hover { background: #a52424; }
+.mq-btn-sm { min-height: 34px; padding: 4px 12px; font-size: 0.85rem; }
+.mq-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.mq-status { margin: 10px 0 0; min-height: 1.2em; color: var(--gold-bright); }
+.mq-status.is-error { color: #ff9b8f; }
+.mq-archived-h { margin-top: 26px; }
+@media (max-width: 480px) {
+  .hall-head { padding: 14px; gap: 12px; }
+  .hall-avatar { width: 56px; height: 56px; }
+  .hall-name { font-size: 1.35rem; }
+  .mq-row { grid-template-columns: 1fr; gap: 0; }
+  .mq-form { padding: 14px; }
+}

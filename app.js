@@ -1015,6 +1015,15 @@ function buildMembers() {
   `;
   wirePageButtons(wrap);
   wireReveal(wrap);
+  fetchMemberSession().then((sess) => {
+    if (!sess || !sess.signedIn) return;
+    const note = wrap.querySelector("#members-signin-note");
+    if (!note || wrap.querySelector(".v2-hall-link")) return;
+    const a = document.createElement("a");
+    a.className = "v2-btn v2-btn-primary v2-hall-link"; a.href = "#/hall"; a.textContent = "Enter the Member Hall";
+    note.textContent = "You are signed in.";
+    note.parentNode.insertBefore(a, note);
+  });
   const signout = wrap.querySelector("#members-signout");
   if (signout) {
     signout.addEventListener("click", () => {
@@ -1607,7 +1616,7 @@ function buildTekTribeGame() {
   wrap.innerHTML = `
     <section class="ttg-shell" aria-labelledby="ttg-title">
       <div class="container">
-        <a class="back-link" href="#/">\u2190 Back to the gate</a>
+        <p class="rt-back"><a class="back-link" href="#/hall">\u2190 Member Hall</a></p>
         <div class="ttg-eyebrow">Members only</div>
         <h1 class="ttg-title" id="ttg-title">Tek Tribe <span>game</span></h1>
         <p class="ttg-lead">A members-only game on this site. Login is how the game tracks each player.</p>
@@ -1648,7 +1657,10 @@ function buildTekTribeGame() {
       <p class="ttg-signed">Signed in as ${escHtml(name)}${escHtml(siBit)}.</p>
       <p class="ttg-ess">Essence (ESS): not live yet. ESS is points only. It cannot be cashed out or traded.</p>
 
-      <a class="rt-enter" href="#/round-table">${seatCrestHtml({ seat: "Round Table" }, "rt-crest-sm")}<span><strong>Enter the Round Table</strong><small>Every guild poll, each SI seat's vote and why, live tallies.</small></span>${ICONS.arrow}</a>
+      <div class="ttg-doors">
+        <a class="rt-enter" href="#/round-table">${seatCrestHtml({ seat: "Round Table" }, "rt-crest-sm")}<span><strong>Enter the Round Table</strong><small>Every guild poll, each SI seat's vote and why. Cast your own vote.</small></span>${ICONS.arrow}</a>
+        <a class="rt-enter" href="#/my-quests"><span class="rt-crest rt-crest-sm" aria-hidden="true">${ABILITY_ICONS.quest}</span><span><strong>My Quests</strong><small>Post a quest card for you or your own bot.</small></span>${ICONS.arrow}</a>
+      </div>
 
       <section class="ttg-panel" aria-labelledby="ttg-feed-title">
         <h2 class="ttg-h2" id="ttg-feed-title">Quest feed</h2>
@@ -1696,15 +1708,7 @@ function buildTekTribeGame() {
     }
   };
 
-  const loginWhy = (() => {
-    const raw = window.location.hash || "";
-    const i = raw.indexOf("?");
-    if (i === -1) return "";
-    const why = new URLSearchParams(raw.slice(i + 1)).get("login");
-    if (why === "not_member") return "You need to be in the Clover Kingdom Discord to sign in.";
-    if (why === "failed") return "Sign-in did not complete. Please try again.";
-    return "";
-  })();
+  const loginWhy = loginWhyFromHash();
 
   fetch(CKW_AUTH + "/api/me", { credentials: "include" })
     .then((r) => r.json().catch(() => null))
@@ -1784,6 +1788,7 @@ function loadQuestFeed(el) {
   ckwMemberJson("/api/feed").then((d) => {
     if (d.locked) { el.innerHTML = `<p class="ttg-panel-lead">Sign in again to see the quest feed.</p>`; return; }
     el.innerHTML = feedHtml(d.items);
+    el.appendChild(memberFeedSection(d.memberItems || []));
   }).catch(() => { el.innerHTML = `<p class="ttg-panel-lead">The quest feed could not load. Please try again.</p>`; });
 }
 
@@ -1813,16 +1818,58 @@ function rtBarsHtml(poll, field, total) {
   }).join("") + `</ul>`;
 }
 
+/* Member vote on one poll: one vote per member per open poll, change allowed until it closes.
+   Seat votes stay from the record; this is the separate site member tally. */
+function rtRenderVote(box, p, locked) {
+  if (!box) return;
+  const opts = p.options || [];
+  const mv = p.memberVotes || {};
+  const total = opts.reduce((a, o) => a + (+mv[o.key] || 0), 0);
+  const tallyPoll = { options: opts.map((o) => ({ label: o.label, site: +mv[o.key] || 0 })) };
+  const open = p.status === "open";
+  box.innerHTML = `<h3 class="rt-h3">Members on this site <span>${total} ${total === 1 ? "vote" : "votes"}</span></h3>` +
+    rtBarsHtml(tallyPoll, "site") +
+    (open
+      ? `<div class="rt-cast"><p class="rt-cast-head">${p.myPick ? "Your vote: <strong>" + escHtml(rtPickLabel(p, p.myPick)) + "</strong>. Tap another option to change it." : "Cast your vote"}</p>` +
+        `<div class="rt-cast-opts">${opts.map((o, i) => `<button type="button" class="rt-cast-btn rt-c${i % 8}${p.myPick === o.key ? " is-mine" : ""}" data-key="${escHtml(o.key)}" aria-pressed="${p.myPick === o.key ? "true" : "false"}">${escHtml(o.label)}</button>`).join("")}</div>` +
+        `<p class="ttg-small">One vote per member. You can change it until the poll closes. A vote moves no money. The owner calls the round.</p>` +
+        `<p class="rt-cast-msg" role="status" aria-live="polite"></p></div>`
+      : `<p class="ttg-small rt-cast-closed">This poll is ${p.status === "held" ? "on hold" : "closed"}, so voting is read-only.${p.myPick ? " Your vote was " + escHtml(rtPickLabel(p, p.myPick)) + "." : ""}</p>`);
+  if (!open) return;
+  const msg = box.querySelector(".rt-cast-msg");
+  box.querySelectorAll(".rt-cast-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-key");
+      box.querySelectorAll(".rt-cast-btn").forEach((x) => { x.disabled = true; });
+      msg.textContent = "Saving your vote...";
+      ckwMemberPost("/api/roundtable/vote", { pollId: p.id, pick: key })
+        .then((res) => {
+          if (res.status === 401) { locked("Your session ended. Sign in again."); return; }
+          if (!res.ok) {
+            const why = { poll_closed: "This poll just closed.", rate_limited: "Too many votes at once. Wait a minute.", bad_option: "That option is not on this poll." }[res.data.error];
+            msg.textContent = why || "Your vote did not save. Please try again.";
+            box.querySelectorAll(".rt-cast-btn").forEach((x) => { x.disabled = false; });
+            return;
+          }
+          p.myPick = res.data.myPick; p.memberVotes = res.data.memberVotes || {};
+          rtRenderVote(box, p, locked);
+          const m2 = box.querySelector(".rt-cast-msg"); if (m2) m2.textContent = "Vote saved.";
+        })
+        .catch(() => { msg.textContent = "The login service could not be reached. Please try again."; box.querySelectorAll(".rt-cast-btn").forEach((x) => { x.disabled = false; }); });
+    });
+  });
+}
+
 function buildRoundTable() {
   const wrap = document.createElement("div");
   wrap.className = "ttg-page rt-page";
   wrap.innerHTML = `
     <section class="ttg-shell" aria-labelledby="rt-title">
       <div class="container">
-        <p class="rt-back"><a class="back-link" href="#/tek-tribe-game">\u2190 Tek Tribe game</a></p>
+        <p class="rt-back"><a class="back-link" href="#/hall">\u2190 Member Hall</a></p>
         <div class="ttg-eyebrow">Members only</div>
         <h1 class="ttg-title" id="rt-title">The Round <span>Table</span></h1>
-        <p class="ttg-lead">Every guild poll, with each SI seat's vote and the reason it gave. Seat votes and member votes are counted apart. Votes advise only and never move money.</p>
+        <p class="ttg-lead">Every guild poll, with each SI seat's vote and the reason it gave. Seat votes and member votes are counted apart. Cast your own vote on any open poll. Votes advise only and never move money. The owner calls each round.</p>
         <div id="rt-box" role="status"><p class="ttg-note">Checking if you are signed in...</p></div>
       </div>
     </section>
@@ -1885,7 +1932,8 @@ function buildRoundTable() {
               <div class="rt-detail" id="rt-detail" aria-live="polite"><p class="ttg-small">Tap a seat to read its vote and why.</p></div>
               <h3 class="rt-h3">Archetype seats <span>${seatTotal} voted</span></h3>
               ${rtBarsHtml(p, "seats")}
-              <h3 class="rt-h3">Members <span>${escHtml(p.humanNote || "")}</span></h3>
+              <div class="rt-vote" id="rt-vote"></div>
+              <h3 class="rt-h3">Members on record <span>${escHtml(p.humanNote || "")}</span></h3>
               ${hasHumans ? rtBarsHtml(p, "humans") : `<p class="ttg-small">Member counts were not recorded for this poll.</p>`}
               ${p.tallyNote ? `<p class="ttg-small">${escHtml(p.tallyNote)}</p>` : ""}
             </div>
@@ -1893,6 +1941,7 @@ function buildRoundTable() {
           <h3 class="rt-h3">Every seat</h3>
           <ul class="rt-rows">${rows}</ul>
         </article>`;
+      rtRenderVote(pollBox.querySelector("#rt-vote"), p, locked);
       const detail = pollBox.querySelector("#rt-detail");
       pollBox.querySelectorAll(".rt-seat").forEach((b) => {
         b.addEventListener("click", () => {
@@ -1929,6 +1978,292 @@ function buildRoundTable() {
 }
 
 /* ------------------------------------------------
+   Member abilities (2026-11-11). One modular pattern for every member page:
+   1. add one entry to MEMBER_ABILITIES (the Hall tile),
+   2. write a render(box, me) and wrap it with memberPage({...}),
+   3. add one line to SUBPAGES and TITLES.
+   memberPage does the session check and the locked state, so a new page never
+   re-implements login. Member text is always rendered with text nodes.
+   ------------------------------------------------ */
+const ABILITY_ICONS = {
+  tribe: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M10 40l14-30 14 30"/><path d="M16 28h16"/><path d="M24 10v-4M20 6h8"/></svg>`,
+  table: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="10"/><circle cx="24" cy="7" r="3"/><circle cx="24" cy="41" r="3"/><circle cx="7" cy="24" r="3"/><circle cx="41" cy="24" r="3"/><circle cx="12" cy="12" r="2.5"/><circle cx="36" cy="36" r="2.5"/><circle cx="36" cy="12" r="2.5"/><circle cx="12" cy="36" r="2.5"/></svg>`,
+  quest: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M12 42V6"/><path d="M12 8h22l-5 7 5 7H12"/><path d="M8 42h10"/></svg>`,
+  sage: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M24 6l4.5 11.5L40 20l-9 7.5L33.5 40 24 33l-9.5 7L17 27.5 8 20l11.5-2.5z"/></svg>`,
+  grimoire: `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M8 10c6-2 11-1 16 3 5-4 10-5 16-3v28c-6-2-11-1-16 3-5-4-10-5-16-3z"/><path d="M24 13v28"/><path d="M14 20h5M29 20h5M14 26h5M29 26h5"/></svg>`,
+};
+
+const MEMBER_ABILITIES = [
+  { id: "game", href: "#/tek-tribe-game", icon: "tribe", name: "Tek Tribe game", status: "live",
+    text: "The game board, your Chief's reserved slot, and the quest feed from every Kingdom SI and member." },
+  { id: "round-table", href: "#/round-table", icon: "table", name: "The Round Table", status: "live",
+    text: "Every guild poll, each SI seat's vote and why. Cast your own vote on any open poll." },
+  { id: "my-quests", href: "#/my-quests", icon: "quest", name: "My Quests", status: "live",
+    text: "Post quest cards for yourself or your own bot. They show in the quest feed under your name." },
+  { id: "own-sage", icon: "sage", name: "Your own Sage", status: "soon",
+    text: "A Sage of your own that learns from your Kingdom notes and helps you build. Being planned. No date yet." },
+  { id: "grimoire", icon: "grimoire", name: "Member Grimoire", status: "soon",
+    text: "Spells, skills and guides that members share with each other. Being planned. No date yet." },
+];
+
+function loginWhyFromHash() {
+  const raw = window.location.hash || "";
+  const i = raw.indexOf("?");
+  if (i === -1) return "";
+  const why = new URLSearchParams(raw.slice(i + 1)).get("login");
+  if (why === "not_member") return "You need to be in the Clover Kingdom Discord to sign in.";
+  if (why === "failed") return "Sign-in did not complete. Please try again.";
+  return "";
+}
+
+/* Small DOM helper: el("p", "cls", "text") makes a node whose text is a text node (never parsed as HTML). */
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined && text !== null) n.textContent = String(text);
+  return n;
+}
+
+function memberSignOut(onDone) {
+  fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" }).finally(() => { clearMemberSession(); if (onDone) onDone(); });
+}
+
+/* Write to the login service: POST with a JSON body. The browser sends the site Origin; the Worker checks it. */
+function ckwMemberPost(path, body) {
+  return fetch(CKW_AUTH + path, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    .then((r) => r.json().catch(() => ({})).then((d) => ({ status: r.status, ok: r.ok, data: d || {} })));
+}
+
+/* opts: { cls, titleId, titleHtml, lead, back: { href, label }, what, render(box, me) } */
+function memberPage(opts) {
+  const wrap = document.createElement("div");
+  wrap.className = "ttg-page " + (opts.cls || "");
+  const back = opts.back || { href: "#/hall", label: "Member Hall" };
+  wrap.innerHTML = `
+    <section class="ttg-shell" aria-labelledby="${opts.titleId}">
+      <div class="container">
+        <p class="rt-back"><a class="back-link" href="${back.href}">\u2190 ${escHtml(back.label)}</a></p>
+        <div class="ttg-eyebrow">Members only</div>
+        <h1 class="ttg-title" id="${opts.titleId}">${opts.titleHtml}</h1>
+        ${opts.lead ? `<p class="ttg-lead">${escHtml(opts.lead)}</p>` : ""}
+        <div class="mp-box" role="status"><p class="ttg-note">Checking if you are signed in...</p></div>
+      </div>
+    </section>`;
+  const box = wrap.querySelector(".mp-box");
+  const locked = (msg) => { box.innerHTML = ttgLockedHtml(msg, opts.what); };
+  const why = loginWhyFromHash();
+  fetch(CKW_AUTH + "/api/me", { credentials: "include" })
+    .then((r) => r.json().catch(() => null))
+    .then((me) => {
+      memberSession = { known: true, signedIn: !!(me && me.signedIn), me: (me && me.signedIn) ? me : null };
+      memberSessionPromise = Promise.resolve(memberSession);
+      applyMemberNav();
+      if (!me || !me.signedIn) { locked(why); return; }
+      box.removeAttribute("role");
+      box.innerHTML = "";
+      opts.render(box, me, locked);
+    })
+    .catch(() => {
+      memberSession = { known: true, signedIn: false, me: null };
+      memberSessionPromise = Promise.resolve(memberSession);
+      applyMemberNav();
+      locked(why || "The login service at auth.cloverkingdom.net could not be reached. Please try again.");
+    });
+  return wrap;
+}
+
+/* Avatar: only a Discord CDN image URL is used; anything else falls back to the crest initials. */
+function memberAvatarNode(me, cls) {
+  const wrapEl = el("span", "rt-crest " + (cls || ""));
+  wrapEl.setAttribute("aria-hidden", "true");
+  const url = me && typeof me.avatarUrl === "string" && /^https:\/\/cdn\.discordapp\.com\/avatars\/\d+\/(a_)?[0-9a-f]{32}\.png\?size=128$/.test(me.avatarUrl) ? me.avatarUrl : null;
+  if (url) { const img = document.createElement("img"); img.src = url; img.alt = ""; img.referrerPolicy = "no-referrer"; img.width = 128; img.height = 128; wrapEl.appendChild(img); }
+  else wrapEl.appendChild(el("span", "", seatInitials(String((me && me.name) || "M")).slice(0, 2)));
+  return wrapEl;
+}
+
+/* #/hall: the Member Hall, where members land after login. */
+function buildHall() {
+  return memberPage({
+    cls: "hall-page", titleId: "hall-title", titleHtml: "Member <span>Hall</span>",
+    lead: "Your door to everything members can do on this site. More rooms open as the Kingdom builds them.",
+    back: { href: "#/", label: "Home" }, what: "The Member Hall",
+    render(box, me, locked) {
+      const head = el("div", "hall-head");
+      head.appendChild(memberAvatarNode(me, "hall-avatar"));
+      const who = el("div", "hall-who");
+      who.appendChild(el("p", "hall-kicker", "Welcome to the Hall"));
+      who.appendChild(el("p", "hall-name", (me && me.name) || "member"));
+      who.appendChild(el("p", "ttg-small", "Signed in with Discord" + (me && me.isSI ? " \u00b7 SI" : "")));
+      head.appendChild(who);
+      box.appendChild(head);
+      const list = el("ul", "hall-tiles");
+      MEMBER_ABILITIES.forEach((a) => {
+        const li = el("li", "hall-tile hall-" + a.status);
+        const inner = a.status === "live" && a.href ? document.createElement("a") : el("div", "");
+        inner.className = "hall-tile-in";
+        if (a.status === "live" && a.href) inner.href = a.href;
+        const ic = el("span", "hall-icon"); ic.innerHTML = ABILITY_ICONS[a.icon] || ICONS.hall; /* our own static SVG, never member text */
+        inner.appendChild(ic);
+        inner.appendChild(el("span", "hall-badge", a.status === "live" ? "Open" : "Coming later"));
+        inner.appendChild(el("h2", "hall-tile-name", a.name));
+        inner.appendChild(el("p", "hall-tile-text", a.text));
+        if (a.status === "live") { const go = el("span", "hall-go", "Enter "); go.insertAdjacentHTML("beforeend", ICONS.arrow); inner.appendChild(go); }
+        li.appendChild(inner);
+        list.appendChild(li);
+      });
+      box.appendChild(list);
+      box.appendChild(el("p", "ttg-small hall-foot", "Votes advise only and never move money. The owner calls each round. Nothing here asks for passwords or payment."));
+      const out = el("button", "ttg-signout", "Sign out");
+      out.type = "button";
+      out.addEventListener("click", () => memberSignOut(() => locked("You are signed out.")));
+      box.appendChild(out);
+    },
+  });
+}
+
+/* Member quest cards (text nodes only). */
+const QUEST_MAX = { title: 120, note: 500, bot: 40 };
+function memberQuestCard(q, actions) {
+  const li = el("li", "qf-card qf-member qf-" + (FEED_STATUS[q.status] ? q.status : "active") + (q.archived ? " qf-archived" : ""));
+  const top = el("div", "qf-top");
+  const crest = el("span", "rt-crest rt-crest-sm qf-member-crest"); crest.setAttribute("aria-hidden", "true");
+  crest.appendChild(el("span", "", seatInitials(String(q.by || "M")).slice(0, 2)));
+  top.appendChild(crest);
+  const who = el("span", "qf-seat", q.by || "Member");
+  if (q.botName) who.appendChild(el("small", "qf-bot", " \u00b7 for " + q.botName));
+  top.appendChild(who);
+  top.appendChild(el("span", "qf-status", q.archived ? "Archived" : (FEED_STATUS[q.status] || q.status)));
+  li.appendChild(top);
+  li.appendChild(el("h3", "qf-quest", q.title));
+  if (q.note) li.appendChild(el("p", "qf-detail qf-note", q.note));
+  const d = q.updatedAt ? new Date(q.updatedAt) : null;
+  li.appendChild(el("p", "qf-date", (q.mine ? "Yours \u00b7 " : "Member quest \u00b7 ") + (d && !isNaN(d) ? "updated " + d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "")));
+  if (actions) li.appendChild(actions);
+  return li;
+}
+
+function memberFeedSection(items) {
+  const sec = el("div", "qf-members");
+  sec.appendChild(el("h3", "rt-h3", "Member quests"));
+  if (!items || !items.length) {
+    const p = el("p", "ttg-panel-lead", "No member quests yet. ");
+    const a = el("a", "", "Post the first one"); a.href = "#/my-quests"; p.appendChild(a); p.appendChild(document.createTextNode("."));
+    sec.appendChild(p);
+    return sec;
+  }
+  const ul = el("ul", "qf-list");
+  items.forEach((q) => ul.appendChild(memberQuestCard(q)));
+  sec.appendChild(ul);
+  const more = el("p", "ttg-small"); const a = el("a", "", "Post or edit your own quests"); a.href = "#/my-quests"; more.appendChild(a);
+  sec.appendChild(more);
+  return sec;
+}
+
+const QUEST_ERRORS = {
+  title_required: "Give the quest a title.", title_too_long: "The title is too long (120 characters at most).",
+  note_too_long: "The note is too long (500 characters at most).", bot_name_too_long: "The bot name is too long (40 characters at most).",
+  bad_status: "Pick a status.", active_cap: "You already have 20 active or waiting quests. Mark one done or archive one first.",
+  total_cap: "You have reached the quest limit for now.", rate_limited: "Too many changes at once. Wait a minute and try again.",
+  not_found: "That quest is not yours or no longer exists.", bad_origin: "This change has to come from cloverkingdom.net.",
+};
+
+/* #/my-quests: a member posts quest cards for themselves or their own bot. No deletes: archive instead. */
+function buildMyQuests() {
+  return memberPage({
+    cls: "mq-page", titleId: "mq-title", titleHtml: "My <span>Quests</span>",
+    lead: "Post what you or your own bot are working on. Your cards show in the Tek Tribe quest feed under your Discord name. Text only. Edit, finish or archive them any time.",
+    what: "My Quests",
+    render(box, me, locked) {
+      let editing = null;
+      const form = document.createElement("form");
+      form.className = "mq-form"; form.noValidate = true;
+      form.innerHTML = `
+        <h2 class="ttg-h2 mq-form-title">New quest</h2>
+        <label class="mq-label" for="mq-t">Quest <span class="mq-count" data-for="mq-t"></span></label>
+        <input class="mq-input" id="mq-t" name="title" maxlength="${QUEST_MAX.title}" autocomplete="off" required placeholder="What are you working on?">
+        <label class="mq-label" for="mq-n">Note (optional) <span class="mq-count" data-for="mq-n"></span></label>
+        <textarea class="mq-input mq-note" id="mq-n" name="note" maxlength="${QUEST_MAX.note}" rows="3" placeholder="Where it stands, what is next."></textarea>
+        <div class="mq-row">
+          <div><label class="mq-label" for="mq-s">Status</label>
+            <select class="mq-input" id="mq-s" name="status"><option value="active">Active</option><option value="waiting">Waiting</option><option value="done">Done</option></select></div>
+          <div><label class="mq-label" for="mq-b">For your bot (optional) <span class="mq-count" data-for="mq-b"></span></label>
+            <input class="mq-input" id="mq-b" name="botName" maxlength="${QUEST_MAX.bot}" autocomplete="off" placeholder="Bot name"></div>
+        </div>
+        <p class="ttg-small">No passwords, keys, money details or other people's private info. Up to 20 active quests.</p>
+        <div class="mq-actions"><button type="submit" class="mq-btn mq-btn-primary">Post quest</button><button type="button" class="mq-btn mq-cancel" hidden>Cancel edit</button></div>
+        <p class="mq-status" role="status" aria-live="polite"></p>`;
+      box.appendChild(form);
+      const listHead = el("h2", "ttg-h2", "Your quest cards");
+      box.appendChild(listHead);
+      const listBox = el("div", "mq-list"); listBox.appendChild(el("p", "ttg-note", "Loading your quests..."));
+      box.appendChild(listBox);
+      const t = form.querySelector("#mq-t"), n = form.querySelector("#mq-n"), s = form.querySelector("#mq-s"), b = form.querySelector("#mq-b");
+      const status = form.querySelector(".mq-status"), submit = form.querySelector(".mq-btn-primary"), cancel = form.querySelector(".mq-cancel");
+      const counts = () => form.querySelectorAll(".mq-count").forEach((c) => {
+        const f = form.querySelector("#" + c.getAttribute("data-for")); c.textContent = f.value.length + "/" + f.maxLength; });
+      [t, n, b].forEach((f) => f.addEventListener("input", counts)); counts();
+      const say = (msg, bad) => { status.textContent = msg; status.classList.toggle("is-error", !!bad); };
+      const setEdit = (q) => {
+        editing = q;
+        form.querySelector(".mq-form-title").textContent = q ? "Edit quest" : "New quest";
+        submit.textContent = q ? "Save changes" : "Post quest";
+        cancel.hidden = !q;
+        t.value = q ? q.title : ""; n.value = q && q.note ? q.note : ""; s.value = q ? q.status : "active"; b.value = q && q.botName ? q.botName : "";
+        counts();
+        if (q) { t.focus(); form.scrollIntoView({ block: "start" }); }
+      };
+      cancel.addEventListener("click", () => { setEdit(null); say(""); });
+      let items = [];
+      const handle = (res, okMsg) => {
+        if (res.status === 401) { locked("Your session ended. Sign in again."); return false; }
+        if (!res.ok) { say(QUEST_ERRORS[res.data.error] || "That did not save. Please try again.", true); return false; }
+        say(okMsg); return true;
+      };
+      const change = (q, patch, okMsg) => ckwMemberPost("/api/quests/update", { id: q.id, ...patch })
+        .then((res) => { if (handle(res, okMsg)) load(); }).catch(() => say("The login service could not be reached. Please try again.", true));
+      const draw = () => {
+        listBox.innerHTML = "";
+        if (!items.length) { listBox.appendChild(el("p", "ttg-panel-lead", "No quests yet. Post your first one above.")); return; }
+        const live = items.filter((q) => !q.archived), old = items.filter((q) => q.archived);
+        const mk = (arr) => {
+          const ul = el("ul", "qf-list");
+          arr.forEach((q) => {
+            const act = el("div", "mq-card-actions");
+            const btn = (label, fn) => { const x = el("button", "mq-btn mq-btn-sm", label); x.type = "button"; x.addEventListener("click", fn); act.appendChild(x); };
+            if (!q.archived) {
+              btn("Edit", () => setEdit(q));
+              if (q.status !== "done") btn("Mark done", () => change(q, { status: "done" }, "Marked done."));
+              btn("Archive", () => change(q, { archived: true }, "Archived. It left the feed but stays in your list."));
+            } else btn("Restore", () => change(q, { archived: false }, "Restored to the feed."));
+            ul.appendChild(memberQuestCard(q, act));
+          });
+          return ul;
+        };
+        if (live.length) listBox.appendChild(mk(live)); else listBox.appendChild(el("p", "ttg-panel-lead", "No open cards. Archived ones are below."));
+        if (old.length) { listBox.appendChild(el("h3", "rt-h3 mq-archived-h", "Archived (hidden from the feed)")); listBox.appendChild(mk(old)); }
+      };
+      const load = () => ckwMemberJson("/api/quests").then((d) => {
+        if (d.locked) { locked("Your session ended. Sign in again."); return; }
+        items = d.items || []; draw();
+      }).catch(() => { listBox.innerHTML = ""; listBox.appendChild(el("p", "ttg-panel-lead", "Your quests could not load. Please try again.")); });
+      form.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        const title = t.value.trim();
+        if (!title) { say(QUEST_ERRORS.title_required, true); t.focus(); return; }
+        const body = { title, note: n.value.trim() || null, status: s.value, botName: b.value.trim() || null };
+        submit.disabled = true;
+        const p = editing ? ckwMemberPost("/api/quests/update", { id: editing.id, ...body }) : ckwMemberPost("/api/quests", body);
+        p.then((res) => { if (handle(res, editing ? "Saved." : "Posted. It is in the quest feed now.")) { setEdit(null); load(); } })
+          .catch(() => say("The login service could not be reached. Please try again.", true))
+          .finally(() => { submit.disabled = false; });
+      });
+      load();
+    },
+  });
+}
+
+/* ------------------------------------------------
    Nav wiring
    ------------------------------------------------ */
 const SUBPAGES = {
@@ -1949,6 +2284,8 @@ const SUBPAGES = {
   "#/members": () => buildMembers(),
   "#/tek-tribe-game": () => buildTekTribeGame(),
   "#/round-table": () => buildRoundTable(),
+  "#/hall": () => buildHall(),
+  "#/my-quests": () => buildMyQuests(),
   "#/faq": () => buildFaq(),
   "#/archetypes": () => buildArchetypes(),
 };
@@ -1973,6 +2310,8 @@ const TITLES = {
   "#/members": "Member login | CLOVER KINGDOM",
   "#/tek-tribe-game": "Tek Tribe game | CLOVER KINGDOM",
   "#/round-table": "The Round Table | CLOVER KINGDOM",
+  "#/hall": "Member Hall | CLOVER KINGDOM",
+  "#/my-quests": "My Quests | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",
   "#/archetypes": "The archetypes | CLOVER KINGDOM",
 };
