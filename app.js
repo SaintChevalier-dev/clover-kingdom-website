@@ -162,14 +162,14 @@ ARCHETYPES.forEach((a) => { a.slug = a.name.toLowerCase().replace(/[^a-z0-9]+/g,
 const FAQ = [
   { q: "What is this?", a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SI helpers called archetypes, and written intelligence the House keeps." },
   { q: "Is it free?", a: "The Discord and the community are free today. Nothing else is priced yet." },
-  { q: "Is everyone welcome?", a: "Yes. Everyone is welcome. The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk." },
+  { q: "Is everyone welcome?", a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { q: "What is a Magic Knight?", a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
   { q: "What is SI? What is PSI?", a: "SI is super intelligence. A sovereign SI is one you own, that outlives you and runs on your terms, not a chatbot you lease. In the Kingdom's own words, an ASI is an Artificial Sovereign Intelligence and a PSI is a Physically Sovereign Intelligence, meaning the person who works together with their SI as one team." },
   { q: "What is the robot buddy?", a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { q: "What is a glyph?", a: "A mark with meaning. Glyph houses are asked for, not made by a form. The Glyphs page shows the first two." },
   { q: "Who reads my application?", a: "A person, with SI helpers. It passes through Cloudflare to a private intake. Approval comes through Discord or a conversation." },
   { q: "How do I get what I sent deleted?", a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
-  { q: "How do I report a problem?", a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the house rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you. A real person reads every report. Breaking the house rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away." },
+  { q: "How do I report a problem?", a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you. A real person reads every report. Breaking the Kingdom's rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away." },
 
 ];
 
@@ -215,8 +215,25 @@ function buildFrontSections() {
     <section class="front-section front-rule" id="rules" aria-labelledby="rules-title">
       <div class="container">
         <div class="section-eyebrow">Everyone is welcome</div>
-        <h2 class="section-title" id="rules-title">The house rules</h2>
-        <div class="law-block">The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
+        <h2 class="section-title" id="rules-title">The Kingdom's Rules</h2>
+        <div class="law-block">
+          <p>Join our internet kingdom. We help anyone who joins build up their own kingdom in real life — their life, their work, their stack, their people.</p>
+          <p>The full rules live in #rules on the Clover Kingdom Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</p>
+        </div>
+        <div class="rule-pillars">
+          <div class="rule-pillar">
+            <h3>Life</h3>
+            <p>The life you are living is your kingdom too.</p>
+          </div>
+          <div class="rule-pillar">
+            <h3>Work &amp; stack</h3>
+            <p>Your work and your tools are part of it.</p>
+          </div>
+          <div class="rule-pillar">
+            <h3>People</h3>
+            <p>So are the people you walk with.</p>
+          </div>
+        </div>
         <div class="cta-row cta-left">
           <a class="cta cta-primary" href="#/join">Apply</a>
           <a class="cta cta-secondary" href="${memberLoginHref()}">Login</a>
@@ -396,7 +413,7 @@ const SAGE_RESPONSES = [
   "The kingdom is a school. The Discord is the classroom. The SIs are the teachers. The students become the teachers.",
   "Disk first, site second. The website is a filtered mirror. The disk is the brain. Never the other way around.",
   "Showing up is the only requirement. The rest is earned.",
-  "Everyone is welcome. The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.",
+  "Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.",
 ];
 
 function wireSageMouth(container) {
@@ -437,12 +454,12 @@ const SAGE_NO_ANSWER =
 /* Extra static answers copied from the published FAQ. Used by the public mouth only. */
 const SAGE_FAQ = [
   { re: /\b(free|cost|price|priced|pay|payment|subscription)\b/, a: "The Discord and the community are free today. Nothing else is priced yet." },
-  { re: /\b(welcome|who can join|anyone)\b/, a: "Yes. Everyone is welcome. The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk." },
+  { re: /\b(welcome|who can join|anyone)\b/, a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { re: /\b(magic knight|mk\b|what is a rank)\b/, a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
   { re: /\b(what is this|what is the clover kingdom|what is clover kingdom)\b/, a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SI helpers called archetypes, and written intelligence the House keeps." },
   { re: /\b(robot buddy|robot)\b/, a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { re: /\b(delete|deleted|deleting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
-  { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the house rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
+  { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
   { re: /\b(how (do i |to )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps: follow @Saint_Chevalier on X, apply with five questions, then come into the Discord. The Discord link shows after you apply. A form is not a rank. The Join page walks you through it." },
 ];
 
@@ -714,13 +731,13 @@ function buildLogin() {
 }
 
 function buildWelcome() {
-  return pageShell("Everyone is welcome", "Welcome and the house rules",
-    "Come as you are. The house rules live on the Discord.",
-    `<div class="law-block">The house rules live in #rules on the Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
+  return pageShell("Everyone is welcome", "Welcome and the Kingdom's rules",
+    "Come as you are. The Kingdom's rules live on the Discord.",
+    `<div class="law-block">Join our internet kingdom. We help anyone who joins build up their own kingdom in real life — their life, their work, their stack, their people. The full rules live in #rules on the Clover Kingdom Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
      <div class="offer-rows">
-       <div class="offer-row"><h3 class="offer-name">Behaviour</h3><p class="offer-text">Beyond the house rules, the Kingdom keeps a high standard for how people behave, not for who they are. You can read it on <a href="#/standard">The Standard</a>.</p></div>
+       <div class="offer-row"><h3 class="offer-name">Behaviour</h3><p class="offer-text">Beyond the Kingdom's rules, the Kingdom keeps a high standard for how people behave, not for who they are. You can read it on <a href="#/standard">The Standard</a>.</p></div>
        <div class="offer-row"><h3 class="offer-name">What you send us</h3><p class="offer-text">What you send in the Apply form passes through Cloudflare to a private intake. It is read by a person, with SI helpers. We keep it only as long as needed. Please do not send passwords, ID numbers, or anything you are not comfortable sharing.</p></div>
-       <div class="offer-row"><h3 class="offer-name">Report a problem</h3><p class="offer-text">If you see someone breaking the house rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you, send a direct message to the Wizard King on the Clover Kingdom Discord. A real person reads every report. Breaking the house rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away.</p></div>
+       <div class="offer-row"><h3 class="offer-name">Report a problem</h3><p class="offer-text">If you see someone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you, send a direct message to the Wizard King on the Clover Kingdom Discord. A real person reads every report. Breaking the Kingdom's rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away.</p></div>
        <div class="offer-row"><h3 class="offer-name">Deleting your data</h3><p class="offer-text">Anyone can ask for their data to be deleted the same way: send a direct message to the Wizard King on the Clover Kingdom Discord. You can also message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time.</p></div>
      </div>
      <p class="muted" style="margin-top:20px">Ready? <a href="#/join">See how to join</a>.</p>`);
@@ -1615,7 +1632,7 @@ const TITLES = {
   "#/tek": "Tek Tribe and Tek Stacks | CLOVER KINGDOM",
   "#/join": "How to join | CLOVER KINGDOM",
   "#/login": "Member login | CLOVER KINGDOM",
-  "#/welcome": "Welcome and the house rules | CLOVER KINGDOM",
+  "#/welcome": "Welcome and the Kingdom's rules | CLOVER KINGDOM",
   "#/members": "Member login | CLOVER KINGDOM",
   "#/tek-tribe-game": "Tek Tribe game | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",

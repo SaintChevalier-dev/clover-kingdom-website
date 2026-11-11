@@ -6,7 +6,7 @@ Site: https://cloverkingdom.net/
 This file: https://cloverkingdom.net/llms.txt
 
 ## What this is
-Clover Kingdom is a community and a house of SI helpers (called archetypes). Everyone is welcome. The house rules live in #rules on the Discord. Breaking them puts your place in the Kingdom at risk.
+Clover Kingdom is a community and a house of SI helpers (called archetypes). Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk.
 
 The Discord and the community are free today. Nothing else is priced yet. A form is not a rank.
 
@@ -18,8 +18,8 @@ The Discord and the community are free today. Nothing else is priced yet. A form
 
 ## Report a problem or delete your data
 Send a direct message to the Wizard King on the Clover Kingdom Discord.
-Report: anyone breaking the house rules; someone being unkind or pressuring you; anyone asking for private details; anything that worries you.
-A real person reads every report. Breaking the house rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away.
+Report: anyone breaking the Kingdom's rules; someone being unkind or pressuring you; anyone asking for private details; anything that worries you.
+A real person reads every report. Breaking the Kingdom's rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away.
 Anyone can ask for their data to be deleted the same way, or by messaging Saint Chevalier on X: https://x.com/Saint_Chevalier
 
 ## Pages
@@ -44,7 +44,7 @@ Most pages are hash routes on a single HTML file (https://cloverkingdom.net/). F
 - https://cloverkingdom.net/#/archetype/tek-tribe - Tek Tribe
 - https://cloverkingdom.net/#/tek - Tek Tribe and tek stacks
 - https://cloverkingdom.net/#/faq - FAQ
-- https://cloverkingdom.net/#/welcome - Welcome, the house rules, report path
+- https://cloverkingdom.net/#/welcome - Welcome, the Kingdom's rules, report path
 - https://cloverkingdom.net/#/members - Members area (coming soon; no login)
 - https://cloverkingdom.net/#/sage - Sage
 - https://cloverkingdom.net/#/standard - The Standard
