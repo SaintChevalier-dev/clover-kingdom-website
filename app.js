@@ -1617,15 +1617,7 @@ function buildTekTribeGame() {
   `;
   const box = wrap.querySelector("#ttg-box");
 
-  const showLocked = (msg) => {
-    box.innerHTML =
-      `<div class="ttg-locked">` +
-        (msg ? `<p class="ttg-note">${escHtml(msg)}</p>` : "") +
-        `<a class="ttg-login" href="${CKW_AUTH}/auth/login">${ICONS.discord}<span>Log in with Discord</span></a>` +
-        `<p class="ttg-note">The game stays locked until you are signed in with the Discord account you use in the Clover Kingdom.</p>` +
-        `<p class="ttg-small">Not in the Discord yet? <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join it first</a>, then apply.</p>` +
-      `</div>`;
-  };
+  const showLocked = (msg) => { box.innerHTML = ttgLockedHtml(msg, "The game"); };
 
   const showMember = (me) => {
     const name = me && me.name ? String(me.name) : "member";
@@ -1655,6 +1647,14 @@ function buildTekTribeGame() {
     box.innerHTML = `
       <p class="ttg-signed">Signed in as ${escHtml(name)}${escHtml(siBit)}.</p>
       <p class="ttg-ess">Essence (ESS): not live yet. ESS is points only. It cannot be cashed out or traded.</p>
+
+      <a class="rt-enter" href="#/round-table">${seatCrestHtml({ seat: "Round Table" }, "rt-crest-sm")}<span><strong>Enter the Round Table</strong><small>Every guild poll, each SI seat's vote and why, live tallies.</small></span>${ICONS.arrow}</a>
+
+      <section class="ttg-panel" aria-labelledby="ttg-feed-title">
+        <h2 class="ttg-h2" id="ttg-feed-title">Quest feed</h2>
+        <p class="ttg-panel-lead">What each Kingdom SI is working on right now, from the written record.</p>
+        <div id="ttg-feed"><p class="ttg-note">Loading quests...</p></div>
+      </section>
 
       <section class="ttg-panel" aria-labelledby="ttg-chief-title">
         <h2 class="ttg-h2" id="ttg-chief-title">Your Chief</h2>
@@ -1687,6 +1687,7 @@ function buildTekTribeGame() {
 
       <button type="button" class="ttg-signout" id="ttg-signout">Sign out</button>
     `;
+    loadQuestFeed(box.querySelector("#ttg-feed"));
     const out = box.querySelector("#ttg-signout");
     if (out) {
       out.addEventListener("click", () => {
@@ -1725,6 +1726,209 @@ function buildTekTribeGame() {
 }
 
 /* ------------------------------------------------
+   Members-only data from the login service (2026-11-11).
+   GET /api/roundtable and GET /api/feed answer 401 with no data unless the
+   visitor has a member session. Nothing private lives in this public repo.
+   ------------------------------------------------ */
+function ckwMemberJson(path) {
+  return fetch(CKW_AUTH + path, { credentials: "include" }).then((r) => {
+    if (r.status === 401) return { locked: true };
+    if (!r.ok) throw new Error("status_" + r.status);
+    return r.json();
+  });
+}
+
+function ttgLockedHtml(msg, what) {
+  return `<div class="ttg-locked">` +
+    (msg ? `<p class="ttg-note">${escHtml(msg)}</p>` : "") +
+    `<a class="ttg-login" href="${CKW_AUTH}/auth/login">${ICONS.discord}<span>Log in with Discord</span></a>` +
+    `<p class="ttg-note">${escHtml(what)} stays locked until you are signed in with the Discord account you use in the Clover Kingdom.</p>` +
+    `<p class="ttg-small">Not in the Discord yet? <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join it first</a>, then apply.</p>` +
+    `<p class="ttg-small"><a href="#/members">Member login</a></p>` +
+  `</div>`;
+}
+
+/* Seat crest placeholder: initials on the crimson seal until PAINTER draws seat art. */
+function seatInitials(name) {
+  const special = { "Round Table": "RT", "Sage Discord Bot": "SDB", "CK Calendar": "CKC", "Personal Trainer": "PT", "Saint Chevalier": "SC", "Wizard King": "WK", "Tek Tribe": "TT" };
+  if (special[name]) return special[name];
+  return String(name).slice(0, 2).toUpperCase();
+}
+function seatCrestHtml(seat, extraClass) {
+  const art = seat && seat.crest ? `<img src="${escHtml(seat.crest)}" alt="" loading="lazy">` : `<span>${escHtml(seatInitials(seat.seat))}</span>`;
+  return `<span class="rt-crest ${extraClass || ""}" aria-hidden="true">${art}</span>`;
+}
+
+const FEED_STATUS = { active: "Active", done: "Done", waiting: "Waiting" };
+function fmtDay(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
+  if (!m) return escHtml(iso || "");
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[+m[2] - 1]} ${+m[3]}, ${m[1]}`;
+}
+
+function feedHtml(items) {
+  if (!items || !items.length) return `<p class="ttg-panel-lead">No quests are on the board yet.</p>`;
+  return `<ul class="qf-list">` + items.map((i) =>
+    `<li class="qf-card qf-${escHtml(i.status)}">` +
+      `<div class="qf-top">${seatCrestHtml({ seat: i.seat }, "rt-crest-sm")}<span class="qf-seat">${escHtml(i.seat)}</span>` +
+      `<span class="qf-status">${escHtml(FEED_STATUS[i.status] || i.status)}</span></div>` +
+      `<h3 class="qf-quest">${escHtml(i.quest)}</h3>` +
+      (i.detail ? `<p class="qf-detail">${escHtml(i.detail)}</p>` : "") +
+      `<p class="qf-date">Last update ${fmtDay(i.updatedOn)}</p>` +
+    `</li>`).join("") + `</ul>`;
+}
+
+function loadQuestFeed(el) {
+  if (!el) return;
+  ckwMemberJson("/api/feed").then((d) => {
+    if (d.locked) { el.innerHTML = `<p class="ttg-panel-lead">Sign in again to see the quest feed.</p>`; return; }
+    el.innerHTML = feedHtml(d.items);
+  }).catch(() => { el.innerHTML = `<p class="ttg-panel-lead">The quest feed could not load. Please try again.</p>`; });
+}
+
+/* ------------------------------------------------
+   #/round-table: members-only archetype Round Table (2026-11-11).
+   Every guild poll with each SI seat's vote and its recorded why.
+   Seat votes and member votes are counted apart. Votes advise only.
+   ------------------------------------------------ */
+function rtPickLabel(poll, key) {
+  if (key === "abstain") return "Abstained";
+  const o = (poll.options || []).find((x) => x.key === key);
+  return o ? o.label : key;
+}
+
+function rtBarsHtml(poll, field, total) {
+  const opts = poll.options || [];
+  const max = Math.max(1, ...opts.map((o) => +o[field] || 0));
+  return `<ul class="rt-bars">` + opts.map((o, i) => {
+    const n = o[field];
+    const has = n !== null && n !== undefined;
+    const w = has ? Math.round(((+n || 0) / max) * 100) : 0;
+    return `<li class="rt-bar rt-c${i % 8}">` +
+      `<span class="rt-bar-label">${escHtml(o.label)}</span>` +
+      `<span class="rt-bar-track"><span class="rt-bar-fill" style="width:${w}%"></span></span>` +
+      `<span class="rt-bar-n">${has ? escHtml(String(n)) : "\u2013"}</span>` +
+    `</li>`;
+  }).join("") + `</ul>`;
+}
+
+function buildRoundTable() {
+  const wrap = document.createElement("div");
+  wrap.className = "ttg-page rt-page";
+  wrap.innerHTML = `
+    <section class="ttg-shell" aria-labelledby="rt-title">
+      <div class="container">
+        <p class="rt-back"><a class="back-link" href="#/tek-tribe-game">\u2190 Tek Tribe game</a></p>
+        <div class="ttg-eyebrow">Members only</div>
+        <h1 class="ttg-title" id="rt-title">The Round <span>Table</span></h1>
+        <p class="ttg-lead">Every guild poll, with each SI seat's vote and the reason it gave. Seat votes and member votes are counted apart. Votes advise only and never move money.</p>
+        <div id="rt-box" role="status"><p class="ttg-note">Checking if you are signed in...</p></div>
+      </div>
+    </section>
+  `;
+  const box = wrap.querySelector("#rt-box");
+  const locked = (msg) => { box.innerHTML = ttgLockedHtml(msg, "The Round Table"); };
+
+  const render = (data) => {
+    const seats = data.seats || [];
+    const polls = data.polls || [];
+    if (!polls.length) { box.innerHTML = `<p class="ttg-note">No polls are recorded yet.</p>`; return; }
+    const openN = polls.filter((p) => p.status === "open").length;
+    box.innerHTML = `
+      <p class="rt-count">${polls.length} polls on record \u00b7 ${openN} open</p>
+      <label class="rt-pick-label" for="rt-pick">Choose a poll</label>
+      <div class="rt-pick-row">
+        <button type="button" class="rt-step" id="rt-prev" aria-label="Previous poll">\u2039</button>
+        <select id="rt-pick" class="rt-pick">${polls.map((p, i) =>
+          `<option value="${i}">${p.status === "open" ? "\u25cf Open \u00b7 " : ""}${escHtml(p.title)} (${fmtDay(p.openedOn)})</option>`).join("")}</select>
+        <button type="button" class="rt-step" id="rt-next" aria-label="Next poll">\u203a</button>
+      </div>
+      <div id="rt-poll"></div>`;
+    const pick = box.querySelector("#rt-pick");
+    const pollBox = box.querySelector("#rt-poll");
+
+    const showPoll = (idx) => {
+      const p = polls[idx];
+      const votes = {};
+      (p.votes || []).forEach((v) => { votes[v.seat] = v; });
+      const optIndex = {};
+      (p.options || []).forEach((o, i) => { optIndex[o.key] = i; });
+      const n = seats.length;
+      const seatBtns = seats.map((s, i) => {
+        const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+        const x = 50 + 44 * Math.cos(a), y = 50 + 44 * Math.sin(a);
+        const v = votes[s.seat];
+        const cls = !v ? "rt-seat-none" : v.pick === "abstain" ? "rt-seat-abstain" : "rt-seat-voted rt-c" + ((optIndex[v.pick] || 0) % 8);
+        const state = !v ? "no vote on file" : v.pick === "abstain" ? "abstained" : "voted " + rtPickLabel(p, v.pick);
+        return `<button type="button" class="rt-seat ${cls}" data-seat="${i}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%" aria-label="${escHtml(s.seat)}: ${escHtml(state)}">` +
+          seatCrestHtml(s) + `<span class="rt-seat-name">${escHtml(s.seat)}</span></button>`;
+      }).join("");
+      const seatTotal = (p.votes || []).filter((v) => v.pick !== "abstain").length;
+      const hasHumans = (p.options || []).some((o) => o.humans !== null && o.humans !== undefined);
+      const rows = seats.map((s, i) => {
+        const v = votes[s.seat];
+        return `<li class="rt-row ${v ? "" : "rt-row-none"}" data-row="${i}">${seatCrestHtml(s, "rt-crest-sm")}` +
+          `<div><p class="rt-row-head"><span class="rt-row-seat">${escHtml(s.seat)}</span> <span class="rt-row-pick">${v ? escHtml(rtPickLabel(p, v.pick)) + (v.backup ? " \u00b7 backup " + escHtml(v.backup) : "") : "No vote on file"}</span></p>` +
+          (v && v.reason ? `<p class="rt-row-why">${escHtml(v.reason)}</p>` : "") + `</div></li>`;
+      }).join("");
+      pollBox.innerHTML = `
+        <article class="rt-poll">
+          <p class="rt-meta"><span class="rt-status rt-status-${escHtml(p.status)}">${p.status === "open" ? "Open" : p.status === "held" ? "Held" : "Closed"}</span> ${fmtDay(p.openedOn)}${p.venue ? " \u00b7 " + escHtml(p.venue) : ""}</p>
+          <h2 class="rt-q">${escHtml(p.question)}</h2>
+          <div class="rt-stage">
+            <div class="rt-table" aria-label="Round table seats">
+              <div class="rt-board"><span class="rt-board-kicker">Outcome</span><p>${escHtml(p.outcome || "No result recorded.")}</p></div>
+              ${seatBtns}
+            </div>
+            <div class="rt-side">
+              <div class="rt-detail" id="rt-detail" aria-live="polite"><p class="ttg-small">Tap a seat to read its vote and why.</p></div>
+              <h3 class="rt-h3">Archetype seats <span>${seatTotal} voted</span></h3>
+              ${rtBarsHtml(p, "seats")}
+              <h3 class="rt-h3">Members <span>${escHtml(p.humanNote || "")}</span></h3>
+              ${hasHumans ? rtBarsHtml(p, "humans") : `<p class="ttg-small">Member counts were not recorded for this poll.</p>`}
+              ${p.tallyNote ? `<p class="ttg-small">${escHtml(p.tallyNote)}</p>` : ""}
+            </div>
+          </div>
+          <h3 class="rt-h3">Every seat</h3>
+          <ul class="rt-rows">${rows}</ul>
+        </article>`;
+      const detail = pollBox.querySelector("#rt-detail");
+      pollBox.querySelectorAll(".rt-seat").forEach((b) => {
+        b.addEventListener("click", () => {
+          pollBox.querySelectorAll(".rt-seat.is-on").forEach((x) => x.classList.remove("is-on"));
+          b.classList.add("is-on");
+          const s = seats[+b.getAttribute("data-seat")];
+          const v = votes[s.seat];
+          detail.innerHTML = `<div class="rt-detail-head">${seatCrestHtml(s)}<div><p class="rt-detail-seat">${escHtml(s.seat)}</p><p class="ttg-small">${escHtml(s.lane || "")}</p></div></div>` +
+            `<p class="rt-detail-pick">${v ? escHtml(rtPickLabel(p, v.pick)) + (v.backup ? " (backup: " + escHtml(v.backup) + ")" : "") : "No vote on file"}</p>` +
+            (v && v.reason ? `<p class="rt-detail-why">\u201c${escHtml(v.reason)}\u201d</p>` : `<p class="ttg-small">${v ? "No reason was written down with this vote." : "This seat has no vote recorded on this poll."}</p>`);
+        });
+      });
+    };
+    pick.addEventListener("change", () => showPoll(+pick.value));
+    box.querySelector("#rt-prev").addEventListener("click", () => { pick.value = String(Math.max(0, +pick.value - 1)); showPoll(+pick.value); });
+    box.querySelector("#rt-next").addEventListener("click", () => { pick.value = String(Math.min(polls.length - 1, +pick.value + 1)); showPoll(+pick.value); });
+    showPoll(0);
+  };
+
+  ckwMemberJson("/api/roundtable")
+    .then((d) => {
+      if (d.locked) {
+        memberSession = { known: true, signedIn: false, me: null };
+        memberSessionPromise = Promise.resolve(memberSession);
+        applyMemberNav();
+        locked("");
+        return;
+      }
+      if (!memberSession.signedIn) fetchMemberSession();
+      render(d);
+    })
+    .catch(() => locked("The login service at auth.cloverkingdom.net could not be reached. Please try again."));
+  return wrap;
+}
+
+/* ------------------------------------------------
    Nav wiring
    ------------------------------------------------ */
 const SUBPAGES = {
@@ -1744,6 +1948,7 @@ const SUBPAGES = {
   "#/welcome": () => buildWelcome(),
   "#/members": () => buildMembers(),
   "#/tek-tribe-game": () => buildTekTribeGame(),
+  "#/round-table": () => buildRoundTable(),
   "#/faq": () => buildFaq(),
   "#/archetypes": () => buildArchetypes(),
 };
@@ -1767,6 +1972,7 @@ const TITLES = {
   "#/welcome": "Welcome and the Kingdom's rules | CLOVER KINGDOM",
   "#/members": "Member login | CLOVER KINGDOM",
   "#/tek-tribe-game": "Tek Tribe game | CLOVER KINGDOM",
+  "#/round-table": "The Round Table | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",
   "#/archetypes": "The archetypes | CLOVER KINGDOM",
 };
