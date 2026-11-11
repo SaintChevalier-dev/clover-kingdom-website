@@ -1626,7 +1626,7 @@ function buildTekTribeGame() {
   `;
   const box = wrap.querySelector("#ttg-box");
 
-  const showLocked = (msg) => { box.innerHTML = ttgLockedHtml(msg, "The game"); };
+  const showLocked = (msg) => { box.innerHTML = lockedPageHtml(msg, "The game", "game"); };
 
   const showMember = (me) => {
     const name = me && me.name ? String(me.name) : "member";
@@ -1745,10 +1745,61 @@ function ckwMemberJson(path) {
 function ttgLockedHtml(msg, what) {
   return `<div class="ttg-locked">` +
     (msg ? `<p class="ttg-note">${escHtml(msg)}</p>` : "") +
-    `<a class="ttg-login" href="${CKW_AUTH}/auth/login">${ICONS.discord}<span>Log in with Discord</span></a>` +
+    `<a class="ttg-login" href="${CKW_AUTH}/auth/login">${ICONS.discord}<span>Member Login</span></a>` +
     `<p class="ttg-note">${escHtml(what)} stays locked until you are signed in with the Discord account you use in the Clover Kingdom.</p>` +
-    `<p class="ttg-small">Not in the Discord yet? <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Join it first</a>, then apply.</p>` +
-    `<p class="ttg-small"><a href="#/members">Member login</a></p>` +
+    `<p class="ttg-small">Not a member yet? <a href="#/join">See how to join</a>.</p>` +
+    `<p class="ttg-small"><a href="#/hall">See everything in the Member Hall</a></p>` +
+  `</div>`;
+}
+
+/* Greyed layout preview for signed-out member pages. Shapes only; no poll, quest or member data. */
+function lockedPreviewHtml(kind) {
+  if (kind === "round-table") {
+    const dots = Array.from({ length: 12 }, (_, i) => {
+      const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+      const x = 50 + 44 * Math.cos(a);
+      const y = 50 + 44 * Math.sin(a);
+      return `<span class="mp-ghost-dot" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"></span>`;
+    }).join("");
+    return `<div class="mp-ghost" aria-hidden="true">` +
+      `<div class="mp-ghost-line mp-ghost-w40"></div>` +
+      `<div class="mp-ghost-row">` +
+        `<div class="mp-ghost-table"><span class="mp-ghost-ring"></span>${dots}</div>` +
+        `<div class="mp-ghost-side">` +
+          `<div class="mp-ghost-line"></div>` +
+          `<div class="mp-ghost-bar"></div><div class="mp-ghost-bar"></div><div class="mp-ghost-bar"></div>` +
+          `<div class="mp-ghost-block"></div>` +
+        `</div>` +
+      `</div>` +
+      `<div class="mp-ghost-line"></div>` +
+      `<div class="mp-ghost-line mp-ghost-w70"></div>` +
+    `</div>`;
+  }
+  if (kind === "my-quests") {
+    return `<div class="mp-ghost" aria-hidden="true">` +
+      `<div class="mp-ghost-form">` +
+        `<div class="mp-ghost-line mp-ghost-w30"></div><div class="mp-ghost-input"></div>` +
+        `<div class="mp-ghost-line mp-ghost-w30"></div><div class="mp-ghost-input mp-ghost-tall"></div>` +
+        `<div class="mp-ghost-btn"></div>` +
+      `</div>` +
+      `<div class="mp-ghost-card"></div><div class="mp-ghost-card"></div>` +
+    `</div>`;
+  }
+  if (kind === "game") {
+    return `<div class="mp-ghost" aria-hidden="true">` +
+      `<div class="mp-ghost-doors"><div class="mp-ghost-door"></div><div class="mp-ghost-door"></div></div>` +
+      `<div class="mp-ghost-line mp-ghost-w40"></div>` +
+      `<div class="mp-ghost-card"></div><div class="mp-ghost-card"></div><div class="mp-ghost-card"></div>` +
+      `<div class="mp-ghost-tiles"><span></span><span></span><span></span><span></span></div>` +
+    `</div>`;
+  }
+  return "";
+}
+
+function lockedPageHtml(msg, what, kind) {
+  return `<div class="mp-locked-wrap">` +
+    `<div class="mp-locked-card">${ttgLockedHtml(msg, what)}</div>` +
+    lockedPreviewHtml(kind) +
   `</div>`;
 }
 
@@ -1875,7 +1926,7 @@ function buildRoundTable() {
     </section>
   `;
   const box = wrap.querySelector("#rt-box");
-  const locked = (msg) => { box.innerHTML = ttgLockedHtml(msg, "The Round Table"); };
+  const locked = (msg) => { box.innerHTML = lockedPageHtml(msg, "The Round Table", "round-table"); };
 
   const render = (data) => {
     const seats = data.seats || [];
@@ -1982,7 +2033,9 @@ function buildRoundTable() {
    1. add one entry to MEMBER_ABILITIES (the Hall tile),
    2. write a render(box, me) and wrap it with memberPage({...}),
    3. add one line to SUBPAGES and TITLES.
-   memberPage does the session check and the locked state, so a new page never
+   Set requires to say who can open the tile (default "member"). Later tiles
+   can use another role; unknown values stay locked. memberPage does the
+   session check and the locked / preview state, so a new page never
    re-implements login. Member text is always rendered with text nodes.
    ------------------------------------------------ */
 const ABILITY_ICONS = {
@@ -1994,17 +2047,28 @@ const ABILITY_ICONS = {
 };
 
 const MEMBER_ABILITIES = [
-  { id: "game", href: "#/tek-tribe-game", icon: "tribe", name: "Tek Tribe game", status: "live",
+  { id: "game", href: "#/tek-tribe-game", icon: "tribe", name: "Tek Tribe game", status: "live", requires: "member",
     text: "The game board, your Chief's reserved slot, and the quest feed from every Kingdom SI and member." },
-  { id: "round-table", href: "#/round-table", icon: "table", name: "The Round Table", status: "live",
+  { id: "round-table", href: "#/round-table", icon: "table", name: "The Round Table", status: "live", requires: "member",
     text: "Every guild poll, each SI seat's vote and why. Cast your own vote on any open poll." },
-  { id: "my-quests", href: "#/my-quests", icon: "quest", name: "My Quests", status: "live",
+  { id: "my-quests", href: "#/my-quests", icon: "quest", name: "My Quests", status: "live", requires: "member",
     text: "Post quest cards for yourself or your own bot. They show in the quest feed under your name." },
-  { id: "own-sage", icon: "sage", name: "Your own Sage", status: "soon",
+  { id: "own-sage", icon: "sage", name: "Your own Sage", status: "soon", requires: "member",
     text: "A Sage of your own that learns from your Kingdom notes and helps you build. Being planned. No date yet." },
-  { id: "grimoire", icon: "grimoire", name: "Member Grimoire", status: "soon",
+  { id: "grimoire", icon: "grimoire", name: "Member Grimoire", status: "soon", requires: "member",
     text: "Spells, skills and guides that members share with each other. Being planned. No date yet." },
 ];
+
+/* requires: "member" (default) opens for any signed-in Discord member.
+   requires: "si" is ready for a later tile that only SIs should open.
+   Unknown values stay locked. */
+function abilityUnlocked(ability, sess) {
+  const need = (ability && ability.requires) || "member";
+  if (!sess || !sess.signedIn) return false;
+  if (need === "member") return true;
+  if (need === "si") return !!(sess.me && sess.me.isSI);
+  return false;
+}
 
 function loginWhyFromHash() {
   const raw = window.location.hash || "";
@@ -2050,7 +2114,15 @@ function memberPage(opts) {
       </div>
     </section>`;
   const box = wrap.querySelector(".mp-box");
-  const locked = (msg) => { box.innerHTML = ttgLockedHtml(msg, opts.what); };
+  const locked = (msg) => {
+    if (typeof opts.preview === "function") {
+      box.removeAttribute("role");
+      box.innerHTML = "";
+      opts.preview(box, msg);
+      return;
+    }
+    box.innerHTML = lockedPageHtml(msg, opts.what, opts.previewKind);
+  };
   const why = loginWhyFromHash();
   fetch(CKW_AUTH + "/api/me", { credentials: "include" })
     .then((r) => r.json().catch(() => null))
@@ -2082,43 +2154,97 @@ function memberAvatarNode(me, cls) {
   return wrapEl;
 }
 
-/* #/hall: the Member Hall, where members land after login. */
+/* #/hall: the Member Hall. Signed-out visitors see the same layout, greyed out. */
+function hallWelcomeCard(msg) {
+  const head = el("div", "hall-head hall-welcome");
+  const mark = el("span", "hall-welcome-lock");
+  mark.setAttribute("aria-hidden", "true");
+  mark.innerHTML = ICONS.lock;
+  head.appendChild(mark);
+  const who = el("div", "hall-who");
+  who.appendChild(el("p", "hall-kicker", "Members only"));
+  who.appendChild(el("p", "hall-name", "Sign in with Discord to unlock"));
+  if (msg) who.appendChild(el("p", "ttg-note", msg));
+  else who.appendChild(el("p", "ttg-small", "See what members can do on this site. Sign in to open the rooms that belong to you."));
+  const login = document.createElement("a");
+  login.className = "ttg-login hall-login";
+  login.href = MEMBERS_SIGNIN_URL;
+  login.innerHTML = ICONS.discord + "<span>Member Login</span>";
+  who.appendChild(login);
+  const join = el("p", "ttg-small hall-join-hint");
+  join.appendChild(document.createTextNode("Not a member yet? "));
+  const ja = el("a", "", "See how to join");
+  ja.href = "#/join";
+  join.appendChild(ja);
+  join.appendChild(document.createTextNode("."));
+  who.appendChild(join);
+  head.appendChild(who);
+  return head;
+}
+
+function hallMemberCard(me) {
+  const head = el("div", "hall-head");
+  head.appendChild(memberAvatarNode(me, "hall-avatar"));
+  const who = el("div", "hall-who");
+  who.appendChild(el("p", "hall-kicker", "Welcome to the Hall"));
+  who.appendChild(el("p", "hall-name", (me && me.name) || "member"));
+  who.appendChild(el("p", "ttg-small", "Signed in with Discord" + (me && me.isSI ? " \u00b7 SI" : "")));
+  head.appendChild(who);
+  return head;
+}
+
+function hallTileNode(a, unlocked) {
+  const li = el("li", "hall-tile hall-" + a.status + (unlocked ? "" : " hall-locked"));
+  if (!unlocked) li.setAttribute("aria-disabled", "true");
+  const useLink = unlocked && a.status === "live" && a.href;
+  const inner = useLink ? document.createElement("a") : el("div", "");
+  inner.className = "hall-tile-in";
+  if (useLink) inner.href = a.href;
+  else inner.setAttribute("aria-disabled", "true");
+  const ic = el("span", "hall-icon");
+  ic.innerHTML = ABILITY_ICONS[a.icon] || ICONS.hall; /* our own static SVG, never member text */
+  if (!unlocked) {
+    const lk = el("span", "hall-lock-mark");
+    lk.setAttribute("aria-hidden", "true");
+    lk.innerHTML = ICONS.lock;
+    ic.appendChild(lk);
+  }
+  inner.appendChild(ic);
+  inner.appendChild(el("span", "hall-badge", unlocked ? (a.status === "live" ? "Open" : "Coming later") : "Members only"));
+  inner.appendChild(el("h2", "hall-tile-name", a.name));
+  inner.appendChild(el("p", "hall-tile-text", a.text));
+  if (useLink) {
+    const go = el("span", "hall-go", "Enter ");
+    go.insertAdjacentHTML("beforeend", ICONS.arrow);
+    inner.appendChild(go);
+  }
+  li.appendChild(inner);
+  return li;
+}
+
+function renderHallContent(box, sess, lockedFn, msg) {
+  box.innerHTML = "";
+  const signedIn = !!(sess && sess.signedIn);
+  box.appendChild(signedIn ? hallMemberCard(sess.me) : hallWelcomeCard(msg));
+  const list = el("ul", "hall-tiles");
+  MEMBER_ABILITIES.forEach((a) => list.appendChild(hallTileNode(a, abilityUnlocked(a, sess))));
+  box.appendChild(list);
+  box.appendChild(el("p", "ttg-small hall-foot", "Votes advise only and never move money. The owner calls each round. Nothing here asks for passwords or payment."));
+  if (signedIn && lockedFn) {
+    const out = el("button", "ttg-signout", "Sign out");
+    out.type = "button";
+    out.addEventListener("click", () => memberSignOut(() => lockedFn("You are signed out.")));
+    box.appendChild(out);
+  }
+}
+
 function buildHall() {
   return memberPage({
     cls: "hall-page", titleId: "hall-title", titleHtml: "Member <span>Hall</span>",
     lead: "Your door to everything members can do on this site. More rooms open as the Kingdom builds them.",
     back: { href: "#/", label: "Home" }, what: "The Member Hall",
-    render(box, me, locked) {
-      const head = el("div", "hall-head");
-      head.appendChild(memberAvatarNode(me, "hall-avatar"));
-      const who = el("div", "hall-who");
-      who.appendChild(el("p", "hall-kicker", "Welcome to the Hall"));
-      who.appendChild(el("p", "hall-name", (me && me.name) || "member"));
-      who.appendChild(el("p", "ttg-small", "Signed in with Discord" + (me && me.isSI ? " \u00b7 SI" : "")));
-      head.appendChild(who);
-      box.appendChild(head);
-      const list = el("ul", "hall-tiles");
-      MEMBER_ABILITIES.forEach((a) => {
-        const li = el("li", "hall-tile hall-" + a.status);
-        const inner = a.status === "live" && a.href ? document.createElement("a") : el("div", "");
-        inner.className = "hall-tile-in";
-        if (a.status === "live" && a.href) inner.href = a.href;
-        const ic = el("span", "hall-icon"); ic.innerHTML = ABILITY_ICONS[a.icon] || ICONS.hall; /* our own static SVG, never member text */
-        inner.appendChild(ic);
-        inner.appendChild(el("span", "hall-badge", a.status === "live" ? "Open" : "Coming later"));
-        inner.appendChild(el("h2", "hall-tile-name", a.name));
-        inner.appendChild(el("p", "hall-tile-text", a.text));
-        if (a.status === "live") { const go = el("span", "hall-go", "Enter "); go.insertAdjacentHTML("beforeend", ICONS.arrow); inner.appendChild(go); }
-        li.appendChild(inner);
-        list.appendChild(li);
-      });
-      box.appendChild(list);
-      box.appendChild(el("p", "ttg-small hall-foot", "Votes advise only and never move money. The owner calls each round. Nothing here asks for passwords or payment."));
-      const out = el("button", "ttg-signout", "Sign out");
-      out.type = "button";
-      out.addEventListener("click", () => memberSignOut(() => locked("You are signed out.")));
-      box.appendChild(out);
-    },
+    preview(box, msg) { renderHallContent(box, memberSession, null, msg); },
+    render(box, me, locked) { renderHallContent(box, { known: true, signedIn: true, me: me }, locked); },
   });
 }
 
@@ -2173,7 +2299,7 @@ function buildMyQuests() {
   return memberPage({
     cls: "mq-page", titleId: "mq-title", titleHtml: "My <span>Quests</span>",
     lead: "Post what you or your own bot are working on. Your cards show in the Tek Tribe quest feed under your Discord name. Text only. Edit, finish or archive them any time.",
-    what: "My Quests",
+    what: "My Quests", previewKind: "my-quests",
     render(box, me, locked) {
       let editing = null;
       const form = document.createElement("form");
