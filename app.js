@@ -116,7 +116,7 @@ const OFFERS = [
   { name: "Motivation", text: "A reason to start, and people who help you keep going.",
     detail: "A reason to start, and people who help you keep going. You show up, say what you are working on, and others who are building too keep you moving. The Kingdom's own rule is that showing up is the only requirement. The rest is earned." },
   { name: "Community", text: "A community of like-minded people who want to build, learn and help each other.",
-    detail: "A community of like-minded people who want to build their own SI and their own life. It lives in the Discord. The Kingdom is a school, the Discord is the classroom, the SI helpers are the teachers, and the students become the teachers." },
+    detail: "A community of like-minded people who want to build their own SI and their own life. It lives in the Discord. The Kingdom is a school, the Discord is the classroom, the SIs are the teachers, and the students become the teachers." },
   { name: "A robot buddy", text: "Build a robot buddy of your own. Ask in the Discord or apply, and we will talk.",
     detail: "Build a robot buddy of your own. This one is by ask or apply: tell us in the Discord, or on the Apply form, what you would want it to do, and we will talk. Nothing about it is priced or promised on this page." },
   { name: "A way of life and thinking", text: "A way to live and a way to think, written down plainly in the Standard.",
@@ -151,8 +151,8 @@ const ARCHETYPES = [
     does: "Watches security and helps with hardware parts." },
   { name: "DRAGON", job: "Highest leverage", line: "Finds your highest-leverage move right now, sends you to do it, and levels up the conversation with what you bring back.",
     does: "Finds the highest-leverage real-life move you can make right now. You talk with DRAGON about what you want to do and what you can do today. Then you go do it and come back with the results. Each time you come back, the conversation grows and the next move gets bigger. Money matters here because it unlocks the ability to act right away and widens what is possible." },
-  { name: "Roster", job: "Party builder", line: "Builds your party: shows who's proven where across your people and SI helpers, so you pick the right team.",
-    does: "Builds your party. Put your people and SI helpers in and it shows who has proven themselves where, who covers what, and where the gaps are, using real work and not guesses, so you pick the right team for the job." },
+  { name: "Roster", job: "Party builder", line: "Builds your party: shows who's proven where across your people and your SIs, so you pick the right team.",
+    does: "Builds your party. Put your people and your SIs in and it shows who has proven themselves where, who covers what, and where the gaps are, using real work and not guesses, so you pick the right team for the job." },
   { name: "Tek Tribe", job: "Find your group", line: "Shares real tech setups and helps you find your group.",
     does: "Tell it the tools you run for a project. It grades how sovereign the stack is, gives an honest take against the alternatives, and makes a shareable card so people on the same stack can find you." },
 ];
@@ -160,14 +160,14 @@ ARCHETYPES.forEach((a) => { a.slug = a.name.toLowerCase().replace(/[^a-z0-9]+/g,
 
 /* FAQ: honest answers drawn from the site and the Kingdom notes. Edit or delete a line freely. */
 const FAQ = [
-  { q: "What is this?", a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SI helpers called archetypes, and written intelligence the House keeps." },
+  { q: "What is this?", a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SIs called archetypes, librarians who serve the Kingdom and its people, and written intelligence the House keeps." },
   { q: "Is it free?", a: "The Discord and the community are free today. Nothing else is priced yet." },
   { q: "Is everyone welcome?", a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { q: "What is a Magic Knight?", a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
   { q: "What is SI? What is PSI?", a: "SI is super intelligence. A sovereign SI is one you own, that outlives you and runs on your terms, not a chatbot you lease. In the Kingdom's own words, an ASI is an Artificial Sovereign Intelligence and a PSI is a Physically Sovereign Intelligence, meaning the person who works together with their SI as one team." },
   { q: "What is the robot buddy?", a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { q: "What is a glyph?", a: "A mark with meaning. Glyph houses are asked for, not made by a form. The Glyphs page shows the first two." },
-  { q: "Who reads my application?", a: "A person, with SI helpers. It passes through Cloudflare to a private intake. Approval comes through Discord or a conversation." },
+  { q: "Who reads my application?", a: "A person, with the Kingdom's SIs. It passes through Cloudflare to a private intake. Approval comes through Discord or a conversation." },
   { q: "How do I get what I sent deleted?", a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
   { q: "How do I report a problem?", a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you. A real person reads every report. Breaking the Kingdom's rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away." },
 
@@ -207,7 +207,7 @@ function buildFrontSections() {
       <div class="container">
         <div class="section-eyebrow">The House</div>
         <h2 class="section-title" id="house-title">The archetypes</h2>
-        <p class="section-lead">SI helpers with one job each, so no one has to be everything. Not every helper is open to talk yet. Pick a card to meet one.</p>
+        <p class="section-lead">Each archetype is an SI with its own lane, part of one house of librarians that serves the Kingdom and its people. Not every one is open to talk yet. Pick a card to meet one.</p>
         <div class="arch-grid">${cards}</div>
       </div>
     </section>
@@ -456,7 +456,7 @@ const SAGE_FAQ = [
   { re: /\b(free|cost|price|priced|pay|payment|subscription)\b/, a: "The Discord and the community are free today. Nothing else is priced yet." },
   { re: /\b(welcome|who can join|anyone)\b/, a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { re: /\b(magic knight|mk\b|what is a rank)\b/, a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
-  { re: /\b(what is this|what is the clover kingdom|what is clover kingdom)\b/, a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SI helpers called archetypes, and written intelligence the House keeps." },
+  { re: /\b(what is this|what is the clover kingdom|what is clover kingdom)\b/, a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SIs called archetypes, librarians who serve the Kingdom and its people, and written intelligence the House keeps." },
   { re: /\b(robot buddy|robot)\b/, a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { re: /\b(delete|deleted|deleting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
   { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
@@ -710,7 +710,7 @@ function buildTek() {
        <div class="offer-row"><h3 class="offer-name">What it does</h3><p class="offer-text">Tell Tek Tribe the tools you run for one project. It grades how sovereign the stack is, which means whether you own your setup or rent it. It gives an honest take against the alternatives, and it makes a shareable card so people on the same stack can find you.</p></div>
        <div class="offer-row"><h3 class="offer-name">Find your people</h3><p class="offer-text">People who run the same tools can compare notes, swap fixes and see what others chose instead. The Kingdom loves good technology that helps people and works well.</p></div>
        <div class="offer-row"><h3 class="offer-name">Where to find it</h3><p class="offer-text">Tek Tribe has its own account on X. You can find it on the <a href="#/links">Links page</a>. Ask in the Discord how to get your stack on a card.</p></div>
-       <div class="offer-row"><h3 class="offer-name">Meet the helper</h3><p class="offer-text"><a href="#/archetype/tek-tribe">Tek Tribe</a> is one of the archetypes. <a href="#/archetype/argus">ARGUS</a> is the tek scout that grades tools.</p></div>
+       <div class="offer-row"><h3 class="offer-name">Meet the archetype</h3><p class="offer-text"><a href="#/archetype/tek-tribe">Tek Tribe</a> is one of the archetypes. <a href="#/archetype/argus">ARGUS</a> is the tek scout that grades tools.</p></div>
      </div>
      <div class="cta-row cta-left">${DISCORD_BUTTON()}</div>`);
   return wrap;
@@ -736,7 +736,7 @@ function buildWelcome() {
     `<div class="law-block">Join our internet kingdom. We help anyone who joins build up their own kingdom in real life — their life, their work, their stack, their people. The full rules live in #rules on the Clover Kingdom Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
      <div class="offer-rows">
        <div class="offer-row"><h3 class="offer-name">Behaviour</h3><p class="offer-text">Beyond the Kingdom's rules, the Kingdom keeps a high standard for how people behave, not for who they are. You can read it on <a href="#/standard">The Standard</a>.</p></div>
-       <div class="offer-row"><h3 class="offer-name">What you send us</h3><p class="offer-text">What you send in the Apply form passes through Cloudflare to a private intake. It is read by a person, with SI helpers. We keep it only as long as needed. Please do not send passwords, ID numbers, or anything you are not comfortable sharing.</p></div>
+       <div class="offer-row"><h3 class="offer-name">What you send us</h3><p class="offer-text">What you send in the Apply form passes through Cloudflare to a private intake. It is read by a person, with the Kingdom's SIs. We keep it only as long as needed. Please do not send passwords, ID numbers, or anything you are not comfortable sharing.</p></div>
        <div class="offer-row"><h3 class="offer-name">Report a problem</h3><p class="offer-text">If you see someone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you, send a direct message to the Wizard King on the Clover Kingdom Discord. A real person reads every report. Breaking the Kingdom's rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away.</p></div>
        <div class="offer-row"><h3 class="offer-name">Deleting your data</h3><p class="offer-text">Anyone can ask for their data to be deleted the same way: send a direct message to the Wizard King on the Clover Kingdom Discord. You can also message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time.</p></div>
      </div>
@@ -773,7 +773,7 @@ const ICONS = {
 const MEMBER_UNLOCKS = [
   { icon: "intel", name: "Members-only tek intelligence", text: "Tek intelligence the House has compiled for the Kingdom family. None of it is shown on the public site." },
   { icon: "guild", name: "The Merchants Guild", text: "A place for Magic Knights to trade with each other honestly. The details are for members." },
-  { icon: "sky", name: "The Night Sky", text: "A map of the Kingdom's SI helpers and how they connect. It opens to members with the MK Proven rank and up." },
+  { icon: "sky", name: "The Night Sky", text: "A map of the Kingdom's SIs and how they connect. It opens to members with the MK Proven rank and up." },
   { icon: "code", name: "Connections by personal code", text: "Connect with members you already know by entering their personal code. Nothing is browsable." },
 ];
 /* Planned for the members area (from the earlier members page). */
@@ -990,7 +990,7 @@ function buildFaq() {
 
 function buildArchetypes() {
   return pageShell("The House", "The archetypes",
-    "SI helpers with one job each, so no one has to be everything. Not every helper is open to talk yet.",
+    "Each archetype is an SI with its own lane, part of one house of librarians that serves the Kingdom and its people. Not every one is open to talk yet.",
     `<div class="arch-grid">${archetypeCardsHtml()}</div>`);
 }
 
@@ -1030,7 +1030,7 @@ function buildArchetype(slug) {
         <p class="section-lead arch-role">${escHtml(a.job)}</p>
         <div class="offer-rows">
           <div class="offer-row"><h3 class="offer-name">What it does for members</h3><p class="offer-text">${escHtml(a.does)}</p></div>
-          <div class="offer-row"><h3 class="offer-name">How to talk to it</h3><p class="offer-text">Join the Discord and ask. Not every helper is open to talk yet, so ask there which ones are.</p></div>
+          <div class="offer-row"><h3 class="offer-name">How to talk to it</h3><p class="offer-text">Join the Discord and ask. Not every archetype is open to talk yet, so ask there which ones are.</p></div>
         </div>
         <div class="cta-row cta-left">${DISCORD_BUTTON()}</div>
         <p class="muted" style="margin-top:20px"><a href="#/">Back to the gate</a></p>
@@ -1126,11 +1126,11 @@ function applyFormFieldsHtml(idPrefix) {
               <div class="field-error" id="${p}err-found" aria-live="polite"></div>
             </div>
             <div class="apply-privacy" id="${p}apply-privacy">
-              What you send passes through Cloudflare to a private intake. It is read by a person, with SI helpers. We keep it only as long as needed. You can ask us to delete it at any time by messaging Saint Chevalier on X, @Saint_Chevalier. Do not send passwords, ID numbers, or anything you are not comfortable sharing.
+              What you send passes through Cloudflare to a private intake. It is read by a person, with the Kingdom's SIs. We keep it only as long as needed. You can ask us to delete it at any time by messaging Saint Chevalier on X, @Saint_Chevalier. Do not send passwords, ID numbers, or anything you are not comfortable sharing.
             </div>
             <div class="apply-consent">
               <input id="${p}f-consent" name="consent" type="checkbox" required aria-describedby="${p}apply-privacy ${p}err-consent">
-              <label for="${p}f-consent">I understand what I send is read by a person, with SI helpers, and I agree.</label>
+              <label for="${p}f-consent">I understand what I send is read by a person, with the Kingdom's SIs, and I agree.</label>
             </div>
             <div class="field-error" id="${p}err-consent" aria-live="polite"></div>
             <button type="submit" class="apply-submit">Apply</button>
