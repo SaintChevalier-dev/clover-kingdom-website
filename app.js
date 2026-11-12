@@ -2098,6 +2098,27 @@ function rtRenderVote(box, p, locked) {
   });
 }
 
+function rtLedgerHtml(ledger) {
+  if (!ledger) return `<p class="ttg-note">The decision list could not load.</p>`;
+  const block = (title, items, empty) => {
+    const rows = items || [];
+    const body = rows.length
+      ? `<ul class="rt-ledger">` + rows.map((i) =>
+          `<li><p class="rt-ledger-name">${escHtml(i.name)}</p>` +
+          (i.state ? `<p class="rt-ledger-state">${escHtml(i.state)}</p>` : "") +
+          (i.options && i.options.length ? `<p class="ttg-small">${i.options.map(escHtml).join(" \u00b7 ")}</p>` : "") +
+          (i.note ? `<p class="ttg-small">${escHtml(i.note)}</p>` : "") +
+          `</li>`).join("") + `</ul>`
+      : `<p class="ttg-small">${escHtml(empty)}</p>`;
+    return `<section class="rt-ledger-block"><h2 class="rt-h3">${escHtml(title)}</h2>${body}</section>`;
+  };
+  return `<div class="rt-boards">` +
+    block("Open decisions", ledger.decisions, "No open decision is written down.") +
+    block("Research", ledger.research, "Nothing is being researched.") +
+    block("Item hunt", ledger.hunt, "Nothing is on the hunt list.") +
+    `</div>`;
+}
+
 function buildRoundTable() {
   const wrap = document.createElement("div");
   wrap.className = "ttg-page rt-page";
@@ -2106,8 +2127,8 @@ function buildRoundTable() {
       <div class="container">
         <p class="rt-back"><a class="back-link" href="#/hall">\u2190 Member Hall</a></p>
         <div class="ttg-eyebrow">Members only</div>
-        <h1 class="ttg-title" id="rt-title">The Round <span>Table</span></h1>
-        <p class="ttg-lead">Every guild poll, with each SI seat's vote and the reason it gave. Seat votes and member votes are counted apart. Cast your own vote on any open poll. Votes advise only and never move money. The owner calls each round.</p>
+        <h1 class="ttg-title" id="rt-title">Archetype Knights of the <span>Round Table</span></h1>
+        <p class="ttg-lead">The votes, the research, and the hunt list. Live polls stay below. Seat votes and member votes are counted apart. Votes advise only and never move money. The owner calls each round.</p>
         <div id="rt-box" role="status"><p class="ttg-note">Checking if you are signed in...</p></div>
       </div>
     </section>
@@ -2115,12 +2136,16 @@ function buildRoundTable() {
   const box = wrap.querySelector("#rt-box");
   const locked = (msg) => { box.innerHTML = lockedPageHtml(msg, "The Round Table", "round-table"); };
 
-  const render = (data) => {
+  const render = (data, ledger) => {
     const seats = data.seats || [];
     const polls = data.polls || [];
-    if (!polls.length) { box.innerHTML = `<p class="ttg-note">No polls are recorded yet.</p>`; return; }
+    const boards = rtLedgerHtml(ledger);
+    if (!polls.length) {
+      box.innerHTML = boards + `<p class="ttg-note">No polls are recorded yet.</p>`;
+      return;
+    }
     const openN = polls.filter((p) => p.status === "open").length;
-    box.innerHTML = `
+    box.innerHTML = boards + `
       <p class="rt-count">${polls.length} polls on record \u00b7 ${openN} open</p>
       <label class="rt-pick-label" for="rt-pick">Choose a poll</label>
       <div class="rt-pick-row">
@@ -2199,8 +2224,11 @@ function buildRoundTable() {
     showPoll(0);
   };
 
-  ckwMemberJson("/api/roundtable")
-    .then((d) => {
+  Promise.all([
+    ckwMemberJson("/api/roundtable"),
+    fetch("round-table.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ])
+    .then(([d, ledger]) => {
       if (d.locked) {
         memberSession = { known: true, signedIn: false, me: null };
         memberSessionPromise = Promise.resolve(memberSession);
@@ -2209,7 +2237,7 @@ function buildRoundTable() {
         return;
       }
       if (!memberSession.signedIn) fetchMemberSession();
-      render(d);
+      render(d, ledger);
     })
     .catch(() => locked("The login service at auth.cloverkingdom.net could not be reached. Please try again."));
   return wrap;
@@ -2236,8 +2264,8 @@ const ABILITY_ICONS = {
 const MEMBER_ABILITIES = [
   { id: "game", href: "#/tek-tribe-game", icon: "tribe", name: "Tek Tribe game", status: "live", requires: "member",
     text: "The game board, your Chief's reserved slot, and the quest feed from every Kingdom SI and member." },
-  { id: "round-table", href: "#/round-table", icon: "table", name: "The Round Table", status: "live", requires: "member",
-    text: "Every guild poll, each SI seat's vote and why. Cast your own vote on any open poll." },
+  { id: "round-table", href: "#/round-table", icon: "table", name: "Knights of the Round Table", status: "live", requires: "member",
+    text: "Open decisions, what is being researched, the hunt list, and every guild poll." },
   { id: "my-quests", href: "#/my-quests", icon: "quest", name: "My Quests", status: "live", requires: "member",
     text: "Post quest cards for yourself or your own bot. They show in the quest feed under your name." },
   { id: "own-sage", icon: "sage", name: "Your own Sage", status: "soon", requires: "member",
@@ -2642,7 +2670,7 @@ const TITLES = {
   "#/welcome": "Welcome and the Kingdom's rules | CLOVER KINGDOM",
   "#/members": "Member login | CLOVER KINGDOM",
   "#/tek-tribe-game": "Tek Tribe game | CLOVER KINGDOM",
-  "#/round-table": "The Round Table | CLOVER KINGDOM",
+  "#/round-table": "Archetype Knights of the Round Table | CLOVER KINGDOM",
   "#/hall": "Member Hall | CLOVER KINGDOM",
   "#/account": "Account | CLOVER KINGDOM",
   "#/my-quests": "My Quests | CLOVER KINGDOM",

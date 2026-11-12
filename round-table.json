@@ -1,0 +1,22 @@
+{
+  "updated": "2026-11-12",
+  "decisions": [
+    {
+      "name": "Does the Clover Kingdom rent a VPS?",
+      "state": "Written. Not on the live poll yet.",
+      "options": [
+        "No. Two bots on this PC share D:\\Kingdom\\Inbox.",
+        "Yes. Then NeuralNine is the teacher for that path only."
+      ],
+      "note": "Votes advise. They do not move money. The owner calls the round."
+    }
+  ],
+  "research": [
+    {
+      "name": "Fable 5.2 as one live scene",
+      "state": "Not used. No grade.",
+      "note": "A browser scene against the cut video. It is not the Discord mouth."
+    }
+  ],
+  "hunt": []
+}

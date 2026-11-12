@@ -2549,6 +2549,11 @@ body.join-panel-open {
 .rt-crest-sm { width: 34px; height: 34px; font-size: 0.66rem; border-width: 1px; }
 .rt-back { margin: 0 0 10px; }
 .rt-count { color: var(--text-muted); font-size: 0.92rem; margin: 6px 0 14px; letter-spacing: 0.04em; }
+.rt-boards { display: grid; gap: 22px; margin: 8px 0 32px; }
+.rt-ledger { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.rt-ledger li { border: 1px solid rgba(201, 162, 74, 0.28); padding: 12px 14px; background: rgba(0, 0, 0, 0.25); }
+.rt-ledger-name { margin: 0; color: var(--gold-bright); }
+.rt-ledger-state { margin: 4px 0 0; }
 .rt-pick-label { display: block; color: var(--gold); font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
 .rt-pick-row { display: flex; gap: 8px; align-items: stretch; max-width: 760px; margin-bottom: 22px; }
 .rt-pick {
