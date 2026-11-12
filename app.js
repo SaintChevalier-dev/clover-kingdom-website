@@ -2128,7 +2128,7 @@ function buildRoundTable() {
         <p class="rt-back"><a class="back-link" href="#/hall">\u2190 Member Hall</a></p>
         <div class="ttg-eyebrow">Members only</div>
         <h1 class="ttg-title" id="rt-title">Archetype Knights of the <span>Round Table</span></h1>
-        <p class="ttg-lead">The votes, the research, and the hunt list. Live polls stay below. Seat votes and member votes are counted apart. Votes advise only and never move money. The owner calls each round.</p>
+        <p class="ttg-lead">The votes, the research, and the hunt list. Live polls stay below. Each archetype seat is named, including a seat that cast nothing. Member votes show as counts, plus your own choice. They are not a list of every member's name. A poll stays on the record after it closes. Votes advise only and never move money. The owner calls each round.</p>
         <div id="rt-box" role="status"><p class="ttg-note">Checking if you are signed in...</p></div>
       </div>
     </section>
