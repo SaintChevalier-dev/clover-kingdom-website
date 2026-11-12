@@ -732,7 +732,7 @@ function buildLogin() {
 }
 
 function buildWelcome() {
-  return pageShell("Everyone is welcome", "Welcome and the Kingdom's rules",
+  const wrap = pageShell("Everyone is welcome", "Welcome and the Kingdom's rules",
     "Come as you are. The Kingdom's rules live on the Discord.",
     `<div class="law-block">Join our internet kingdom. We help anyone who joins build up their own kingdom in real life — their life, their work, their stack, their people. The full rules live in #rules on the Clover Kingdom Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.</div>
      <div class="offer-rows">
@@ -742,6 +742,8 @@ function buildWelcome() {
        <div class="offer-row"><h3 class="offer-name">Deleting your data</h3><p class="offer-text">Anyone can ask for their data to be deleted the same way: send a direct message to the Wizard King on the Clover Kingdom Discord. You can also message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time.</p></div>
      </div>
      <p class="muted" style="margin-top:20px">Ready? <a href="#/join">See how to join</a>.</p>`);
+  wrap.classList.add("letter-page");
+  return wrap;
 }
 
 /* ------------------------------------------------
@@ -2714,6 +2716,16 @@ function routeFromHash() {
   }
   window.scrollTo(0, 0);
   applyMemberNav();
+  const readStill = hashRoute(window.location.hash || "#/") === "#/welcome";
+  document.body.classList.toggle("read-still", readStill);
+  const bg = document.getElementById("kingdom-bg-video");
+  if (bg) {
+    if (readStill) bg.pause();
+    else if (!prefersReducedMotion) {
+      const play = bg.play();
+      if (play && play.catch) play.catch(() => {});
+    }
+  }
 }
 
 function stopSceneCycleIfAny() { /* no rotating scenes */ }

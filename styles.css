@@ -3108,3 +3108,30 @@ body.gate-modal-open {
 }
 
 #nav-join[hidden], [data-guest-only][hidden] { display: none !important; }
+
+/* Welcome is a letter. The video holds still so a long read is not flashing. */
+body.read-still .kingdom-bg-video { opacity: 0.12; }
+.letter-page .section {
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(255, 250, 236, 0.95), transparent 46%),
+    linear-gradient(180deg, #f6ead0 0%, #e8d4a6 55%, #e2c99a 100%);
+  color: #2a1c10;
+  max-width: 740px;
+  margin: 8px auto 64px;
+  padding: 46px 44px 54px;
+  border: 1px solid #c4a36a;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5), inset 0 0 90px rgba(120, 78, 28, 0.14);
+}
+.letter-page .section-title { color: #2a1c10; }
+.letter-page .section-eyebrow { color: #7a5420; }
+.letter-page .section-lead,
+.letter-page .law-block,
+.letter-page .offer-text,
+.letter-page .muted { color: #3a2c1c; }
+.letter-page .offer-name { color: #5c3d12; }
+.letter-page .offer-row,
+.letter-page .law-block { border-left-color: #8a6230; }
+.letter-page .section a { color: #6e2418; }
+@media (max-width: 640px) {
+  .letter-page .section { padding: 28px 20px 36px; margin-bottom: 40px; }
+}
