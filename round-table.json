@@ -16,6 +16,11 @@
       "name": "Fable 5.2 as one live scene",
       "state": "Not used. No grade.",
       "note": "A browser scene against the cut video. It is not the Discord mouth."
+    },
+    {
+      "name": "A Discord mouth for Sage that is not Grokbot",
+      "state": "Not proven.",
+      "note": "Dave pinged Sage and got no answer. Grokbot tokens are maxed. This site cannot sit in Discord. The Hermes gateway is the other mouth, only if the Sage bot token still works."
     }
   ],
   "hunt": []
