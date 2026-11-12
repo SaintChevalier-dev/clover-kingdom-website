@@ -802,9 +802,8 @@ function applyMemberNav() {
     if (signedIn) el.setAttribute("hidden", "");
     else el.removeAttribute("hidden");
   });
-  const page = hashRoute(window.location.hash || "#/");
-  const quietLogin = signedIn || page === "#/" || page === "#" || page === "#/join";
-  const quietJoin = signedIn || page === "#/" || page === "#" || page === "#/join";
+  const quietLogin = signedIn;
+  const quietJoin = signedIn;
   const login = document.querySelector(".nav-login");
   const account = document.getElementById("nav-account");
   const moreLogin = document.getElementById("nav-more-login");
