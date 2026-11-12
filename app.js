@@ -794,6 +794,25 @@ function applyMemberNav() {
     if (memberSession.signedIn) el.removeAttribute("hidden");
     else el.setAttribute("hidden", "");
   });
+  const login = document.querySelector(".nav-login");
+  const account = document.getElementById("nav-account");
+  const moreLogin = document.getElementById("nav-more-login");
+  if (login) {
+    if (memberSession.signedIn) login.setAttribute("hidden", "");
+    else login.removeAttribute("hidden");
+  }
+  if (moreLogin) {
+    if (memberSession.signedIn) moreLogin.setAttribute("hidden", "");
+    else moreLogin.removeAttribute("hidden");
+  }
+  if (!account) return;
+  if (!memberSession.signedIn) { account.setAttribute("hidden", ""); return; }
+  account.removeAttribute("hidden");
+  const me = memberSession.me || {};
+  const nameEl = document.getElementById("nav-account-name");
+  const av = document.getElementById("nav-account-avatar");
+  if (nameEl) nameEl.textContent = me.name || "Account";
+  if (av) { av.replaceChildren(); av.appendChild(memberAvatarNode(me, "nav-avatar")); }
 }
 
 function fetchMemberSession() {
@@ -2304,7 +2323,7 @@ function memberPage(opts) {
 function memberAvatarNode(me, cls) {
   const wrapEl = el("span", "rt-crest " + (cls || ""));
   wrapEl.setAttribute("aria-hidden", "true");
-  const url = me && typeof me.avatarUrl === "string" && /^https:\/\/cdn\.discordapp\.com\/avatars\/\d+\/(a_)?[0-9a-f]{32}\.png\?size=128$/.test(me.avatarUrl) ? me.avatarUrl : null;
+  const url = me && typeof me.avatarUrl === "string" && /^https:\/\/cdn\.discordapp\.com\/avatars\/\d+\/[A-Za-z0-9_]+\.(png|webp|gif)(\?.*)?$/.test(me.avatarUrl) ? me.avatarUrl : null;
   if (url) { const img = document.createElement("img"); img.src = url; img.alt = ""; img.referrerPolicy = "no-referrer"; img.width = 128; img.height = 128; wrapEl.appendChild(img); }
   else wrapEl.appendChild(el("span", "", seatInitials(String((me && me.name) || "M")).slice(0, 2)));
   return wrapEl;
@@ -2388,12 +2407,29 @@ function renderHallContent(box, sess, lockedFn, msg) {
   MEMBER_ABILITIES.forEach((a) => list.appendChild(hallTileNode(a, abilityUnlocked(a, sess))));
   box.appendChild(list);
   box.appendChild(el("p", "ttg-small hall-foot", "Votes advise only and never move money. The owner calls each round. Nothing here asks for passwords or payment."));
-  if (signedIn && lockedFn) {
-    const out = el("button", "ttg-signout", "Sign out");
-    out.type = "button";
-    out.addEventListener("click", () => memberSignOut(() => lockedFn("You are signed out.")));
-    box.appendChild(out);
-  }
+}
+
+
+function buildAccount() {
+  return memberPage({
+    cls: "account-page", titleId: "account-title", titleHtml: "Your <span>account</span>",
+    lead: "The Discord account you used to sign in.",
+    back: { href: "#/hall", label: "Member Hall" }, what: "Your account",
+    render(box, me) {
+      box.innerHTML = "";
+      const card = el("div", "account-card");
+      card.appendChild(memberAvatarNode(me, "account-avatar"));
+      const who = el("div", "account-who");
+      who.appendChild(el("h2", "account-name", (me && me.name) || "member"));
+      who.appendChild(el("p", "ttg-small", "Signed in with Discord"));
+      card.appendChild(who);
+      const out = el("button", "ttg-signout", "Sign out");
+      out.type = "button";
+      out.addEventListener("click", () => memberSignOut(() => { window.location.hash = "#/"; }));
+      card.appendChild(out);
+      box.appendChild(card);
+    },
+  });
 }
 
 function buildHall() {
@@ -2569,6 +2605,7 @@ const SUBPAGES = {
   "#/tek-tribe-game": () => buildTekTribeGame(),
   "#/round-table": () => buildRoundTable(),
   "#/hall": () => buildHall(),
+  "#/account": () => buildAccount(),
   "#/my-quests": () => buildMyQuests(),
   "#/faq": () => buildFaq(),
   "#/archetypes": () => buildArchetypes(),
@@ -2595,6 +2632,7 @@ const TITLES = {
   "#/tek-tribe-game": "Tek Tribe game | CLOVER KINGDOM",
   "#/round-table": "The Round Table | CLOVER KINGDOM",
   "#/hall": "Member Hall | CLOVER KINGDOM",
+  "#/account": "Account | CLOVER KINGDOM",
   "#/my-quests": "My Quests | CLOVER KINGDOM",
   "#/faq": "FAQ | CLOVER KINGDOM",
   "#/archetypes": "The archetypes | CLOVER KINGDOM",

@@ -3081,3 +3081,28 @@ body.gate-modal-open {
     transform: none !important;
   }
 }
+
+.nav-login[hidden], .nav-account[hidden], #nav-more-login[hidden] { display: none !important; }
+.nav-account {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 14px 4px 4px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold-bright);
+  background: rgba(212,168,67,0.08);
+  font-family: var(--font-display);
+  font-size: 0.78rem; letter-spacing: 0.06em;
+  text-decoration: none;
+  white-space: nowrap;
+  max-width: 240px;
+}
+.nav-account:hover, .nav-account[aria-current="page"] { background: var(--gold); color: #0a0a0b; }
+.nav-account:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+.nav-account-name { overflow: hidden; text-overflow: ellipsis; }
+.nav-avatar { width: 28px; height: 28px; font-size: 0.62rem; flex: none; }
+.account-card { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; max-width: 720px; padding: 18px 20px; border: 1px solid var(--gold); background: rgba(20,20,22,0.85); }
+.account-avatar { width: 96px; height: 96px; font-size: 1.4rem; }
+.account-name { margin: 0; font-family: var(--font-display); color: var(--gold-bright); font-size: 1.7rem; overflow-wrap: anywhere; }
+@media (max-width: 680px) {
+  .nav-account { position: absolute; top: 5px; right: 14px; max-width: 46vw; padding: 3px 10px 3px 3px; font-size: 0.68rem; }
+}
