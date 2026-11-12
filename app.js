@@ -176,8 +176,8 @@ const FAQ = [
 /* Join steps (shown on #/join). */
 const JOIN_STEPS = [
   { name: "Follow Saint Chevalier on X", text: "Press Join, then follow @Saint_Chevalier. It is the main Kingdom account." },
-  { name: "Apply", text: "Answer the five questions. It takes a few minutes. A form is not a rank." },
-  { name: "Come into the Discord", text: "The Discord link shows after you apply. Say hi, grab your MK#, and a human approves you there. Questions? Ask @Sage." },
+  { name: "Apply", text: "Answer the five questions. It takes a few minutes. A form is not a rank. Those five answers are kept for the roster." },
+  { name: "Come into the Discord", text: "The Discord invite opens its own application. A few more questions, then a human approves you. The Wizard King files the five answers on the roster." },
 ];
 
 function escHtml(t) {
@@ -382,8 +382,9 @@ function buildGate() {
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own SI. Level up your life. Find your people.</p>
         <div class="cta-row">
-          <a class="cta cta-primary" href="#/join">Join the Kingdom</a>
-          <a class="cta cta-secondary" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">Log in</a>
+          <a class="cta cta-primary" href="#/join" data-guest-only>Join the Kingdom</a>
+          <a class="cta cta-secondary" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog" data-guest-only>Log in</a>
+          <a class="cta cta-primary" href="#/hall" data-member-only hidden>Member Hall</a>
         </div>
         <div class="gate-rule">
           The truth is always remembered, for it always existed.<br>
@@ -460,7 +461,7 @@ const SAGE_FAQ = [
   { re: /\b(robot buddy|robot)\b/, a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { re: /\b(delete|deleted|deleting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
   { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
-  { re: /\b(how (do i |to )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps: follow @Saint_Chevalier on X, apply with five questions, then come into the Discord. The Discord link shows after you apply. A form is not a rank. The Join page walks you through it." },
+  { re: /\b(how (do i |to )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps: follow @Saint_Chevalier on X, answer the five questions, then open the Discord. The invite is its own application, with a few more questions. A human approves you, and the five answers are kept for the roster. A form is not a rank." },
 ];
 
 /* Whole-word matching, most specific first. Each entry points at one line of SAGE_RESPONSES. */
@@ -790,21 +791,31 @@ let memberSession = { known: false, signedIn: false, me: null };
 let memberSessionPromise = null;
 
 function applyMemberNav() {
+  const signedIn = !!memberSession.signedIn;
   document.querySelectorAll("[data-member-only]").forEach((el) => {
-    if (memberSession.signedIn) el.removeAttribute("hidden");
+    if (signedIn) el.removeAttribute("hidden");
     else el.setAttribute("hidden", "");
   });
+  document.querySelectorAll("[data-guest-only]").forEach((el) => {
+    if (signedIn) el.setAttribute("hidden", "");
+    else el.removeAttribute("hidden");
+  });
+  const page = hashRoute(window.location.hash || "#/");
+  const quietLogin = signedIn || page === "#/" || page === "#" || page === "#/join";
+  const quietJoin = signedIn || page === "#/" || page === "#" || page === "#/join";
   const login = document.querySelector(".nav-login");
   const account = document.getElementById("nav-account");
   const moreLogin = document.getElementById("nav-more-login");
+  const joinNav = document.getElementById("nav-join");
   if (login) {
-    if (memberSession.signedIn) login.setAttribute("hidden", "");
+    if (quietLogin) login.setAttribute("hidden", "");
     else login.removeAttribute("hidden");
   }
-  if (moreLogin) {
-    if (memberSession.signedIn) moreLogin.setAttribute("hidden", "");
-    else moreLogin.removeAttribute("hidden");
+  if (joinNav) {
+    if (quietJoin) joinNav.setAttribute("hidden", "");
+    else joinNav.removeAttribute("hidden");
   }
+  if (moreLogin) moreLogin.setAttribute("hidden", "");
   if (!account) return;
   if (!memberSession.signedIn) { account.setAttribute("hidden", ""); return; }
   account.removeAttribute("hidden");
@@ -944,10 +955,10 @@ function buildJoin() {
         <h1 class="v2-title" id="join-title">Join the <span>Kingdom</span></h1>
         <div class="v2-rule" aria-hidden="true"><span></span></div>
         <p class="v2-line">Everyone is welcome. While others doom, we lift in preparedness.</p>
-        <p class="v2-sub">Three steps. A person reads every application, and approval happens in the Discord.</p>
+        <p class="v2-sub">Three steps. The five answers are kept for the roster. The Discord invite is its own application, and a human approves you.</p>
         <div class="v2-hero-cta">
-          <button type="button" class="v2-btn v2-btn-primary v2-btn-xl" data-apply="1">Join the Kingdom ${ICONS.arrow}</button>
-          <a class="v2-btn v2-btn-ghost" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">${ICONS.key}Member login</a>
+          <button type="button" class="v2-btn v2-btn-primary v2-btn-xl" data-apply="1" data-guest-only>Join the Kingdom ${ICONS.arrow}</button>
+          <a class="v2-btn v2-btn-primary v2-btn-xl" href="#/hall" data-member-only hidden>Member Hall ${ICONS.arrow}</a>
         </div>
         <ul class="v2-facts" aria-label="Good to know">
           <li>The Discord is free today</li>
@@ -966,7 +977,7 @@ function buildJoin() {
         <ol class="v2-steps">${steps}
         </ol>
         <div class="v2-center">
-          <button type="button" class="v2-btn v2-btn-primary" data-apply="1">Start with step one ${ICONS.arrow}</button>
+          <button type="button" class="v2-btn v2-btn-primary" data-apply="1" data-guest-only>Start with step one ${ICONS.arrow}</button>
         </div>
       </div>
     </section>
@@ -985,7 +996,7 @@ function buildJoin() {
 
     <section class="v2-section v2-closing" aria-label="Already a member">
       <div class="container v2-center">
-        <p class="v2-already">Already a member? <a class="v2-link" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">Member login ${ICONS.arrow}</a></p>
+        <p class="v2-already" data-guest-only>Already a member? <a class="v2-link" href="${memberLoginHref()}" data-gate-login="1" aria-haspopup="dialog">Member login ${ICONS.arrow}</a></p>
         <p class="v2-small">New here? Read the short <a href="#/welcome">welcome page</a> first.</p>
       </div>
     </section>
@@ -1149,7 +1160,7 @@ function buildGuilds() {
             <p class="offer-text"><a href="#/merchants-guild">Open the Merchants Guild page</a>.</p>
           </div>
         </div>
-        <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Join</button></div>
+        <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1" data-guest-only>Join</button></div>
       </div>
     </div>
   `;
@@ -1167,7 +1178,7 @@ function buildMerchantsGuild() {
           <h2 class="section-title guild-title">Clover Kingdom Merchants Guild</h2>
           <p class="section-lead guild-lead">A place for Magic Knights to trade with each other honestly. Details are for members.</p>
         </header>
-        <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1">Join</button></div>
+        <div class="cta-row cta-left"><button type="button" class="cta cta-primary" data-apply="1" data-guest-only>Join</button></div>
       </div>
     </div>
   `;
@@ -1369,7 +1380,7 @@ function joinPanelMarkup() {
         </section>
         <section class="join-panel-pane" data-pane="3" hidden aria-labelledby="join-step3-title">
           <h3 id="join-step3-title" class="join-pane-title">Come into the Discord</h3>
-          <p class="join-pane-text">Thank you. We have your application. Next: come into the Discord, say hi, and grab your MK#. Approval happens there.</p>
+          <p class="join-pane-text">Thank you. The five answers are kept for the roster. The Discord invite opens its own application. A few more questions, then a human approves you.</p>
           <div class="cta-row cta-left">
             <a class="cta cta-primary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Open the Discord</a>
           </div>
@@ -2702,6 +2713,7 @@ function routeFromHash() {
     main.appendChild(buildNotFound());
   }
   window.scrollTo(0, 0);
+  applyMemberNav();
 }
 
 function stopSceneCycleIfAny() { /* no rotating scenes */ }

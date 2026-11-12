@@ -3106,3 +3106,5 @@ body.gate-modal-open {
 @media (max-width: 680px) {
   .nav-account { position: absolute; top: 5px; right: 14px; max-width: 46vw; padding: 3px 10px 3px 3px; font-size: 0.68rem; }
 }
+
+#nav-join[hidden], [data-guest-only][hidden] { display: none !important; }
