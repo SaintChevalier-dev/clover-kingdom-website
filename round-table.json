@@ -9,6 +9,18 @@
         "Yes. Then NeuralNine is the teacher for that path only."
       ],
       "note": "Votes advise. They do not move money. The owner calls the round."
+    },
+    {
+      "name": "Which mouth watches the Discord?",
+      "state": "Written. Not a live poll. Nothing is invited or bought.",
+      "options": [
+        "Hermes on this PC, with the bot we already have.",
+        "JARVIS, Zeno Innovations, from €1.99 a month.",
+        "Bond, from $7.99 a month.",
+        "Chipp, from $29 a month.",
+        "None yet."
+      ],
+      "note": "Seat votes and member votes are counted apart. This page cannot cast them. The owner calls the round."
     }
   ],
   "research": [
