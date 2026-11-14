@@ -17,7 +17,7 @@ const LINKS = [
   { name: "X", handle: "@Saint_Chevalier", url: "https://x.com/Saint_Chevalier", desc: "Saint Chevalier on X. Message here to ask for your application to be deleted." },
   { name: "Discord", handle: "Join the server", url: DISCORD_URL, desc: "The classroom. Approval happens here." },
   { name: "Instagram", handle: "@saintchevalierasi", url: "https://www.instagram.com/saintchevalierasi/", desc: "Saint Chevalier on Instagram." },
-  { name: "Tek Tribe", handle: "@Tek_Tribe on X", url: "https://x.com/Tek_Tribe", desc: "Tek Tribe on X." },
+  { name: "Tek Tribe", handle: "@Tekk_Tribe on X", url: "https://x.com/Tekk_Tribe", desc: "Tek Tribe on X." },
 ];
 
 /* Ritual (intro) timers live here so they can be cancelled by Skip or by any navigation. */
@@ -1197,7 +1197,7 @@ function buildTekTribePage() {
       <div class="offer-rows">
         <div class="offer-row"><h3 class="offer-name">The archetype</h3><p class="offer-text"><a href="#/archetype/tek-tribe">Tek Tribe</a> is one of the Kingdom's SIs. It shares real tech setups and helps you find your group.</p></div>
         <div class="offer-row"><h3 class="offer-name">Tek stacks</h3><p class="offer-text">The public <a href="#/tek">Tek page</a> explains tek stacks and how people find others on the same one.</p></div>
-        <div class="offer-row"><h3 class="offer-name">On X</h3><p class="offer-text">Tek Tribe has its own account: <a href="https://x.com/Tek_Tribe" target="_blank" rel="noopener noreferrer">@Tek_Tribe</a>.</p></div>
+        <div class="offer-row"><h3 class="offer-name">On X</h3><p class="offer-text">Tek Tribe has its own account: <a href="https://x.com/Tekk_Tribe" target="_blank" rel="noopener noreferrer">@Tekk_Tribe</a>.</p></div>
         <div class="offer-row"><h3 class="offer-name">The game</h3><p class="offer-text">A members-only <a href="#/tek-tribe-game">Tek Tribe game</a> is on this site.</p></div>
       </div>`;
   });
