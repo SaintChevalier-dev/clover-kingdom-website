@@ -1338,6 +1338,7 @@ function applyFormFieldsHtml(idPrefix) {
             </div>
             <div class="field-error" id="${p}err-consent" aria-live="polite"></div>
             <button type="submit" class="apply-submit">Apply</button>
+            <p class="apply-note">Your answers are logged privately by the Kingdom so we can keep this a trusted, family-only space.</p>
           </form>`;
 }
 
