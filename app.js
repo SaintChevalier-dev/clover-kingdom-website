@@ -11,6 +11,7 @@ const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
    the front page buttons, the Links page and the Sage "ask in the Discord" reply. */
 const DISCORD_URL = "https://discord.gg/2BrNPwUuTB";
 const X_FOLLOW_URL = "https://x.com/intent/follow?screen_name=Saint_Chevalier";
+const X_ACCOUNT_URL = "https://x.com/Saint_Chevalier";
 
 /* Public links (single place to edit). Each one is shown on the Links page. */
 const LINKS = [
@@ -175,9 +176,9 @@ const FAQ = [
 
 /* Join steps (shown on #/join). */
 const JOIN_STEPS = [
-  { name: "Follow Saint Chevalier on X", text: "Press Join, then follow @Saint_Chevalier. It is the main Kingdom account." },
-  { name: "Apply", text: "Answer the five questions. It takes a few minutes. A form is not a rank. Those five answers are kept for the roster." },
-  { name: "Come into the Discord", text: "The Discord invite opens its own application. A few more questions, then a human approves you. The Wizard King files the five answers on the roster." },
+  { name: "Step 1", text: "Becoming a Clover Kingdom member adds you to the list of members to follow once inside. Affiliation is not revealed to those who cannot enter." },
+  { name: "Apply to the Discord", text: "Once you have followed Saint Chevalier on X, you can message them or apply to the Discord." },
+  { name: "Participate", text: "Participate in all Kingdom activities." },
 ];
 
 function escHtml(t) {
@@ -461,7 +462,7 @@ const SAGE_FAQ = [
   { re: /\b(robot buddy|robot)\b/, a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { re: /\b(delete|deleted|deleting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
   { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
-  { re: /\b(how (do i |to )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps: follow @Saint_Chevalier on X, answer the five questions, then open the Discord. The invite is its own application, with a few more questions. A human approves you, and the five answers are kept for the roster. A form is not a rank." },
+  { re: /\b(how (do i |to )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps. Follow on X. Apply to the Discord. Then participate. Affiliation is not revealed to those who cannot enter." },
 ];
 
 /* Whole-word matching, most specific first. Each entry points at one line of SAGE_RESPONSES. */
@@ -943,7 +944,9 @@ function buildJoin() {
             <span class="v2-step-icon">${ICONS[JOIN_STEP_ICONS[i]]}</span>
           </div>
           <div class="v2-step-kicker">Step ${i + 1}</div>
-          <h3 class="v2-step-name">${escHtml(st.name)}</h3>
+          ${i === 0
+            ? `<a class="v2-step-name" href="${X_ACCOUNT_URL}" target="_blank" rel="noopener noreferrer">X</a>`
+            : `<h3 class="v2-step-name">${escHtml(st.name)}</h3>`}
           <p class="v2-step-text">${escHtml(st.text)}</p>
         </li>`).join("");
   const wrap = document.createElement("div");
@@ -956,7 +959,7 @@ function buildJoin() {
         <h1 class="v2-title" id="join-title">Join the <span>Kingdom</span></h1>
         <div class="v2-rule" aria-hidden="true"><span></span></div>
         <p class="v2-line">Everyone is welcome. While others doom, we lift in preparedness.</p>
-        <p class="v2-sub">Three steps. The five answers are kept for the roster. The Discord invite is its own application, and a human approves you.</p>
+        <p class="v2-sub">Three steps. Follow on X. Apply to the Discord. Then participate.</p>
         <div class="v2-hero-cta">
           <button type="button" class="v2-btn v2-btn-primary v2-btn-xl" data-apply="1" data-guest-only>Join the Kingdom ${ICONS.arrow}</button>
           <a class="v2-btn v2-btn-primary v2-btn-xl" href="#/hall" data-member-only hidden>Member Hall ${ICONS.arrow}</a>
@@ -1354,35 +1357,36 @@ function joinPanelMarkup() {
         <h2 id="join-panel-title" class="join-panel-title">Join the Kingdom</h2>
         <p class="join-panel-lead">Three steps. Everyone is welcome.</p>
         <ol class="join-panel-steps" aria-label="Join steps">
-          <li class="join-panel-step is-active" data-step-ind="1"><span class="join-panel-step-num">1</span><span class="join-panel-step-label">Follow</span></li>
-          <li class="join-panel-step" data-step-ind="2"><span class="join-panel-step-num">2</span><span class="join-panel-step-label">Apply</span></li>
-          <li class="join-panel-step" data-step-ind="3"><span class="join-panel-step-num">3</span><span class="join-panel-step-label">Discord</span></li>
+          <li class="join-panel-step is-active" data-step-ind="1"><span class="join-panel-step-num">1</span><span class="join-panel-step-label">X</span></li>
+          <li class="join-panel-step" data-step-ind="2"><span class="join-panel-step-num">2</span><span class="join-panel-step-label">Discord</span></li>
+          <li class="join-panel-step" data-step-ind="3"><span class="join-panel-step-num">3</span><span class="join-panel-step-label">Participate</span></li>
         </ol>
       </header>
       <div class="join-panel-body">
         <section class="join-panel-pane is-active" data-pane="1" aria-labelledby="join-step1-title">
-          <h3 id="join-step1-title" class="join-pane-title">Follow Saint Chevalier on X</h3>
-          <p class="join-pane-text">The main Kingdom account is @Saint_Chevalier. Press the button to open X&rsquo;s follow screen in a new tab.</p>
+          <h3 id="join-step1-title" class="join-pane-title">Step 1</h3>
+          <p class="join-pane-text">Becoming a Clover Kingdom member adds you to the list of members to follow once inside. Affiliation is not revealed to those who cannot enter.</p>
           <div class="cta-row cta-left">
-            <a class="cta cta-primary" id="join-follow-btn" href="${X_FOLLOW_URL}" target="_blank" rel="noopener noreferrer">Follow @Saint_Chevalier</a>
+            <a class="cta cta-primary" id="join-follow-btn" href="${X_ACCOUNT_URL}" target="_blank" rel="noopener noreferrer">X</a>
           </div>
           <p class="join-panel-honest muted">This site can&rsquo;t check follows. Step 2 opens after you press the button.</p>
         </section>
         <section class="join-panel-pane" data-pane="2" hidden aria-labelledby="join-step2-title">
-          <h3 id="join-step2-title" class="join-pane-title">Apply</h3>
-          <p class="join-pane-text">Five questions. A person reads them. Approval happens in Discord. A form is not a rank.</p>
+          <h3 id="join-step2-title" class="join-pane-title">Apply to the Discord</h3>
+          <p class="join-pane-text">Once you have followed Saint Chevalier on X, you can message them or apply to the Discord.</p>
           <div class="join-panel-locked" id="join-step2-lock">
-            <p>Step 2 is locked until you press Follow @Saint_Chevalier above.</p>
+            <p>Step 2 is locked until you open X above.</p>
           </div>
           <div class="join-panel-form-wrap" id="join-step2-form" hidden>
-            <div class="apply-box join-panel-apply">
-              ${applyFormFieldsHtml("jp-")}
+            <div class="cta-row cta-left">
+              <a class="cta cta-primary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Apply to the Discord</a>
+              <button type="button" class="cta" data-join-step="3">Next</button>
             </div>
           </div>
         </section>
         <section class="join-panel-pane" data-pane="3" hidden aria-labelledby="join-step3-title">
-          <h3 id="join-step3-title" class="join-pane-title">Come into the Discord</h3>
-          <p class="join-pane-text">Thank you. The five answers are kept for the roster. The Discord invite opens its own application. A few more questions, then a human approves you.</p>
+          <h3 id="join-step3-title" class="join-pane-title">Participate</h3>
+          <p class="join-pane-text">Join the Discord.</p>
           <div class="cta-row cta-left">
             <a class="cta cta-primary" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">Open the Discord</a>
           </div>
@@ -1449,6 +1453,8 @@ function getFocusable(container) {
 
 function wireJoinPanel(root) {
   root.addEventListener("click", (e) => {
+    const stepBtn = e.target.closest("[data-join-step]");
+    if (stepBtn) { e.preventDefault(); setJoinStep(Number(stepBtn.getAttribute("data-join-step"))); return; }
     const t = e.target.closest("[data-join-close]");
     if (t) { e.preventDefault(); closeJoinPanel(); }
   });
@@ -1457,13 +1463,6 @@ function wireJoinPanel(root) {
     follow.addEventListener("click", () => {
       // Unlock after the click; X opens in the new tab from the href.
       unlockJoinStep2();
-    });
-  }
-  const formWrap = root.querySelector("#join-step2-form");
-  if (formWrap) {
-    wireApplyForm(formWrap, {
-      idPrefix: "jp-",
-      onSuccess: () => setJoinStep(3),
     });
   }
 }
@@ -1696,12 +1695,12 @@ function wireApplyForm(container, opts) {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("relay " + res.status);
-      status.innerHTML = `Thank you. We have your application. It is not approved yet. Next: come into the Discord at <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">${DISCORD_URL}</a>. Say hi and grab your MK#. Approval happens there.`;
+      status.innerHTML = `Next: come into the Discord at <a href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer">${DISCORD_URL}</a>.`;
       form.reset();
       if (typeof onSuccess === "function") onSuccess(payload);
     } catch (err) {
       console.warn("Application not sent:", err);
-      status.textContent = "Your application did not go through. Nothing was saved. Please try again, or message Saint Chevalier on X: @Saint_Chevalier.";
+      status.textContent = "Your application did not go through. Please try again, or message Saint Chevalier on X: @Saint_Chevalier.";
       status.classList.add("is-error");
     } finally {
       sending = false;
