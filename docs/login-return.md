@@ -30,3 +30,7 @@ const dest = ret ? env.SITE_ORIGIN + ret : env.SITE_ORIGIN + "/#/me";
 ```
 
 Then /base/ links to `https://auth.cloverkingdom.net/auth/login?return=/base/`, and the front-end marker can be removed. Route `route()` must pass `url` into `login()`. Test: one login from /base/ returns to /base/ signed in; a `return=https://evil.example` request falls back to `/#/me`.
+
+## Login is optional (2026-11-21 10:46 AM CT)
+
+Jacob's rule: "Discord login on cloverkingdom.net/base must be available but not required. Make the Discord sign-in optional — guests can browse and use Sage without logging in. Do not remove the login option entirely, just stop gating access behind it." The real-login return test above is **optional (not a blocker)**. Guests never need it to use the site or Sage.

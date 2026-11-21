@@ -242,7 +242,7 @@ if (why) history.replaceState(null, "", location.pathname + location.hash);
 
 function showSignedOut(msg) {
   session = null;
-  statusEl.textContent = msg || "Not logged in.";
+  statusEl.textContent = msg || "Not logged in. Login is optional; guests can talk to Sage below.";
   loginBtn.hidden = false;
   logoutBtn.hidden = true;
   setGuestChrome();
@@ -258,7 +258,7 @@ function checkLogin() {
   fetch(CKW_AUTH + "/api/me", { credentials: "include" })
     .then((r) => r.json().catch(() => null))
     .then((me) => (me && me.signedIn ? showSignedIn(me) : showSignedOut(LOGIN_WHY[why])))
-    .catch(() => showSignedOut("Login service could not be reached."));
+    .catch(() => showSignedOut("Login service could not be reached. You can still talk to Sage as a guest."));
 }
 logoutBtn.addEventListener("click", () => {
   fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" }).finally(checkLogin);

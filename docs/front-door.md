@@ -3,7 +3,7 @@
 Status: **live since 2026-11-21** (merged on Jacob's go). Undo: revert the merge commit; Pages redeploys in about a minute.
 
 ## What changed
-- `/` serves the base page: Discord login, Sage (3D stand-in, 2D fallback), guest chat, privacy line, edit indicator, and links to How to join, The archetypes, FAQ and the full site.
+- `/` serves the base page: Discord login (optional; guests browse and chat with Sage without it, Jacob 2026-11-21 10:46 AM CT), Sage (3D stand-in, 2D fallback), guest chat, privacy line, edit indicator, and links to How to join, The archetypes, FAQ and the full site.
 - The previous front page is at `/classic/`, content unchanged. Its assets load from absolute paths (`/styles.css`, `/app.js`, `/images/...`, `/round-table.json`).
 - Old deep links on `/` such as `/#/join` or `/#/members` forward to `/classic/#/...`, including hash changes after load.
 - `/base/` stays as an alias (not indexed).

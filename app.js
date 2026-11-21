@@ -815,7 +815,8 @@ const GATE_MODAL_COPY = {
 };
 
 /* Member session for logged-in-only nav and pages.
-   Fail closed: Tek Tribe and CKC tabs stay hidden until GET /api/me returns signedIn. */
+   Login is optional (Jacob, 2026-11-21 10:46 AM CT). Public pages never wait on it; only per-member
+   pages (Hall, Round Table votes, My Quests, Account, the game) stay behind login. */
 let memberSession = { known: false, signedIn: false, me: null };
 let memberSessionPromise = null;
 
@@ -1216,36 +1217,33 @@ function buildMerchantsGuild() {
 }
 
 function buildTekTribePage() {
-  const wrap = pageShell("Members only", "Tek Tribe",
-    "A members area for Tek Tribe.",
-    `<div id="tek-tribe-box"><p class="muted">Checking if you are signed in...</p></div>`);
-  const box = wrap.querySelector("#tek-tribe-box");
-  renderWhenSignedIn(box, "Tek Tribe", () => {
-    box.innerHTML = `
+  /* Open to everyone (Jacob, 2026-11-21 10:46 AM CT: Discord login is available but not required).
+     Nothing here is private; the per-player game stays behind login. */
+  const wrap = pageShell("Open to everyone", "Tek Tribe",
+    "Tek Tribe, one of the Kingdom's archetypes.",
+    `<div id="tek-tribe-box">
       <div class="offer-rows">
         <div class="offer-row"><h3 class="offer-name">The archetype</h3><p class="offer-text"><a href="#/archetype/tek-tribe">Tek Tribe</a> is one of the Kingdom's archetypes. It shares real tech setups and helps you find your group.</p></div>
         <div class="offer-row"><h3 class="offer-name">Tek stacks</h3><p class="offer-text">The public <a href="#/tek">Tek page</a> explains tek stacks and how people find others on the same one.</p></div>
         <div class="offer-row"><h3 class="offer-name">On X</h3><p class="offer-text">Tek Tribe has its own account: <a href="https://x.com/Tekk_Tribe" target="_blank" rel="noopener noreferrer">@Tekk_Tribe</a>.</p></div>
-        <div class="offer-row"><h3 class="offer-name">The game</h3><p class="offer-text">A members-only <a href="#/tek-tribe-game">Tek Tribe game</a> is on this site.</p></div>
-      </div>`;
-  });
+        <div class="offer-row"><h3 class="offer-name">The game</h3><p class="offer-text">Members can also play the <a href="#/tek-tribe-game">Tek Tribe game</a>. Login (optional) is how the game tracks each player.</p></div>
+      </div>
+    </div>`);
   return wrap;
 }
 
 function buildCkc() {
-  const wrap = pageShell("Members only", "CKC",
+  /* Open to everyone (Jacob, 2026-11-21 10:46 AM CT). No member data on this page yet. */
+  const wrap = pageShell("Open to everyone", "CKC",
     "Clover Kingdom Calendar.",
-    `<div id="ckc-box"><p class="muted">Checking if you are signed in...</p></div>`);
-  const box = wrap.querySelector("#ckc-box");
-  renderWhenSignedIn(box, "CKC", () => {
-    box.innerHTML = `
+    `<div id="ckc-box">
       <div class="offer-rows">
         <div class="offer-row">
           <h3 class="offer-name">The calendar is coming</h3>
-          <p class="offer-text">This is the members page for the Clover Kingdom Calendar (CKC). Nothing is scheduled here yet.</p>
+          <p class="offer-text">This is the page for the Clover Kingdom Calendar (CKC). Nothing is scheduled here yet.</p>
         </div>
-      </div>`;
-  });
+      </div>
+    </div>`);
   return wrap;
 }
 
