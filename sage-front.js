@@ -14,6 +14,16 @@
 "use strict";
 
 const SAGE_FRONT_TITLE = "CLOVER KINGDOM | Talk to Sage";
+
+/* HOOK ONLY, NOT BUILT (voice-sourced 2026-11-21 7:23 AM CT; unverified until Jacob types it).
+   Member archetype switcher: once logged in, a member (Jacob only for now) picks which SI
+   archetype is "main-ing" the site, chosen from all existing archetypes (ARCHETYPES in app.js).
+   Sage roams and stays the default public face. Guests always get Sage.
+   Playtest order: (1) this Sage-only public front door, no login; (2) the switcher, after (1) is solid.
+   When built: read the member's choice from the auth Worker (not localStorage), check role on the
+   server, and return that archetype's name, portrait and voice here. Until then this always returns Sage. */
+const SAGE_FRONT_DEFAULT_ARCHETYPE = "sage";
+function activeFrontArchetype() { return SAGE_FRONT_DEFAULT_ARCHETYPE; }
 const SAGE_CONTACT_URL = "https://x.com/Saint_Chevalier";
 
 /* Small CK FAQ for the stub. Checked before the older set answers. */

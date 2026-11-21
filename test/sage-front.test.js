@@ -33,3 +33,9 @@ test("Sage renders chat with text nodes and sends nothing in the stub", () => {
 test("sage-front.js loads before app.js", () => {
   assert.ok(html.indexOf("sage-front.js") < html.indexOf('src="app.js'));
 });
+
+test("archetype switcher is a documented hook only and always returns Sage", () => {
+  assert.match(sf, /HOOK ONLY, NOT BUILT/);
+  assert.match(sf, /function activeFrontArchetype\(\) \{ return SAGE_FRONT_DEFAULT_ARCHETYPE; \}/);
+  assert.match(sf, /const SAGE_FRONT_DEFAULT_ARCHETYPE = "sage"/);
+});
