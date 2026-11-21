@@ -147,4 +147,76 @@ body.guest-mode #page-content { max-width: none; padding: 0; }
 .sf-door, .sf-chat { box-sizing: border-box; }
 .sf-chat { min-width: 0; width: 100%; }
 .sf-door > * { min-width: 0; }
-@media (max-width: 860px) { .sf-door { width: 100%; max-width: 100vw; overflow-x: hidden; } }
+@media (max-width: 860px) { .sf-door { width: 100%; max-width: 100vw; overflow-x: clip; } }
+
+/* ---------- Phase zero (2026-11-21 11:47 AM CT): roaming + breathing ---------- */
+.sf-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Sage roams: a slow drift path layered on the float, so she never sits still. */
+.sf-roam { animation: sf-drift 23s ease-in-out infinite; will-change: transform; }
+@keyframes sf-drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(10px, -4px) rotate(.6deg); }
+  45% { transform: translate(-6px, 6px) rotate(-.5deg); }
+  70% { transform: translate(-12px, -3px) rotate(.4deg); }
+  85% { transform: translate(5px, 4px) rotate(-.3deg); }
+}
+.sf-avatar.is-thinking .sf-halo { animation-duration: 1.2s; }
+
+/* Chat header with a small Sage, so she stays in view on phones after the big portrait scrolls away. */
+.sf-chat-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(232, 195, 90, .15); }
+.sf-mini { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(232, 195, 90, .5); flex: none; }
+.sf-chat-name { font-weight: 700; color: #e8c35a; letter-spacing: .08em; font-size: 14px; }
+.sf-chat-sub { font-size: 12.5px; color: #d9cfb6; }
+.sf-reset { margin-left: auto; background: transparent; color: #e8c35a; border: 1px solid rgba(232, 195, 90, .35); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+.sf-reset:hover { background: rgba(232, 195, 90, .12); }
+
+.sf-typing { display: flex; gap: 5px; padding: 2px 8px; height: 14px; align-items: center; }
+.sf-typing[hidden] { display: flex; visibility: hidden; } /* keeps its space: no layout shift */
+.sf-typing span { width: 7px; height: 7px; border-radius: 50%; background: #e8c35a; opacity: .4; animation: sf-dot 1s ease-in-out infinite; }
+.sf-typing span:nth-child(2) { animation-delay: .15s; }
+.sf-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes sf-dot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+
+.sf-starters { display: flex; flex-wrap: wrap; gap: 6px; }
+.sf-starter { background: rgba(255, 255, 255, .05); color: #efe6cf; border: 1px solid rgba(255, 255, 255, .16); border-radius: 999px; padding: 7px 12px; font-size: 13.5px; cursor: pointer; }
+.sf-starter:hover { border-color: rgba(232, 195, 90, .6); background: rgba(232, 195, 90, .08); }
+
+.sf-hint { margin: 0 auto; font-size: 13px; color: #e8c35a; }
+.sf-input.sf-nudge { animation: sf-nudge .45s ease-in-out; }
+@keyframes sf-nudge { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.sf-net { margin: 0; font-size: 13px; color: #f2d47a; background: rgba(184, 52, 44, .18); border: 1px solid rgba(184, 52, 44, .45); border-radius: 10px; padding: 8px 10px; }
+
+/* Readable contrast for the small print (was opacity-dimmed). */
+.sf-foot { opacity: 1; color: #d9cfb6; }
+.sf-tag { opacity: 1; color: #d9cfb6; }
+
+/* Visible keyboard focus everywhere on the front door. */
+.sf-door :is(a, button, input, [tabindex]):focus-visible,
+.sf-roamer:focus-visible { outline: 2px solid #f2d47a; outline-offset: 2px; }
+.sf-log:focus-visible { outline-offset: -2px; }
+
+/* Roaming companion on other guest views. */
+.sf-roamer {
+  position: fixed; right: 18px; bottom: 18px; z-index: 60;
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px 6px 6px; border-radius: 999px;
+  background: rgba(10, 12, 11, .88); border: 1px solid rgba(232, 195, 90, .45);
+  color: #efe6cf; text-decoration: none; font-size: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+  animation: sf-bob 6s ease-in-out infinite;
+}
+@keyframes sf-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.sf-roamer[hidden] { display: none; }
+.sf-roamer img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(232, 195, 90, .6); }
+.sf-roamer:hover { background: rgba(30, 26, 14, .95); }
+
+@media (max-width: 860px) {
+  .sf-stage { padding-top: 4px; }
+  .sf-chat-head { position: sticky; top: 0; z-index: 2; background: rgba(10, 12, 11, .95); margin: -16px -16px 0; padding: 12px 16px 8px; border-radius: 18px 18px 0 0; }
+}
+@media (min-width: 861px) { .sf-mini { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-roam, .sf-roamer, .sf-typing span, .sf-input.sf-nudge { animation: none !important; }
+}

@@ -7,8 +7,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; font-src 'self'; connect-src 'self' https://clover-apply-relay.cloverkingdom.workers.dev https://auth.cloverkingdom.net; object-src 'none'; base-uri 'self'; form-action 'self' https://auth.cloverkingdom.net; frame-src 'none'; upgrade-insecure-requests">
   <meta name="description" content="Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. Everyone is welcome. Join the Discord, apply, and a human reads it.">
   <title>CLOVER KINGDOM | Talk to Sage</title>
-  <link rel="stylesheet" href="styles.css?v=20261121s">
-  <link rel="stylesheet" href="sage-front.css?v=20261121s">
+  <link rel="stylesheet" href="styles.css?v=20261121p0">
+  <link rel="stylesheet" href="sage-front.css?v=20261121p0">
   <link rel="icon" type="image/svg+xml" href="images/crest.svg">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM / AI agent guide">
   <meta name="robots" content="index, follow">
@@ -74,7 +74,7 @@
          prefers-reduced-motion: CSS hides the video and keeps the poster/gradient.
          Previous silent loop kept for rollback at images/kingdom-loop.mp4 (v3 clean). -->
     <video class="kingdom-bg-video" id="kingdom-bg-video"
-           muted autoplay loop playsinline preload="auto"
+           muted loop playsinline preload="none" data-sage-note="autoplay and preload are restored by sage-front.js for members; guests never download the film"
            poster="images/kingdom-loop-poster.jpg">
       <source src="images/kingdom-loop-scored.mp4" type="video/mp4" media="(min-width: 769px)">
     </video>
@@ -158,8 +158,8 @@
     </div>
   </footer>
 
-  <script src="sage-front.js?v=20261121s"></script>
-  <script src="app.js?v=20261121s"></script>
+  <script src="sage-front.js?v=20261121p0"></script>
+  <script src="app.js?v=20261121p0"></script>
 
 </body>
 </html>
