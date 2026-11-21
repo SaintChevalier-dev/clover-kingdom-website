@@ -17,6 +17,10 @@ html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 syst
 .sage-form input { flex: 1; background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 10px 12px; font: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
+.base-foot { margin-top: 4px; color: #8f8a7c; font-size: 13px; line-height: 1.45; }
+.base-foot p { margin: 0 0 6px; }
+.base-foot .edited { font-size: 12px; color: #6f6b60; }
+
 /* Sage sprite v3 (see sage-sprite.js) */
 .ss { position: fixed; left: 0; top: 0; width: 190px; height: 233px; z-index: 1; pointer-events: none; will-change: transform; }
 .ss-inline { position: absolute; width: 100px; height: 122px; }

@@ -64,10 +64,22 @@ function showSignedIn(me) {
   loginBtn.hidden = true;
   logoutBtn.hidden = false;
 }
+/* Login return: the login service always lands on the main site's #/me page.
+   Before leaving, remember this page (one allowlisted path, 15 minutes); /app.js
+   sends the visitor straight back here, with ?login=failed|not_member on errors. */
+const RETURN_KEY = "ckw_return";
+const HERE = location.pathname === "/" ? "/" : "/base/";
+loginBtn.addEventListener("click", () => {
+  try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) { /* storage off: old behavior */ }
+});
+const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
+const why = new URLSearchParams(location.search).get("login");
+if (why) history.replaceState(null, "", location.pathname + location.hash);
+
 function checkLogin() {
   fetch(CKW_AUTH + "/api/me", { credentials: "include" })
     .then((r) => r.json().catch(() => null))
-    .then((me) => (me && me.signedIn ? showSignedIn(me) : showSignedOut()))
+    .then((me) => (me && me.signedIn ? showSignedIn(me) : showSignedOut(LOGIN_WHY[why])))
     .catch(() => showSignedOut("Login service could not be reached."));
 }
 logoutBtn.addEventListener("click", () => {

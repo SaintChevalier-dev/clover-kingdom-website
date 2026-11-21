@@ -5,6 +5,23 @@
 /* Marks JS as on (moved here from an inline script so the CSP can keep script-src 'self'). */
 document.documentElement.classList.add("js");
 
+/* Login return (2026-11-21): the login service always lands on /#/me. If the login was
+   started on /base/ (or a future front door at /), base.js left a short-lived marker;
+   send the visitor straight back. Only these two paths are allowed (no open redirect). */
+(function loginReturn() {
+  try {
+    if (!/^#\/me(\?|$)/.test(location.hash)) return;
+    const raw = localStorage.getItem("ckw_return");
+    if (!raw) return;
+    localStorage.removeItem("ckw_return");
+    const r = JSON.parse(raw);
+    if (!r || (r.path !== "/base/" && r.path !== "/") || !(Date.now() - r.t < 15 * 60 * 1000)) return;
+    if (r.path === "/" && location.pathname === "/") return;
+    const m = (location.hash.split("?")[1] || "").match(/(?:^|&)login=(failed|not_member)(?:&|$)/);
+    location.replace(r.path + (m ? "?login=" + m[1] : ""));
+  } catch (_) { /* fall through to the normal page */ }
+})();
+
 const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
 
 /* ONE place for the Discord invite. Change it here and it updates
