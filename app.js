@@ -191,7 +191,7 @@ const FAQ = [
   { q: "Is it free?", a: "The Discord and the community are free today. Nothing else is priced yet." },
   { q: "Is everyone welcome?", a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { q: "What is a Magic Knight?", a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
-  { q: "What is SI? What is PSI?", a: "SI is super intelligence. A sovereign SI is one you own, that outlives you and runs on your terms, not a chatbot you lease. In the Kingdom's own words, an ASI is an Artificial Sovereign Intelligence and a PSI is a Physically Sovereign Intelligence, meaning the person who works together with their SI as one team." },
+  { q: "What is an archetype? What is PSI?", a: "In the Kingdom, AI means archetype intelligence. A sovereign archetype is one you own, that outlives you and runs on your terms, not a chatbot you lease. A PSI is a Physically Sovereign Intelligence, meaning the person who works together with their archetype as one team." },
   { q: "What is the robot buddy?", a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { q: "What is a glyph?", a: "A mark with meaning. Glyph houses are asked for, not made by a form. The Glyphs page shows the first two." },
   { q: "Who reads my application?", a: "A person, with the Kingdom's archetypes. It passes through Cloudflare to a private intake. Approval comes through Discord or a conversation." },
@@ -1742,7 +1742,7 @@ function wireApplyForm(container, opts) {
    no invented balances, no claim that login is already live.
    ------------------------------------------------ */
 const TTG_FAMILIES = [
-  { id: "01", name: "AI chat / reasoning / SI", body: "round dome-headed metal bot, two thin antenna stalks, lit chest ring", art: "EXISTS" },
+  { id: "01", name: "AI chat / reasoning / archetype", body: "round dome-headed metal bot, two thin antenna stalks, lit chest ring", art: "EXISTS" },
   { id: "02", name: "Code builders", body: "heavy squat metal bot, thick arms, hide work apron", art: "PARTIAL" },
   { id: "03", name: "Notes / knowledge / source of truth", body: "tall slim metal bot, very big round ear-dishes, long arms, rolled-scroll chest relief", art: "PARTIAL" },
   { id: "04", name: "Storage / local disk / self-host", body: "squat wide boxy metal bot, small round ear-dishes, concentric-ring chest relief", art: "PARTIAL" },
@@ -1778,7 +1778,7 @@ const TTG_JOBS = [
 ];
 
 const TTG_CATEGORIES = [
-  { id: "C01", name: "AI assistant / SI / chat model" },
+  { id: "C01", name: "AI assistant / archetype / chat model" },
   { id: "C02", name: "AI agent seats / bot crews" },
   { id: "C03", name: "Local models / compute" },
   { id: "C04", name: "Code editor / IDE / coding agent" },
@@ -2300,7 +2300,7 @@ const MEMBER_ABILITIES = [
 ];
 
 /* requires: "member" (default) opens for any signed-in Discord member.
-   requires: "si" is ready for a later tile that only SIs should open.
+   requires: "si" is ready for a later tile that only archetype seats should open.
    Unknown values stay locked. */
 function abilityUnlocked(ability, sess) {
   const need = (ability && ability.requires) || "member";
