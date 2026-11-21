@@ -72,8 +72,24 @@ const HERE = location.pathname === "/" ? "/" : "/base/";
 loginBtn.addEventListener("click", () => {
   try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) { /* storage off: old behavior */ }
 });
+/* Front door (/): old deep links like /#/join live on /classic/ now; /#/me is the
+   login service coming back, so read its ?login= reason and clean the URL. */
+let hashWhy = null;
+if (location.pathname === "/" && location.hash.startsWith("#/")) {
+  if (/^#\/me(\?|$)/.test(location.hash)) {
+    hashWhy = new URLSearchParams(location.hash.split("?")[1] || "").get("login");
+    history.replaceState(null, "", "/");
+  } else {
+    location.replace("/classic/" + location.hash);
+  }
+}
+if (location.pathname === "/") {
+  window.addEventListener("hashchange", () => {
+    if (location.hash.startsWith("#/") && !/^#\/me(\?|$)/.test(location.hash)) location.replace("/classic/" + location.hash);
+  });
+}
 const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
-const why = new URLSearchParams(location.search).get("login");
+const why = new URLSearchParams(location.search).get("login") || hashWhy;
 if (why) history.replaceState(null, "", location.pathname + location.hash);
 
 function checkLogin() {
