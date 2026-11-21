@@ -30,6 +30,7 @@ Built entirely in code in `base/sage-3d.js`. No downloaded or generated model, n
 - Light: ACES tone mapping, warm key spot with shadows, cool and warm rim lights, a code-built light probe (no HDR download), fog and drifting motes.
 - Look layers still unlock in order: halo, wings, armor (gold pauldrons and gorget), cape (crimson capelet), crest (gold brooch).
 - Corner label: "Sage stand-in, final body coming from the 3D bake-off".
+- Polish (v3, 2026-11-21): night-courtyard floor of dark flagstones drawn on a canvas in code (matte, fading to black into the fog; no image files); the head inside the hood has a jaw and soft chin with the hood's shadow baked as a gradient (no eyes, nose or mouth); two-jointed tapered fingers and thumbs.
 - Phones get fewer segments and motes and smaller shadows. No WebGL means the 2D sprite. Reduced motion means a still pose.
 - Limit: this is stylized, not skin-real. Photoreal skin needs a real model (step 2a bake-off, or a free avatar maker), dropped into the slot below.
 

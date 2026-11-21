@@ -240,9 +240,38 @@ function buildStandIn() {
   const cowl = mesh(new THREE.TorusGeometry(0.072, 0.034, 10, 32), gownMat, neck, 0, 0.005, 0.012);
   cowl.rotation.x = Math.PI / 2 - 0.15; cowl.scale.set(1.1, 0.9, 1);
   mesh(new THREE.CylinderGeometry(0.042, 0.05, 0.1, 16), shadowMat, neck, 0, 0.04, 0);
-  const headMesh = mesh(new THREE.SphereGeometry(0.094, 32, 24), shadowMat, head, 0, 0.05, -0.01);
+  /* A person in shadow: skull, cheek and a jaw that tapers to a soft chin. No eyes, nose or
+     mouth on purpose (face not decided). Dark skin-toned so only rim light and the book's
+     glow catch the cheek and chin. */
+  const faceMat = new THREE.MeshPhysicalMaterial({ vertexColors: true, color: 0x4a3328, roughness: 0.62, sheen: 0.4, sheenRoughness: 0.5, sheenColor: new THREE.Color(0x8a5a48) });
+  const headGeo = new THREE.SphereGeometry(0.094, 40, 30);
+  {
+    const p = headGeo.attributes.position, v = new THREE.Vector3(), cols = [];
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      const low = Math.max(0, -v.y / 0.094);           /* 0 at the middle, 1 at the bottom */
+      const front = Math.max(0, v.z / 0.094);
+      v.x *= 1 - low * 0.38;                            /* jaw tapers */
+      if (v.y < 0) v.y *= 1 + front * 0.22;             /* chin drops a little */
+      v.z += front * low * 0.018;                       /* chin forward */
+      if (v.y > -0.03 && v.y < 0.03) v.x *= 1.03;       /* cheekbones */
+      p.setXYZ(i, v.x, v.y, v.z);
+      /* the hood's shadow, baked as a soft gradient: dark brow and eyes, a little light
+         on the cheek's edge, the chin catching the book glow */
+      const yy = v.y / 0.094;
+      let l = THREE.MathUtils.smoothstep(-yy, -0.15, 0.85);   /* 0 above the cheek, 1 at the chin */
+      const side = Math.min(1, Math.abs(v.x) / 0.07);
+      l = Math.max(l * 0.85, side * THREE.MathUtils.smoothstep(-yy, -0.35, 0.25) * 0.3);
+      const k = 0.06 + l * 0.94;
+      cols.push(k, k, k);
+    }
+    headGeo.setAttribute("color", new THREE.Float32BufferAttribute(cols, 3));
+    headGeo.computeVertexNormals();
+  }
+  const headMesh = mesh(headGeo, faceMat, head, 0, 0.05, -0.012);
   headMesh.scale.set(0.86, 1.08, 0.98);
   headMesh.name = "HeadShadow";
+
 
   /* Deep hood: open at the front, peaked at the back, draping onto the shoulders. */
   const hoodGeo = new THREE.SphereGeometry(0.145, LITE ? 28 : 48, LITE ? 20 : 32, Math.PI / 2 + 0.48, Math.PI * 2 - 0.96, 0, Math.PI * 0.86);
@@ -260,7 +289,7 @@ function buildStandIn() {
   const hood = mesh(hoodGeo, cloakMat, head, 0, 0.07, 0.0);
   hood.scale.set(1.04, 1.16, 1.3);
   hood.name = "Hood";
-  const hoodIn = mesh(hoodGeo, cloakInMat, head, 0, 0.07, 0.0);
+  const hoodIn = mesh(hoodGeo, cloth(0x1a0a0c, 0x4a2026, { side: THREE.BackSide, roughness: 0.95, sheen: 0.3 }), head, 0, 0.07, 0.0);
   hoodIn.scale.set(1.025, 1.145, 1.285);
   hoodIn.castShadow = false;
   /* Sleeves: fitted at the shoulder, belled at the wrist. Hands: slender, skin PBR. */
@@ -272,13 +301,32 @@ function buildStandIn() {
     mesh(new THREE.CylinderGeometry(0.024, 0.028, 0.1, 12), skinMat, lower, 0, -0.22, 0);
     const palm = mesh(new THREE.SphereGeometry(0.04, 16, 12), skinMat, hand, 0, -0.025, 0);
     palm.scale.set(0.95, 1.15, 0.5);
+    const seg = LITE ? 6 : 10;
     for (let f = 0; f < 4; f++) {
-      const len = [0.055, 0.062, 0.058, 0.046][f];
-      const fg = mesh(new THREE.CapsuleGeometry(0.0085, len, 4, 8), skinMat, hand, side * (-0.021 + f * 0.014), -0.06 - len / 2, 0.018);
-      fg.rotation.x = 0.95;
+      const len = [0.056, 0.063, 0.059, 0.047][f];
+      const rad = [0.0082, 0.0085, 0.008, 0.0072][f];
+      const base = new THREE.Object3D();
+      base.position.set(side * (-0.021 + f * 0.0142), -0.066, 0.006);
+      base.rotation.set(0.55 + f * 0.05, 0, side * (f - 1.5) * 0.06);
+      hand.add(base);
+      const p1 = len * 0.55, p2 = len * 0.45;
+      mesh(new THREE.CapsuleGeometry(rad, p1, 4, seg), skinMat, base, 0, -p1 / 2, 0);
+      mesh(new THREE.SphereGeometry(rad * 1.12, 10, 8), skinMat, base, 0, 0, 0);
+      const mid = new THREE.Object3D();
+      mid.position.y = -p1;
+      mid.rotation.x = 0.6;
+      base.add(mid);
+      mesh(new THREE.SphereGeometry(rad * 1.05, 10, 8), skinMat, mid, 0, 0, 0);
+      const tip = mesh(new THREE.CapsuleGeometry(rad * 0.88, p2, 4, seg), skinMat, mid, 0, -p2 / 2, 0);
+      tip.scale.z = 0.92;
     }
-    const th = mesh(new THREE.CapsuleGeometry(0.009, 0.04, 4, 8), skinMat, hand, side * -0.04, -0.04, 0.012);
-    th.rotation.z = side * -0.6;
+    const tb = new THREE.Object3D();
+    tb.position.set(side * -0.032, -0.03, 0.014);
+    tb.rotation.set(0.5, 0, side * -0.75);
+    hand.add(tb);
+    mesh(new THREE.CapsuleGeometry(0.0098, 0.026, 4, seg), skinMat, tb, 0, -0.013, 0);
+    const tbm = new THREE.Object3D(); tbm.position.y = -0.028; tbm.rotation.x = 0.35; tb.add(tbm);
+    mesh(new THREE.CapsuleGeometry(0.0088, 0.022, 4, seg), skinMat, tbm, 0, -0.011, 0);
   }
   arm(upperArmL, lowerArmL, handL, 1);
   arm(upperArmR, lowerArmR, handR, -1);
@@ -442,6 +490,57 @@ function makeMotes(count) {
   return pts;
 }
 
+/* Night courtyard floor: dark flagstones drawn on a canvas (no image files), lit near
+   the table and fading to black at the edge so the floor melts into the fog. */
+function makeFlagstones(size) {
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const g = c.getContext("2d");
+  g.fillStyle = "#0b0a0c";
+  g.fillRect(0, 0, size, size);
+  const rows = 44, h = size / rows;
+  let n = 0;
+  for (let r = 0; r < rows; r++) {
+    let x = -hn(r * 13.7) * h * 1.6;
+    while (x < size) {
+      const w = h * (1.1 + hn(++n * 3.3) * 1.3);
+      const shade = 26 + Math.floor(hn(n * 7.1) * 22);
+      const warm = Math.floor(hn(n * 5.9) * 6);
+      g.fillStyle = `rgb(${shade + warm},${shade + Math.floor(warm / 2)},${shade + 2})`;
+      const gap = Math.max(1, size / 512);
+      g.fillRect(x + gap, r * h + gap, w - gap * 2, h - gap * 2);
+      /* faint veins and wear */
+      g.globalAlpha = 0.18;
+      g.strokeStyle = hn(n * 2.2) > 0.5 ? "#4a4650" : "#0e0d10";
+      g.lineWidth = gap;
+      g.beginPath();
+      g.moveTo(x + w * hn(n * 1.1), r * h + gap);
+      g.quadraticCurveTo(x + w * hn(n * 4.4), r * h + h * 0.5, x + w * hn(n * 8.8), r * h + h - gap);
+      g.stroke();
+      g.globalAlpha = 1;
+      x += w;
+    }
+  }
+  /* grain */
+  const img = g.getImageData(0, 0, size, size), d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const k = (hn(i * 0.37) - 0.5) * 14;
+    d[i] += k; d[i + 1] += k; d[i + 2] += k;
+  }
+  g.putImageData(img, 0, 0);
+  /* radial falloff: candlelit near the middle, black at the rim */
+  const grad = g.createRadialGradient(size / 2, size / 2, size * 0.06, size / 2, size / 2, size / 2);
+  grad.addColorStop(0, "rgba(0,0,0,0)");
+  grad.addColorStop(0.25, "rgba(0,0,0,0.3)");
+  grad.addColorStop(0.55, "rgba(0,0,0,0.85)");
+  grad.addColorStop(1, "rgba(0,0,0,1)");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, size, size);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 function layoutYard(yard, camera, renderer) {
   const sageBox = document.querySelector(".sage");
   const main = document.querySelector("main.base");
@@ -525,13 +624,13 @@ async function boot() {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07070a);
-  scene.fog = new THREE.FogExp2(0x07070a, 0.07);
+  scene.fog = new THREE.FogExp2(0x07070a, 0.085);
   try { scene.environment = makeEnvironment(renderer); scene.environmentIntensity = 0.55; } catch (e) {}
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
   let narrow = layoutYard(yard, camera, renderer);
 
-  scene.add(new THREE.HemisphereLight(0x33405e, 0x2a2010, 0.55));
+  scene.add(new THREE.HemisphereLight(0x2c2f3c, 0x1a1208, 0.4));
   /* Key: warm, from the table side, soft shadows. */
   const key = new THREE.SpotLight(0xffd6a0, 14, 12, 0.5, 0.8, 1.4);
   key.position.set(1.4, 3.4, 3.2);
@@ -543,7 +642,7 @@ async function boot() {
   scene.add(key);
   scene.add(key.target);
   /* Rim: cool moonlight from behind, separates the robe from the dark. */
-  const rimL = new THREE.DirectionalLight(0x9fb6ff, 1.7);
+  const rimL = new THREE.DirectionalLight(0xa9b8e8, 1.5);
   rimL.position.set(-3.5, 3.2, -3.5);
   scene.add(rimL);
   const rimR = new THREE.DirectionalLight(0xffe3b0, 0.9);
@@ -553,8 +652,10 @@ async function boot() {
   lantern.position.set(0, 1.2, 0);
   scene.add(lantern);
 
-  const floorMat = new THREE.MeshPhysicalMaterial({ color: 0x17161a, roughness: 0.62, metalness: 0.0, clearcoat: 0.25, clearcoatRoughness: 0.5 });
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(5.5, 64), floorMat);
+  const floorTex = makeFlagstones(LITE ? 512 : 1024);
+  floorTex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+  const floorMat = new THREE.MeshLambertMaterial({ map: floorTex, color: 0xffffff }); /* matte stone, no grazing sheen */
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(8, 72), floorMat);
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   scene.add(floor);
