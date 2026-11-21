@@ -1,6 +1,6 @@
 # Six-phase site path — status
 
-Updated 2026-11-21 ~11:05 AM CT. Wording rule: archetype, never SI. Nothing here is spent or connected live without the gates below.
+Updated 2026-11-21 11:28 AM CT. Wording rule: archetype, never SI. Nothing here is spent or connected live without the gates below.
 
 **Login rule (Jacob, 2026-11-21 10:46 AM CT):** "Discord login on cloverkingdom.net/base must be available but not required. Make the Discord sign-in optional — guests can browse and use Sage without logging in. Do not remove the login option entirely, just stop gating access behind it." Guests browse every public page and talk to Sage with no login; "Log in with Discord" stays visible and working. Only per-member pages (Member Hall, Round Table votes, My Quests, Account, the Tek Tribe game) still need login, because they show that member's own data.
 
@@ -16,9 +16,9 @@ Updated 2026-11-21 ~11:05 AM CT. Wording rule: archetype, never SI. Nothing here
 | | 7 Live Sage answers | CKAKRT, Jacob, Knight | Plan written | CKAKRT vote, then Jacob's spend yes, then Knight's review | Live answers behind the bounds, canned fallback |
 | | 5b Login optional for guests | Painter | Done (2026-11-21): login button shows at once on / and /base/ with "Login is optional"; Tek Tribe and CKC pages and nav open to guests | — | Guest with no cookie can browse public pages and chat with Sage; login button present |
 | 5 Front door | 8 Base page at / | Painter | **Live** (merged 2026-11-21 on Jacob's go). Full site at /classic/; old /#/ links forward there | — | / is the base page; /classic/ and old links work |
-| 6 Sage 3D | 0 Rights + generator check | ARGUS, Painter | Open | ARGUS's written grade | Grade and face rule on record |
-| | 1 T-pose sheet, 1b wing study | Painter | v01 done; wing v2 open | — | v2 sheet with fixed wing study |
-| | 2a Bake-off: Meshy vs Tripo | Painter | Open | Rights first; paid credits need Jacob's yes on the exact price | Both rigged models compared side by side, winner recorded |
-| | 2–6 Model, size, rig, three.js, flag | Painter, site builder, Knight, Jacob | three.js stand-in live; real model waits on 2a | Step 2a | Real GLB live behind the flag, 2D fallback |
+| 6 Sage 3D | 0 Rights + generator check | ARGUS, Painter | Face rule on record (shadow under the hood, Jacob 11:28 AM CT). ARGUS grade still open | ARGUS's written grade for Meshy Free | Grade on record; face rule already on record |
+| | 1 T-pose sheet, 1b wing study | Painter | v01 done; **v2 required before the Meshy run** (≥512 px/view, book, clear five-leaf stemless crest, clean bg); wing study v2 still open | — | v2 sheet + fixed wing study |
+| | 2a Bake-off: Meshy primary, VRoid quiet backup | Painter | Lane chosen (Jacob 11:28 AM CT): Meshy Free (CC BY 4.0, attribution); Tripo free set aside; paid Tripo not chosen; VRoid is the quiet backup. Skill approved in GCKI. Sheet v2 comes first; no generate yet | ARGUS grade before the run; Free plan = $0, no spend; any paid upgrade needs Jacob's yes on the exact price | Scored Meshy (or VRoid backup) body logged; live ship still needs Jacob's yes |
+| | 2–6 Model, size, rig, three.js, flag | Painter, site builder, Knight, Jacob | three.js hooded stand-in live (b1d156d); drop-in slot `/base/assets/sage/sage.glb`; real model waits on 2a. Wings by hand; face stays shadow under the hood | Step 2a | Real GLB live behind the flag, 2D fallback |
 
 Details: [sage-3d-phase6.md](sage-3d-phase6.md), [front-door.md](front-door.md), [ci-loops.md](ci-loops.md).
