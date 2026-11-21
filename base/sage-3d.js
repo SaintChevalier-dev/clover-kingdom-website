@@ -222,7 +222,18 @@ function layoutYard(yard, camera, renderer) {
     const w = inline ? yard.clientWidth : window.innerWidth;
     const h = inline ? yard.clientHeight : window.innerHeight;
     renderer.setSize(Math.max(1, w), Math.max(1, h), false);
-    if (camera) { camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix(); }
+    if (camera) {
+      camera.aspect = w / Math.max(1, h);
+      /* Wide screens: the chat card sits in the middle, so slide the courtyard to the
+         right of it (a view offset, not a camera move) and Sage stays visible. */
+      const card = !inline && sageBox ? sageBox.getBoundingClientRect() : null;
+      if (card && w - card.right > 220) {
+        const shift = Math.min(w * 0.36, (card.right + (w - card.right) / 2) - w / 2);
+        camera.fov = 50;
+        camera.setViewOffset(w, h, -shift, 0, w, h);
+      } else if (camera.view) camera.clearViewOffset();
+      camera.updateProjectionMatrix();
+    }
   }
   return inline;
 }

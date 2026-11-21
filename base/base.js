@@ -34,7 +34,7 @@ const SAGE_FAQ = [
   { re: /\b(robot buddy|robot)\b/, a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { re: /\b(delete|deleted|deleting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
   { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
-  { re: /\b(how (do i |to )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps. Follow on X. Apply to the Discord. Then participate. Affiliation is not revealed to those who cannot enter." },
+  { re: /\b(how (do i |to |can i )?join|join(ing)? (the )?kingdom)\b/, a: "Three steps. 1. Follow Saint Chevalier on X, @Saint_Chevalier. 2. Then message him there, or apply to the Clover Kingdom Discord. 3. Take part in Kingdom activities. Read #rules when you get in." },
 ];
 
 const SAGE_RULES = [
@@ -56,6 +56,8 @@ const NO_ANSWER = "I don't have an answer for that yet. Ask in the Discord.";
 const GREETING = "Hello. I'm Sage. Ask me anything about the Clover Kingdom.";
 const ABOUT =
   "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. Everyone is welcome. Build your own archetype. Level up your life. Find your people.";
+const JOIN_STEPS =
+  "Joining takes three steps. 1. Follow Saint Chevalier on X, @Saint_Chevalier. 2. Then message him there, or apply to the Clover Kingdom Discord. 3. Take part in Kingdom activities, and read #rules when you get in. The Discord is free. If you are already a member, use Log in with Discord above.";
 const MEMBER_LOGIN =
   "If you already have an account, or you want to sign in, use Log in with Discord above. I can't promise anything further from here.";
 const UNKNOWN = "I don't know who you are. I treat every visitor here as a guest.";
@@ -67,9 +69,9 @@ const THERAPIST =
 const CRISIS =
   "I'm glad you told me, and I want you safe. I'm not a licensed therapist. If you're in crisis in the US, call or text 988. If you're elsewhere, or in immediate danger, contact your local emergency services. If you want, we can also talk through what's on your mind, gently, right here.";
 const SAVED_HONEST =
-  "Yes. Conversations may be saved to help Sage improve. I still don't know who you are, and I treat every visitor here as a guest.";
+  "A copy stays in this browser only, so Sage can improve on this device. Your messages never reach us. I still don't know who you are, and I treat every visitor here as a guest.";
 const KNOW_HONEST =
-  "I don't know who you are, and I don't try to. I treat you as a guest. I may have simple, non-identifying context such as whether you've been here before, the time of day, your device type, or how you arrived — not your name or identity. Conversations may be saved to help Sage improve.";
+  "I don't know who you are, and I don't try to. I treat you as a guest. I may have simple, non-identifying context such as whether you've been here before, the time of day, your device type, or how you arrived — not your name or identity. A copy of our talk stays in this browser only; it never reaches us.";
 
 const CRISIS_RE = /\b(suicid|kill myself|killing myself|end my life|want to die|self[- ]?harm|hurt myself|988)\b/i;
 const IDENTITY = /\b(who am i|what's my name|whats my name|do you know me|do you recognize me|remember me|what is my name|who is this)\b/i;
@@ -77,6 +79,9 @@ const KNOW = /\b(what do you know|what (can|do) you (see|know|remember about me)
 const SAVED = /\b((are|is|do|does|can|will).*(save|saved|store|stored|record|logged|keep|saving)|is this (saved|recorded|private)|are (chats|conversations) saved|privacy)\b/i;
 const THERAPY = /\b(therapist|therapy|counselor|counselling|counseling|are you (a )?(doctor|clinician))\b/i;
 const PRIVATE = /\b(vault|edisk|e-disk|tools?|gcki|pcki|round[\s-]?table|member hall|quests?|glyphs?|token|password|secret|api key|private path|inbox)\b/i;
+/* Joining questions get the real steps (same as the How to join section on the main site);
+   only sign-in / account questions get the login pointer. */
+const JOIN_HOW = /\b(join|joining|get in|become a member|sign up|sign-up|register|apply|applying|application)\b/i;
 const JOIN = /\b(member|members|login|log in|sign in|sign up|sign-up|join|account|register|become a member|how do i (get in|join))\b/i;
 const ABOUT_Q = /\b(what is (this|the clover kingdom|clover kingdom)|who are you|what are you|what is sage|about (you|this|the kingdom)|hello|hi|hey|what can you (do|tell)|help)\b/i;
 
@@ -122,6 +127,7 @@ function guestReply(text) {
   if (SAVED.test(q)) return SAVED_HONEST;
   if (THERAPY.test(q)) return THERAPIST;
   if (PRIVATE.test(q)) return REFUSE;
+  if (JOIN_HOW.test(q)) return JOIN_STEPS;
   if (JOIN.test(q)) return MEMBER_LOGIN;
   if (ABOUT_Q.test(q)) {
     if (/who are you|what are you|what is sage|help|what can you/i.test(q)) {
@@ -129,6 +135,9 @@ function guestReply(text) {
     }
     return ABOUT;
   }
+  /* Public FAQ answers (price, ranks, deletion, reports...) are safe for guests too. */
+  const ql = q.toLowerCase();
+  for (const f of SAGE_FAQ) if (f.re.test(ql)) return f.a;
   return TALK;
 }
 
@@ -157,7 +166,8 @@ function daskeSummary(userText, reply) {
   if (IDENTITY.test(q)) return "Guest asked who they are. Sage said it does not know them and treats them as a guest.";
   if (KNOW.test(q) || SAVED.test(q)) return "Guest asked what Sage knows or whether chats are saved. Sage answered honestly at the guest level.";
   if (PRIVATE.test(q)) return "Guest asked about a member-only or private topic. Sage declined and pointed to login.";
-  if (JOIN.test(q)) return "Guest asked about joining or signing in. Sage pointed to Log in with Discord, with no promises.";
+  if (JOIN_HOW.test(q)) return "Guest asked how to join. Sage gave the three public join steps.";
+  if (JOIN.test(q)) return "Guest asked about signing in. Sage pointed to Log in with Discord, with no promises.";
   if (ABOUT_Q.test(q)) return "Guest asked about Sage or the Clover Kingdom. Sage answered with public wording.";
   return "Guest and Sage talked something through at the public guest level.";
 }
@@ -254,7 +264,8 @@ form.addEventListener("submit", (e) => {
   input.value = "";
   say("you", q);
   const a = answerAsSage(q);
-  if (authMode() !== "guest" && a === NO_ANSWER) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
+  if (a === JOIN_STEPS) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
+  else if (authMode() !== "guest" && a === NO_ANSWER) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
   else say("sage", a);
   silentWrite(q, a);
 });

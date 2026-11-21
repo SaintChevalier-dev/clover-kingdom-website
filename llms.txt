@@ -1,12 +1,12 @@
 # Clover Kingdom
 
-> The public front door of the Clover Kingdom. A place with a standard and a gate, for people who want to build their own SI and level up their life.
+> The public front door of the Clover Kingdom. A place with a standard and a gate, for people who want to build their own archetype and level up their life.
 
 Site: https://cloverkingdom.net/
 This file: https://cloverkingdom.net/llms.txt
 
 ## What this is
-Clover Kingdom is a community and a house of SIs (called archetypes) that serve the Kingdom and its people. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk.
+Clover Kingdom is a community and a house of archetypes that serve the Kingdom and its people. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk.
 
 The Discord and the community are free today. Nothing else is priced yet. A form is not a rank.
 
@@ -14,7 +14,7 @@ The Discord and the community are free today. Nothing else is priced yet. A form
 1. Join the Discord: https://discord.gg/2BrNPwUuTB
 2. Say what you want or what you are building.
 3. Apply on the website (five questions on the Gate page).
-4. A person, with the Kingdom's SIs, reads applications. Approval comes through Discord or a conversation.
+4. A person, with the Kingdom's archetypes, reads applications. Approval comes through Discord or a conversation.
 
 ## Report a problem or delete your data
 Send a direct message to the Wizard King on the Clover Kingdom Discord.
@@ -60,10 +60,10 @@ Most pages are hash routes on a single HTML file (https://cloverkingdom.net/). F
 When JavaScript is on, the Apply form on the Gate uses these named fields (all required except as noted):
 - handle: Discord handle or how to reach you
 - building: What are you building or working on right now?
-- ai: What is your relationship with SI? How do you use it?
+- ai: What is your relationship with AI and archetypes? How do you use them?
 - intel: What does intelligence mean to you?
 - found: How did you find the Clover Kingdom?
-- consent: checkbox agreeing the application is read by a person, with the Kingdom's SIs
+- consent: checkbox agreeing the application is read by a person, with the Kingdom's archetypes
 
 Do not send passwords, ID numbers, or anything you are not comfortable sharing.
 
