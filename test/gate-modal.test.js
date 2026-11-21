@@ -63,10 +63,10 @@ test("Escape and the backdrop close the modal, and it is a dialog", () => {
   assert.match(app, /if \(e\.key === "Tab" && dialog\)/);
 });
 
-test("cache bust is 20261111k", () => {
-  assert.match(html, /styles\.css\?v=20261111k/);
-  assert.match(html, /app\.js\?v=20261111k/);
-  assert.equal((html.match(/20261111j/g) || []).length, 0);
+test("cache bust is 20261121s", () => {
+  assert.match(html, /styles\.css\?v=20261121s/);
+  assert.match(html, /app\.js\?v=20261121s/);
+  assert.equal((html.match(/20261111k/g) || []).length, 0);
 });
 
 test("modal styles exist and disable motion under prefers-reduced-motion", () => {

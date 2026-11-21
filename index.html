@@ -6,8 +6,9 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; font-src 'self'; connect-src 'self' https://clover-apply-relay.cloverkingdom.workers.dev https://auth.cloverkingdom.net; object-src 'none'; base-uri 'self'; form-action 'self' https://auth.cloverkingdom.net; frame-src 'none'; upgrade-insecure-requests">
   <meta name="description" content="Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. Everyone is welcome. Join the Discord, apply, and a human reads it.">
-  <title>CLOVER KINGDOM - The Public Front Door</title>
-  <link rel="stylesheet" href="styles.css?v=20261111k">
+  <title>CLOVER KINGDOM | Talk to Sage</title>
+  <link rel="stylesheet" href="styles.css?v=20261121s">
+  <link rel="stylesheet" href="sage-front.css?v=20261121s">
   <link rel="icon" type="image/svg+xml" href="images/crest.svg">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM / AI agent guide">
   <meta name="robots" content="index, follow">
@@ -59,7 +60,7 @@
   </script>
 </head>
 
-<body>
+<body class="guest-mode">
   <a class="skip-link" href="#page-content" id="skip-link">Skip to main content</a>
 
   <!-- Steady kingdom backdrop: dark forest-green to near-black with a soft gold glow.
@@ -129,71 +130,19 @@
   </nav>
 
   <!-- Readable without JavaScript. Hidden when the app starts (html.js). For humans with JS off and for AI agents reading the HTML. -->
-  <section id="static-readme" class="static-readme container" aria-label="Clover Kingdom plain text guide">
+  <section id="static-readme" class="static-readme container" aria-label="Clover Kingdom">
     <h1>Clover Kingdom</h1>
-    <p>The public front door. A place with a standard and a gate, for people who want to build their own SI and level up their life.</p>
-    <p><strong>Everyone is welcome.</strong> Join our internet kingdom, and we help you build up your own kingdom in real life — your life, your work, your stack, your people. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk.</p>
-    <p>Build your own SI. Level up your life. Find your people.</p>
-
-    <h2>How to join</h2>
-    <ol>
-      <li>Follow on X: <a href="https://x.com/Saint_Chevalier">https://x.com/Saint_Chevalier</a></li>
-      <li>Once you have followed Saint Chevalier on X, you can message them or apply to the Discord: <a href="https://discord.gg/2BrNPwUuTB">https://discord.gg/2BrNPwUuTB</a></li>
-      <li>Participate in all Kingdom activities.</li>
-    </ol>
-
-    <h2>Report a problem or ask for deletion</h2>
-    <p>Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you. A real person reads every report. Breaking the Kingdom's rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away. Anyone can ask for their data to be deleted the same way, or by messaging Saint Chevalier on X, <a href="https://x.com/Saint_Chevalier">@Saint_Chevalier</a>.</p>
-
-    <h2>What the Kingdom offers</h2>
+    <p>Sage, the Clover Kingdom's guide, is waiting at the front door. Turn JavaScript on to talk with her.</p>
     <ul>
-      <li><strong>Motivation</strong> - A reason to start, and people who help you keep going.</li>
-      <li><strong>Community</strong> - Like-minded people who want to build, learn and help each other. Lives in the Discord.</li>
-      <li><strong>A robot buddy</strong> - Build a robot buddy of your own. Ask in the Discord or apply. Nothing priced or promised on this page.</li>
-      <li><strong>A way of life and thinking</strong> - Written plainly in the Standard.</li>
-      <li><strong>Survival</strong> - Water, food, shelter and security.</li>
-      <li><strong>Secret tek intelligence</strong> - For members only. None of it is shown here.</li>
+      <li>Contact Jacob: <a href="https://x.com/Saint_Chevalier">@Saint_Chevalier on X</a></li>
+      <li>Apply to the Discord: <a href="https://discord.gg/2BrNPwUuTB">https://discord.gg/2BrNPwUuTB</a></li>
+      <li>Members: log in with Discord after you join.</li>
     </ul>
-
-    <h2>The archetypes (the Kingdom's SIs)</h2>
-    <p>Each archetype is an SI with its own lane, serving the Kingdom and its people. Not every one is open to talk yet. Join the Discord and ask.</p>
-    <ul>
-      <li><strong>Wizard King</strong> - Thinks an idea all the way through before anything is done.</li>
-      <li><strong>Saint Chevalier</strong> - Checks that plans fit together and do not contradict each other.</li>
-      <li><strong>Sage</strong> - Writes how-to guides and checks a card is safe to share.</li>
-      <li><strong>Val</strong> - Plans the roadmap and prepares the next steps.</li>
-      <li><strong>ARGUS</strong> - Grades tools, never people, and says what each costs and whether you own it.</li>
-      <li><strong>HEALER</strong> - Checks for invented facts and for private information leaking out.</li>
-      <li><strong>Painter</strong> - Makes the look of things, such as avatars and art.</li>
-      <li><strong>Knight</strong> - Watches security and helps with hardware parts.</li>
-      <li><strong>DRAGON</strong> - Finds your highest-leverage move right now, sends you to do it, and levels up the conversation with what you bring back.</li>
-      <li><strong>Roster</strong> - Builds your party: shows who's proven where across your people and your SIs, so you pick the right team.</li>
-      <li><strong>Tek Tribe</strong> - Shares real tech setups and helps you find your group.</li>
-    </ul>
-
-    <h2>FAQ (short)</h2>
-    <p><strong>Is it free?</strong> The Discord and the community are free today. Nothing else is priced yet.</p>
-    <p><strong>What is SI / PSI?</strong> SI is super intelligence. A sovereign SI is one you own, that outlives you and runs on your terms. PSI is Physically Sovereign Intelligence: the person who works with their SI as one team.</p>
-    <p><strong>What is a Magic Knight?</strong> A rank earned through work inside the Kingdom. A form is not a rank.</p>
-    <p>More answers are on the FAQ page when JavaScript is on: <a href="#/faq">#/faq</a>.</p>
-
-    <h2>Links</h2>
-    <ul>
-      <li>X: <a href="https://x.com/Saint_Chevalier">@Saint_Chevalier</a></li>
-      <li>Discord: <a href="https://discord.gg/2BrNPwUuTB">Join the server</a></li>
-      <li>Instagram: <a href="https://www.instagram.com/saintchevalierasi/">@saintchevalierasi</a></li>
-      <li>Tek Tribe: <a href="https://x.com/Tekk_Tribe">@Tekk_Tribe</a></li>
-      <li>AI agent guide: <a href="/llms.txt">/llms.txt</a></li>
-    </ul>
-
-    <h2>Pages (with JavaScript)</h2>
-    <p>Gate <a href="#/">#/</a>, Join <a href="#/join">#/join</a>, Offers <a href="#/offers">#/offers</a>, Guilds <a href="#/guilds">#/guilds</a>, Merchants Guild <a href="#/merchants-guild">#/merchants-guild</a>, House <a href="#/archetypes">#/archetypes</a>, Tek <a href="#/tek">#/tek</a>, FAQ <a href="#/faq">#/faq</a>, Welcome <a href="#/welcome">#/welcome</a>, Members <a href="#/members">#/members</a>, Member Hall <a href="#/hall">#/hall</a>, Tek Tribe <a href="#/tek-tribe">#/tek-tribe</a> (members only), CKC <a href="#/ckc">#/ckc</a> (members only), Tek Tribe game <a href="#/tek-tribe-game">#/tek-tribe-game</a> (members only), Sage <a href="#/sage">#/sage</a>, Standard <a href="#/standard">#/standard</a>, Ranks <a href="#/ranks">#/ranks</a>, Glyphs <a href="#/glyphs">#/glyphs</a>, Links <a href="#/links">#/links</a>.</p>
-    <p>If this page looks plain, turn JavaScript on for the full site. The content above is the same Kingdom.</p>
   </section>
 
   <noscript>
     <style>.site-nav, .kingdom-bg, #page-content { display: none !important; } .static-readme { display: block !important; }</style>
-    <p class="container" style="padding:12px 0;color:#e8c35a">JavaScript is off. The plain guide on this page is the whole site for you. Join the Discord and apply when you can.</p>
+    <p class="container" style="padding:12px 0;color:#e8c35a">JavaScript is off. Turn it on to talk with Sage, or use the links above.</p>
   </noscript>
   <main id="page-content" class="container">
     <!-- Rendered by app.js -->
@@ -209,7 +158,8 @@
     </div>
   </footer>
 
-  <script src="app.js?v=20261111k"></script>
+  <script src="sage-front.js?v=20261121s"></script>
+  <script src="app.js?v=20261121s"></script>
 
 </body>
 </html>
