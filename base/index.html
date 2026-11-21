@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Clover Kingdom - Base</title>
+  <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
+  <link rel="stylesheet" href="base.css?v=1">
+</head>
+<body>
+  <main class="base">
+    <section class="login" id="login" aria-label="Login">
+      <p class="login-status" id="login-status">Checking login...</p>
+      <a class="btn" id="login-btn" href="https://auth.cloverkingdom.net/auth/login" hidden>Log in with Discord</a>
+      <button class="btn btn-quiet" id="logout-btn" type="button" hidden>Log out</button>
+    </section>
+
+    <section class="sage" aria-label="Sage">
+      <h1 class="sage-name">Sage</h1>
+      <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
+      <form class="sage-form" id="sage-form" autocomplete="off">
+        <label class="sr-only" for="sage-input">Message Sage</label>
+        <input id="sage-input" type="text" maxlength="300" placeholder="Ask Sage something">
+        <button class="btn" type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+  <script src="base.js?v=1"></script>
+</body>
+</html>

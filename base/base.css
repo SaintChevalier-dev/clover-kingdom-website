@@ -1,0 +1,18 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.base { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 24px; }
+.login { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.login-status { margin: 0; flex: 1; color: #b9b3a3; font-size: 14px; }
+.btn { background: #c9a44c; color: #0a0a0b; border: 0; border-radius: 6px; padding: 10px 16px; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+.btn-quiet { background: transparent; color: #c9a44c; border: 1px solid #c9a44c; }
+.btn[hidden] { display: none; }
+.sage { border: 1px solid #2a2a2e; border-radius: 10px; padding: 16px; background: #121214; }
+.sage-name { margin: 0 0 12px; font-size: 20px; letter-spacing: .08em; color: #c9a44c; }
+.sage-log { min-height: 240px; max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.msg { padding: 8px 12px; border-radius: 8px; max-width: 85%; white-space: pre-wrap; }
+.msg-sage { background: #1c1c20; align-self: flex-start; }
+.msg-you { background: #2b2516; align-self: flex-end; }
+.msg a { color: #c9a44c; }
+.sage-form { display: flex; gap: 8px; }
+.sage-form input { flex: 1; background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 10px 12px; font: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
