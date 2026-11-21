@@ -10,9 +10,9 @@ Until `sage.png` is present, the 2D fallback is the live Sage sprite v3 (armor, 
 
 Optional later: per-layer PNGs in `layers/` (halo.png, wings.png, armor.png, cape.png, crest.png).
 
-## 3D model contract: `sage.glb` (shared skeleton)
+## 3D model contract: `sage/sage.glb` (shared skeleton)
 
-Drop the real Sage model here as `sage.glb`. Until that file is present, the page builds a faceless procedural stand-in on the same skeleton and labels it "Placeholder 3D, not Sage's final look."
+Drop the real Sage model in `sage/` as `sage/sage.glb` (path `/base/assets/sage/sage.glb`). Until that file is present, the page builds a hooded, faceless procedural stand-in on the same skeleton and labels it "Sage stand-in, final body coming from the 3D bake-off". Full drop-in steps: `docs/sage-3d-phase6.md`, section "Drop-in avatar slot".
 
 ### Coordinates
 - Y-up, units in meters, character faces +Z at rest.
@@ -61,4 +61,4 @@ A later courtyard of many residents may need a tighter cap.
 Confirm commercial-use terms of any 3D tool before generating a real model. That check is still open.
 
 ### Turning the model on
-When `sage.glb` is committed here, also add `data-glb` to `<canvas id="ckw-yard-canvas">` in `base/index.html`. Without that attribute the page never requests the file, so no 404 appears in the console.
+When `sage/sage.glb` is committed, also add `data-glb` to `<canvas id="ckw-yard-canvas">` in `base/index.html` and the root `index.html`. Without that attribute the page never requests the file, so no 404 appears in the console.

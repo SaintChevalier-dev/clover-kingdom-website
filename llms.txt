@@ -23,9 +23,9 @@ A real person reads every report. Breaking the Kingdom's rules puts your place i
 Anyone can ask for their data to be deleted the same way, or by messaging Saint Chevalier on X: https://x.com/Saint_Chevalier
 
 ## Pages
-The front door (https://cloverkingdom.net/) is a small page: Discord login and a guest chat with Sage (canned answers, no live model). The full site is hash routes on one HTML file at https://cloverkingdom.net/classic/. Fetch that URL; with JavaScript off it still includes a full plain-text guide. Old links like https://cloverkingdom.net/classic/#/join forward to /classic/#/join. With JavaScript on, these routes work:
+The front door (https://cloverkingdom.net/) is a small page: optional Discord login and a guest chat with Sage (canned answers, no live model). The full site is hash routes on one HTML file at https://cloverkingdom.net/classic/. Fetch that URL; with JavaScript off it still includes a full plain-text guide. Old links like https://cloverkingdom.net/classic/#/join forward to /classic/#/join. With JavaScript on, these routes work:
 
-- https://cloverkingdom.net/ - Front door (login + Sage)
+- https://cloverkingdom.net/ - Front door (optional login + Sage)
 - https://cloverkingdom.net/classic/ - Gate (the full site's front page, Apply form, Sage box)
 - https://cloverkingdom.net/classic/#/join - How to join
 - https://cloverkingdom.net/classic/#/login - Login (new here, or sign in)
@@ -48,9 +48,9 @@ The front door (https://cloverkingdom.net/) is a small page: Discord login and a
 - https://cloverkingdom.net/classic/#/faq - FAQ
 - https://cloverkingdom.net/classic/#/welcome - Welcome, the Kingdom's rules, report path
 - https://cloverkingdom.net/classic/#/members - Member login (Discord sign-in)
-- https://cloverkingdom.net/classic/#/tek-tribe - Tek Tribe (members only; log in to see it)
-- https://cloverkingdom.net/classic/#/ckc - CKC, Clover Kingdom Calendar (members only; the calendar is coming)
-- https://cloverkingdom.net/classic/#/tek-tribe-game - Tek Tribe game (members only)
+- https://cloverkingdom.net/classic/#/tek-tribe - Tek Tribe (open to everyone; login optional)
+- https://cloverkingdom.net/classic/#/ckc - CKC, Clover Kingdom Calendar (open to everyone; the calendar is coming)
+- https://cloverkingdom.net/classic/#/tek-tribe-game - Tek Tribe game (needs the optional Discord login, because the game tracks each player)
 - https://cloverkingdom.net/classic/#/sage - Sage
 - https://cloverkingdom.net/classic/#/standard - The Standard
 - https://cloverkingdom.net/classic/#/ranks - Ranks
