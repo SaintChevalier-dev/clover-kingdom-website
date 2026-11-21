@@ -16,15 +16,24 @@ const chrome = process.env.CHROME_PATH || "/usr/bin/google-chrome";
   const fail = [];
   const res = await page.goto(url + (url.includes("?") ? "&" : "?") + "smoke=" + Date.now(), { waitUntil: "networkidle" });
   if (!res || res.status() !== 200) fail.push("status " + (res && res.status()));
-  if (!(await page.$(".ss svg"))) fail.push("Sage sprite missing");
+  if (!(await page.$(".ss svg, #ckw-yard-canvas"))) fail.push("Sage sprite missing"); // 2D sprite or 3D courtyard canvas
   if (!(await page.$("#login-btn, #logout-btn"))) fail.push("login bar missing");
+  const privacy = await page.$eval("#privacy, .sage-privacy, .privacy", (el) => (el.textContent || "").trim()).catch(() => "");
+  if (!/privacy|browser|saved|never/i.test(privacy)) fail.push("privacy line missing");
+  try {
+    await page.waitForFunction(() => {
+      const n = document.querySelector(".msg-sage");
+      return n && /Hello\. I'm Sage\. Ask me anything about the Clover Kingdom\./.test(n.textContent || "");
+    }, { timeout: 5000 });
+  } catch { fail.push("guest greeting missing"); }
   const before = await page.$$eval(".msg-sage", (n) => n.length);
   await page.fill("#sage-input", "how do I get started");
   await page.click("#sage-form button[type=submit]");
   try { await page.waitForFunction((b) => document.querySelectorAll(".msg-sage").length > b, before, { timeout: 5000 }); }
   catch { fail.push("Sage did not reply"); }
   await page.waitForTimeout(3000);
-  const real = errors.filter((t) => !(meWas401 && /status of 401/.test(t)));
+  const local = /^http:\/\/(127\.0\.0\.1|localhost)/.test(url); // local runs: auth CORS is expected to fail
+  const real = errors.filter((t) => !(meWas401 && /status of 401/.test(t)) && !(local && /CORS policy|ERR_FAILED/.test(t)));
   if (real.length) fail.push("console errors: " + JSON.stringify(real));
   await browser.close();
   if (fail.length) { console.error("FAIL: " + fail.join(" | ")); process.exit(1); }

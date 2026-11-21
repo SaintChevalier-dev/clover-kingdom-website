@@ -1,0 +1,9 @@
+three.js
+Version: 0.187.0
+License: MIT (see LICENSE in this folder)
+Source: https://github.com/mrdoob/three.js
+npm: https://www.npmjs.com/package/three/v/0.187.0
+Vendored files:
+  three.module.min.js  — official build/three.module.js bundled with build/three.core.js and minified (single self-contained ESM file)
+  GLTFLoader.js        — official examples/jsm/loaders/GLTFLoader.js bundled with its official utils (BufferGeometryUtils, SkeletonUtils); three kept external and pointed at the vendored module, then minified
+No CDN. No API keys.

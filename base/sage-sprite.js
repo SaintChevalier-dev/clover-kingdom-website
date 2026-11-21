@@ -7,7 +7,7 @@
    stretch, flutter, glance, perch, wave); chat interrupts bring her back to
    the chat to listen and speak. Never covers the login bar or chat, never
    blocks clicks, no sound/popups/own messages, pauses when the tab is hidden,
-   honors prefers-reduced-motion. No libraries, no images. */
+   honors prefers-reduced-motion. No libraries, no images. Used as the 2D fallback when the 3D courtyard cannot start. Optional sage.png sheet is not required. */
 (function () {
 "use strict";
 /* SAGE_DRAW_START */
@@ -229,7 +229,7 @@ const sageBox = document.querySelector(".sage");
 const loginBar = document.querySelector(".login");
 const form = document.getElementById("sage-form");
 const log = document.getElementById("sage-log");
-sageBox.parentNode.insertBefore(stage, sageBox);
+/* Stage is inserted in start2D so a 3D courtyard can take over without a layout gap. */
 
 let pos = { x: 0, y: 0 }, facingLeft = false;
 const P = { walk: null, wing: 0, arm: 0, head: 0, lift: 0, sit: false };
@@ -253,7 +253,10 @@ function pathHits(x, y, w, h, rects, pad) {
 }
 function place(x, y) {
   pos = { x, y };
-  sprite.style.transform = "translate(" + Math.round(x) + "px," + Math.round(y) + "px)";
+  const { h } = size();
+  const d = reduce.matches ? 1 : (0.92 + 0.12 * Math.max(0, Math.min(1, y / Math.max(1, window.innerHeight - h))));
+  sprite.style.transform = "translate(" + Math.round(x) + "px," + Math.round(y) + "px) scale(" + d + ")";
+  sprite.style.filter = "drop-shadow(0 " + Math.round(8 * d) + "px " + Math.round(12 * d) + "px rgba(0,0,0," + (0.3 + 0.2 * (d - 0.92) / 0.12) + "))";
 }
 function face(left) { facingLeft = left; flipper.style.transform = left ? "scaleX(-1)" : "none"; }
 function stageLeft() { return narrow.matches ? stage.getBoundingClientRect().left : 0; }
@@ -395,6 +398,38 @@ function next() {
   enter(chooseState());
 }
 
+/* Customization layers (additive on the v3 figure). Progress is localStorage only. */
+const LAYER_KEY = "ckw-sage-layers-v1";
+const LAYERS = [
+  { id: "halo",  name: "halo glow",    className: "ss-layer-halo" },
+  { id: "wings", name: "wings",        className: "ss-layer-wings" },
+  { id: "armor", name: "armor tint",   className: "ss-layer-armor" },
+  { id: "cape",  name: "cape",         className: "ss-layer-cape" },
+  { id: "crest", name: "crest colors", className: "ss-layer-crest" }
+];
+let unlocked = 0;
+function loadUnlocked() {
+  try {
+    const raw = localStorage.getItem(LAYER_KEY);
+    const n = raw ? JSON.parse(raw).unlocked : 0;
+    unlocked = Math.max(0, Math.min(LAYERS.length, Number(n) || 0));
+  } catch (e) { unlocked = 0; }
+}
+function saveUnlocked() {
+  try { localStorage.setItem(LAYER_KEY, JSON.stringify({ unlocked: unlocked })); } catch (e) {}
+}
+function applyLayers() {
+  LAYERS.forEach((L, i) => sprite.classList.toggle(L.className, i < unlocked));
+  const status = document.getElementById("layer-status");
+  if (status) {
+    status.textContent = unlocked <= 0 ? "Look: default" : "Look: " + LAYERS.slice(0, unlocked).map((L) => L.name).join(", ");
+  }
+}
+function unlockNext() {
+  if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(); applyLayers(); }
+}
+function resetLayers() { unlocked = 0; saveUnlocked(); applyLayers(); }
+
 /* Chat interrupts: she walks back beside the chat, listens, then speaks. */
 function listen() { faceChat(); P.walk = null; P.head = 6; P.sit = false; draw(); sprite.classList.add("ss-listening"); }
 form.addEventListener("submit", () => {
@@ -420,6 +455,7 @@ new MutationObserver((muts) => {
     P.head = 0; draw();
     speakTimer = setTimeout(() => {
       sprite.classList.remove("ss-speaking");
+      unlockNext();
       busy = false;
       clearTimeout(stateTimer);
       stateTimer = setTimeout(next, 2500);
@@ -468,8 +504,49 @@ window.addEventListener("resize", () => {
   }, 200);
 });
 
-setMode();
-setStateClass("idle");
-stateTimer = setTimeout(next, 2000);
-window.__sageSprite = { state: () => state, walking: () => !!walkTo }; /* read-only hook for the smoke test */
+let started = false, stopped = false;
+function start2D(flags) {
+  if (started || stopped || window.__CKW_SAGE3D) return;
+  started = true;
+  flags = flags || {};
+  try { new URLSearchParams(location.search).forEach((v, k) => { flags[k] = flags[k] || v; }); } catch (e) {}
+  loadUnlocked();
+  if (flags.layers != null && flags.layers !== "") {
+    unlocked = Math.max(0, Math.min(LAYERS.length, parseInt(flags.layers, 10) || 0));
+  }
+  const reset = document.getElementById("layer-reset");
+  if (reset) reset.addEventListener("click", resetLayers);
+  if (sageBox && stage && !stage.parentNode) sageBox.parentNode.insertBefore(stage, sageBox);
+  setMode();
+  applyLayers();
+  setStateClass("idle");
+  if (flags.pose && flags.pose !== "idle_pages") {
+    if (flags.pose === "walk") enter("walk");
+    else if (flags.pose === "wave") enter("wave");
+    else if (flags.pose === "talk") { busy = true; listen(); sprite.classList.add("ss-speaking"); }
+  } else {
+    stateTimer = setTimeout(next, 2000);
+  }
+  window.__sageSprite = {
+    state: () => state,
+    walking: () => !!walkTo,
+    layers: () => unlocked,
+    reset: resetLayers,
+    stop: stop2D
+  };
+}
+function stop2D() {
+  stopped = true;
+  busy = true;
+  clearTimeout(stateTimer);
+  clearTimeout(speakTimer);
+  if (raf) cancelAnimationFrame(raf);
+  raf = 0;
+  if (sprite && sprite.parentNode) sprite.remove();
+  if (stage && stage.parentNode) stage.remove();
+}
+window.CKWStart2DSage = start2D;
+window.__sageSprite = { state: () => "pending", walking: () => false, stop: stop2D };
+if (!document.querySelector("script[src*=\"sage-3d\"]")) start2D();
+else setTimeout(function () { if (!window.__CKW_SAGE3D && !stopped) start2D(); }, 2500);
 })();
