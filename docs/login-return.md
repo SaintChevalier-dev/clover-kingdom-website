@@ -8,6 +8,8 @@ The login service (`auth.cloverkingdom.net`, a Cloudflare Worker owned by Tek Tr
 2. When the main site loads on `#/me`, `app.js` (top of file, `loginReturn()`) reads and deletes the marker. If the path is exactly `/base/` (or `/` for the future front door) and it is under 15 minutes old, it `location.replace`s to that path, passing `?login=failed|not_member` along.
 3. /base/ shows a plain message for those two errors and cleans the URL.
 
+**Since the front door went live (2026-11-21):** `/#/me` is now served by the base page itself, so `base/base.js` does the return at `/`: marker `/classic/` -> `/classic/#/me`, marker `/base/` -> `/base/`, otherwise stay on `/`. The full site (`app.js` at `/classic/`) leaves a `/classic/` marker when its Discord sign-in link is clicked. `app.js`'s own `loginReturn()` stays as a safety net. See [front-door.md](front-door.md).
+
 Safety: only two hard-coded paths are allowed (no open redirect), the marker is one-time and short-lived, and with storage off the old behavior simply stays. Undo by removing `loginReturn()` from `app.js` and the click handler from `base/base.js`.
 
 ## Cleaner fix in the auth Worker (Tek Tribe; needs Jacob's yes; not done here)

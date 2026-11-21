@@ -8,14 +8,17 @@ const assert = require("node:assert/strict");
 const root = join(__dirname, "..");
 const appBuf = readFileSync(join(root, "app.js"));
 const app = appBuf.toString("utf8");
-const html = readFileSync(join(root, "index.html"), "utf8");
+/* The full site moved to /classic/ on 2026-11-21; / is now the base page (login + Sage). */
+const html = readFileSync(join(root, "classic", "index.html"), "utf8");
+const front = readFileSync(join(root, "index.html"), "utf8");
 const css = readFileSync(join(root, "styles.css"), "utf8");
 
 const INVITE = "https://discord.gg/2BrNPwUuTB";
 
-test("app.js keeps CRLF line endings", () => {
-  assert.ok(appBuf.includes(Buffer.from("\r\n")));
-  assert.equal(appBuf.toString("binary").replace(/\r\n/g, "").includes("\n"), false);
+test("app.js does not mix line endings", () => {
+  const crlf = appBuf.includes(Buffer.from("\r\n"));
+  const bare = appBuf.toString("binary").replace(/\r\n/g, "").includes("\n");
+  assert.ok(!(crlf && bare), "app.js mixes CRLF and LF");
 });
 
 test("uses the existing Discord invite and no other invite", () => {
@@ -63,10 +66,17 @@ test("Escape and the backdrop close the modal, and it is a dialog", () => {
   assert.match(app, /if \(e\.key === "Tab" && dialog\)/);
 });
 
-test("cache bust is 20261111k", () => {
-  assert.match(html, /styles\.css\?v=20261111k/);
-  assert.match(html, /app\.js\?v=20261111k/);
-  assert.equal((html.match(/20261111j/g) || []).length, 0);
+test("classic page loads its assets from absolute paths with a cache bust", () => {
+  assert.match(html, /href="\/styles\.css\?v=\w+"/);
+  assert.match(html, /src="\/app\.js\?v=\w+"/);
+  assert.equal((html.match(/"images\//g) || []).length, 0);
+});
+
+test("front door is the base page and points at the full site", () => {
+  assert.match(front, /src="\/base\/base\.js\?v=\w+"/);
+  assert.match(front, /id="privacy"/);
+  assert.match(front, /href="\/classic\/#\/join"/);
+  assert.equal((front.match(/https:\/\/discord\.gg\/[A-Za-z0-9]+/g) || []).filter((u) => u !== INVITE).length, 0);
 });
 
 test("modal styles exist and disable motion under prefers-reduced-motion", () => {

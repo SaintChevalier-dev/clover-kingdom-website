@@ -15,12 +15,21 @@ document.documentElement.classList.add("js");
     if (!raw) return;
     localStorage.removeItem("ckw_return");
     const r = JSON.parse(raw);
-    if (!r || (r.path !== "/base/" && r.path !== "/") || !(Date.now() - r.t < 15 * 60 * 1000)) return;
-    if (r.path === "/" && location.pathname === "/") return;
+    if (!r || (r.path !== "/base/" && r.path !== "/" && r.path !== "/classic/") || !(Date.now() - r.t < 15 * 60 * 1000)) return;
+    if (r.path === location.pathname) return;
     const m = (location.hash.split("?")[1] || "").match(/(?:^|&)login=(failed|not_member)(?:&|$)/);
     location.replace(r.path + (m ? "?login=" + m[1] : ""));
   } catch (_) { /* fall through to the normal page */ }
 })();
+
+/* Front door (2026-11-21): this app now lives at /classic/. The login service still lands
+   on /#/me (the new front door), so a sign-in started here leaves the same short marker
+   and the front door sends the member back to /classic/#/me. */
+document.addEventListener("click", (e) => {
+  const a = e.target && e.target.closest ? e.target.closest('a[href*="auth.cloverkingdom.net/auth/login"]') : null;
+  if (!a || !location.pathname.startsWith("/classic/")) return;
+  try { localStorage.setItem("ckw_return", JSON.stringify({ path: "/classic/", t: Date.now() })); } catch (_) {}
+}, true);
 
 const STORAGE_KEY_SKIP = "ck_ritual_skipped_v1";
 
@@ -73,7 +82,7 @@ function buildFilmScene() {
         <div class="film-book">
           <div class="film-book-spine"></div>
           <div class="film-book-cover">
-            <img src="images/crest.svg" alt="" aria-hidden="true" class="film-crest">
+            <img src="/images/crest.svg" alt="" aria-hidden="true" class="film-crest">
           </div>
         </div>
       </div>
@@ -110,7 +119,7 @@ function buildBookScene() {
       <div class="grimoire">
         <div class="grimoire-cover">
           <img
-            src="images/crest.svg"
+            src="/images/crest.svg"
             alt="Five-leaf black clover crest — the grimoire mark"
             class="grimoire-crest"
           >
@@ -395,7 +404,7 @@ function buildGate() {
   wrap.innerHTML = `
     <section class="gate gate-hero">
       <div class="container" style="display:block;text-align:center">
-        <img class="hero-crest" src="images/logo-crimson-seal.svg" alt="The five-leaf black clover crest, the mark of the Clover Kingdom" width="96" height="96">
+        <img class="hero-crest" src="/images/logo-crimson-seal.svg" alt="The five-leaf black clover crest, the mark of the Clover Kingdom" width="96" height="96">
         <div class="gate-name">CLOVER<span> KINGDOM</span></div>
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own archetype. Level up your life. Find your people.</p>
@@ -971,7 +980,7 @@ function buildJoin() {
   wrap.innerHTML = `
     <section class="v2-hero" aria-labelledby="join-title">
       <div class="container v2-hero-inner">
-        <img class="v2-hero-seal" src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="112" height="112">
+        <img class="v2-hero-seal" src="/images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="112" height="112">
         <div class="v2-eyebrow">The gate is open</div>
         <h1 class="v2-title" id="join-title">Join the <span>Kingdom</span></h1>
         <div class="v2-rule" aria-hidden="true"><span></span></div>
@@ -1047,7 +1056,7 @@ function buildMembers() {
           <p class="v2-sub v2-sub-left">Not a member yet? <a href="#/join">See how to join</a>.</p>
         </div>
         <div class="v2-signin-card">
-          <img class="v2-signin-seal" src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="72" height="72">
+          <img class="v2-signin-seal" src="/images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="72" height="72">
           <h2 class="v2-signin-title">Sign in</h2>
           <a class="v2-btn v2-btn-discord" id="members-signin" href="${MEMBERS_SIGNIN_URL}" rel="noopener">${ICONS.discord}Sign in with Discord</a>
           <p class="v2-signin-note" id="members-signin-note" role="status">Discord sign-in only. No password to remember.</p>
@@ -1556,7 +1565,7 @@ function gateModalMarkup() {
     <div class="gate-modal" role="dialog" aria-modal="true" aria-labelledby="gate-modal-title" aria-describedby="gate-modal-explain" tabindex="-1">
       <button type="button" class="gate-modal-close" data-gate-close="1" aria-label="Close">\u00d7</button>
       <header class="gate-modal-head">
-        <img class="gate-modal-seal" src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="64" height="64">
+        <img class="gate-modal-seal" src="/images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="64" height="64">
         <h2 id="gate-modal-title" class="gate-modal-title">${escHtml(c.title)}</h2>
         <p id="gate-modal-explain" class="gate-modal-explain">${escHtml(c.explain)}</p>
       </header>
@@ -2242,7 +2251,7 @@ function buildRoundTable() {
 
   Promise.all([
     ckwMemberJson("/api/roundtable"),
-    fetch("round-table.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    fetch("/round-table.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
   ])
     .then(([d, ledger]) => {
       if (d.locked) {
@@ -2879,7 +2888,7 @@ function mountSageMouth() {
       <div class="sage-mouth" id="sage-mouth">
         <div class="sage-mouth-head">
           <div class="sage-mouth-mark">
-            <img src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="40" height="40">
+            <img src="/images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="40" height="40">
           </div>
           <div>
             <div class="sage-mouth-name">SAGE</div>
@@ -2905,7 +2914,7 @@ function mountSageMouth() {
       </div>
     </div>
     <button type="button" class="sage-dock-btn" id="sage-dock-btn" aria-expanded="false" aria-controls="sage-dock-panel" aria-label="Ask Sage">
-      <img src="images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="40" height="40">
+      <img src="/images/logo-crimson-seal.svg" alt="" aria-hidden="true" width="40" height="40">
     </button>
   `;
   document.body.appendChild(dock);

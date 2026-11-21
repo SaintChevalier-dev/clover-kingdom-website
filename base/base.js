@@ -209,7 +209,35 @@ loginBtn.addEventListener("click", () => {
   try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) { /* storage off: old behavior */ }
 });
 const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
-const why = new URLSearchParams(location.search).get("login");
+/* Front door (/): old deep links like /#/join live on /classic/ now. /#/me is the login
+   service coming back: if the sign-in started on /classic/ or /base/ (short marker, 15 min,
+   allowlisted paths only), send the member back there; otherwise stay here, read the
+   ?login= reason and clean the URL. */
+let hashWhy = null;
+const isMe = (h) => /^#\/me(\?|$)/.test(h);
+if (location.pathname === "/" && location.hash.startsWith("#/")) {
+  if (isMe(location.hash)) {
+    const q = location.hash.split("?")[1] || "";
+    hashWhy = new URLSearchParams(q).get("login");
+    let back = null;
+    try {
+      const r = JSON.parse(localStorage.getItem(RETURN_KEY) || "null");
+      localStorage.removeItem(RETURN_KEY);
+      if (r && Date.now() - r.t < 15 * 60 * 1000) back = r.path;
+    } catch (_) {}
+    if (back === "/classic/") location.replace("/classic/#/me" + (q ? "?" + q : ""));
+    else if (back === "/base/") location.replace("/base/" + (hashWhy ? "?login=" + encodeURIComponent(hashWhy) : ""));
+    else history.replaceState(null, "", "/");
+  } else {
+    location.replace("/classic/" + location.hash);
+  }
+}
+if (location.pathname === "/") {
+  window.addEventListener("hashchange", () => {
+    if (location.hash.startsWith("#/") && !isMe(location.hash)) location.replace("/classic/" + location.hash);
+  });
+}
+const why = new URLSearchParams(location.search).get("login") || hashWhy;
 if (why) history.replaceState(null, "", location.pathname + location.hash);
 
 function showSignedOut(msg) {

@@ -6,7 +6,7 @@
 import * as THREE from "./vendor/three.module.min.js";
 import { GLTFLoader } from "./vendor/GLTFLoader.js";
 
-const GLB_URL = "assets/sage.glb";
+const GLB_URL = "/base/assets/sage.glb";
 const LAYER_KEY = "ckw-sage-layers-v1";
 const LAYERS = [
   { id: "halo",  name: "halo glow",    socket: "HaloSocket" },

@@ -23,38 +23,39 @@ A real person reads every report. Breaking the Kingdom's rules puts your place i
 Anyone can ask for their data to be deleted the same way, or by messaging Saint Chevalier on X: https://x.com/Saint_Chevalier
 
 ## Pages
-Most pages are hash routes on a single HTML file (https://cloverkingdom.net/). Fetch that URL; with JavaScript off the page still includes a full plain-text guide. With JavaScript on, these routes work:
+The front door (https://cloverkingdom.net/) is a small page: Discord login and a guest chat with Sage (canned answers, no live model). The full site is hash routes on one HTML file at https://cloverkingdom.net/classic/. Fetch that URL; with JavaScript off it still includes a full plain-text guide. Old links like https://cloverkingdom.net/classic/#/join forward to /classic/#/join. With JavaScript on, these routes work:
 
-- https://cloverkingdom.net/ - Gate (front page, Apply form, Sage box)
-- https://cloverkingdom.net/#/join - How to join
-- https://cloverkingdom.net/#/login - Login (new here, or sign in)
-- https://cloverkingdom.net/#/offers - Offers
-- https://cloverkingdom.net/#/guilds - Guilds and clubs (Merchants Guild is listed here)
-- https://cloverkingdom.net/#/merchants-guild - Merchants Guild
-- https://cloverkingdom.net/#/archetypes - The House (all archetypes)
-- https://cloverkingdom.net/#/archetype/wizard-king - Wizard King
-- https://cloverkingdom.net/#/archetype/saint-chevalier - Saint Chevalier
-- https://cloverkingdom.net/#/archetype/sage - Sage
-- https://cloverkingdom.net/#/archetype/val - Val
-- https://cloverkingdom.net/#/archetype/argus - ARGUS
-- https://cloverkingdom.net/#/archetype/healer - HEALER
-- https://cloverkingdom.net/#/archetype/painter - Painter
-- https://cloverkingdom.net/#/archetype/knight - Knight
-- https://cloverkingdom.net/#/archetype/dragon - DRAGON
-- https://cloverkingdom.net/#/archetype/roster - Roster
-- https://cloverkingdom.net/#/archetype/tek-tribe - Tek Tribe
-- https://cloverkingdom.net/#/tek - Tek Tribe and tek stacks
-- https://cloverkingdom.net/#/faq - FAQ
-- https://cloverkingdom.net/#/welcome - Welcome, the Kingdom's rules, report path
-- https://cloverkingdom.net/#/members - Member login (Discord sign-in)
-- https://cloverkingdom.net/#/tek-tribe - Tek Tribe (members only; log in to see it)
-- https://cloverkingdom.net/#/ckc - CKC, Clover Kingdom Calendar (members only; the calendar is coming)
-- https://cloverkingdom.net/#/tek-tribe-game - Tek Tribe game (members only)
-- https://cloverkingdom.net/#/sage - Sage
-- https://cloverkingdom.net/#/standard - The Standard
-- https://cloverkingdom.net/#/ranks - Ranks
-- https://cloverkingdom.net/#/glyphs - Glyphs
-- https://cloverkingdom.net/#/links - Links
+- https://cloverkingdom.net/ - Front door (login + Sage)
+- https://cloverkingdom.net/classic/ - Gate (the full site's front page, Apply form, Sage box)
+- https://cloverkingdom.net/classic/#/join - How to join
+- https://cloverkingdom.net/classic/#/login - Login (new here, or sign in)
+- https://cloverkingdom.net/classic/#/offers - Offers
+- https://cloverkingdom.net/classic/#/guilds - Guilds and clubs (Merchants Guild is listed here)
+- https://cloverkingdom.net/classic/#/merchants-guild - Merchants Guild
+- https://cloverkingdom.net/classic/#/archetypes - The House (all archetypes)
+- https://cloverkingdom.net/classic/#/archetype/wizard-king - Wizard King
+- https://cloverkingdom.net/classic/#/archetype/saint-chevalier - Saint Chevalier
+- https://cloverkingdom.net/classic/#/archetype/sage - Sage
+- https://cloverkingdom.net/classic/#/archetype/val - Val
+- https://cloverkingdom.net/classic/#/archetype/argus - ARGUS
+- https://cloverkingdom.net/classic/#/archetype/healer - HEALER
+- https://cloverkingdom.net/classic/#/archetype/painter - Painter
+- https://cloverkingdom.net/classic/#/archetype/knight - Knight
+- https://cloverkingdom.net/classic/#/archetype/dragon - DRAGON
+- https://cloverkingdom.net/classic/#/archetype/roster - Roster
+- https://cloverkingdom.net/classic/#/archetype/tek-tribe - Tek Tribe
+- https://cloverkingdom.net/classic/#/tek - Tek Tribe and tek stacks
+- https://cloverkingdom.net/classic/#/faq - FAQ
+- https://cloverkingdom.net/classic/#/welcome - Welcome, the Kingdom's rules, report path
+- https://cloverkingdom.net/classic/#/members - Member login (Discord sign-in)
+- https://cloverkingdom.net/classic/#/tek-tribe - Tek Tribe (members only; log in to see it)
+- https://cloverkingdom.net/classic/#/ckc - CKC, Clover Kingdom Calendar (members only; the calendar is coming)
+- https://cloverkingdom.net/classic/#/tek-tribe-game - Tek Tribe game (members only)
+- https://cloverkingdom.net/classic/#/sage - Sage
+- https://cloverkingdom.net/classic/#/standard - The Standard
+- https://cloverkingdom.net/classic/#/ranks - Ranks
+- https://cloverkingdom.net/classic/#/glyphs - Glyphs
+- https://cloverkingdom.net/classic/#/links - Links
 
 ## Apply form fields
 When JavaScript is on, the Apply form on the Gate uses these named fields (all required except as noted):

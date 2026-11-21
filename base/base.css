@@ -144,3 +144,6 @@ html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 syst
   z-index: 1;
 }
 .ckw-yard-inline .ckw-yard-label { left: 8px; bottom: 8px; }
+
+.foot-links { margin: 0 0 .5rem; font-size: .85rem; }
+.foot-links a { color: #d4a63a; text-decoration: underline; text-underline-offset: 2px; }
