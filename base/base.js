@@ -1,20 +1,20 @@
 /* Clover Kingdom base page: member login + Sage. Nothing else.
    Login uses the live auth Worker (auth.cloverkingdom.net, Discord OAuth).
-   Sage answers are the site's set answers copied from /app.js (no live AI yet). */
+   Sage answers are set answers adapted from /app.js (not live yet). Wording rule: say "archetype". */
 (function () {
 "use strict";
 const CKW_AUTH = "https://auth.cloverkingdom.net";
 const DISCORD_URL = "https://discord.gg/2BrNPwUuTB";
 
 const SAGE_RESPONSES = [
-  "A sovereign SI is one you own, that outlives you, that operates on your terms. Not a chatbot you lease.",
-  "The stack starts with one folder. One SI. One doctrine file. Then it compounds. Ten subscriptions never built the base.",
+  "A sovereign archetype is one you own, that outlives you, that operates on your terms. Not a chatbot you lease.",
+  "The stack starts with one folder. One archetype. One doctrine file. Then it compounds. Ten subscriptions never built the base.",
   "Readability is the whole game. If it is locked in neural weights, it cannot be examined, improved, or taught. Written folders are readable.",
   "The gate is not a funnel. It is a standard. A form is not a rank. Applying asks whether the seat is worth the effort.",
   "The five-leaf black clover is forged by violation, not birth. Black is absorption and protection, not display.",
   "Correction is positive. Brutal honesty is an eternal rule. If you lie in the Apply box, you have already answered the question.",
   "Graduation is earned through work inside the Kingdom, not bought on a public page. You understand why you need it when you have done the work.",
-  "The kingdom is a school. The Discord is the classroom. The SIs are the teachers. The students become the teachers.",
+  "The kingdom is a school. The Discord is the classroom. The archetypes are the teachers. The students become the teachers.",
   "Disk first, site second. The website is a filtered mirror. The disk is the brain. Never the other way around.",
   "Showing up is the only requirement. The rest is earned.",
   "Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Read them when you join. Breaking them puts your place in the Kingdom at risk.",
@@ -24,7 +24,7 @@ const SAGE_FAQ = [
   { re: /\b(free|cost|price|priced|pay|payment|subscription)\b/, a: "The Discord and the community are free today. Nothing else is priced yet." },
   { re: /\b(welcome|who can join|anyone)\b/, a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { re: /\b(magic knight|mk\b|what is a rank)\b/, a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
-  { re: /\b(what is this|what is the clover kingdom|what is clover kingdom)\b/, a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own SI and level up their life. It has a Discord community, a house of SIs called archetypes, librarians who serve the Kingdom and its people, and written intelligence the House keeps." },
+  { re: /\b(what is this|what is the clover kingdom|what is clover kingdom)\b/, a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. It has a Discord community, a house of archetypes, librarians who serve the Kingdom and its people, and written intelligence the House keeps." },
   { re: /\b(robot buddy|robot)\b/, a: "A robot buddy of your own. It is by ask or apply: tell us in the Discord or on the Apply form what you would want it to do. There is no price yet, and nothing is promised." },
   { re: /\b(delete|deleted|deleting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord, or message Saint Chevalier on X, @Saint_Chevalier. You can do either at any time." },
   { re: /\b(report|reporting)\b/, a: "Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you." },
@@ -39,11 +39,11 @@ const SAGE_RULES = [
   { re: /\b(start|starting|begin|beginning|stack)\b|\bget started\b/, say: 1 },
   { re: /\b(read|readable|written|folders?|files?|weights)\b/, say: 2 },
   { re: /\b(graduate|graduation)\b/, say: 6 },
-  { re: /\b(clover|clovers|five[- ]leaf|black)\b/, say: 4 },
   { re: /\b(truth|honest|honesty|lie|lying|correction)\b/, say: 5 },
   { re: /\b(disk|mirror|public|board|website)\b/, say: 8 },
   { re: /\b(kingdom|school|discord|teacher|teachers|teach|learn|classroom|students?)\b/, say: 7 },
   { re: /\b(requirement|requirements|showing up|show up)\b/, say: 9 },
+  { re: /\b(clover|clovers|five[- ]leaf|black)\b/, say: 4 },
 ];
 
 
@@ -82,8 +82,9 @@ const input = document.getElementById("sage-input");
 
 function pickSageResponse(question) {
   const q = question.toLowerCase();
-  for (const rule of SAGE_RULES) if (rule.re.test(q)) return SAGE_RESPONSES[rule.say];
+  /* Specific FAQ questions first, then keyword rules; the generic clover line is last. */
   for (const f of SAGE_FAQ) if (f.re.test(q)) return f.a;
+  for (const rule of SAGE_RULES) if (rule.re.test(q)) return SAGE_RESPONSES[rule.say];
   return null;
 }
 function say(who, text, link) {
