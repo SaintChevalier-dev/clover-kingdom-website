@@ -2626,7 +2626,11 @@ function buildMyQuests() {
 /* ------------------------------------------------
    Nav wiring
    ------------------------------------------------ */
+/* Routes a logged-out visitor may open. Everything else shows the Sage front door. */
+const GUEST_OPEN_ROUTES = new Set(["#/privacy", "#/members", "#/login"]);
+
 const SUBPAGES = {
+  "#/privacy": () => buildSagePrivacy(),
   "#/sage": () => buildSage(),
   "#/standard": () => buildStandard(),
   "#/ranks": () => buildRanks(),
@@ -2652,8 +2656,9 @@ const SUBPAGES = {
 };
 
 /* One title per route (the Gate keeps the page's original title). */
-const GATE_TITLE = document.title;
+const GATE_TITLE = "CLOVER KINGDOM - The Public Front Door"; /* members home; guests get SAGE_FRONT_TITLE */
 const TITLES = {
+  "#/privacy": "Privacy | CLOVER KINGDOM",
   "#/sage": "Sage | CLOVER KINGDOM",
   "#/standard": "The Standard | CLOVER KINGDOM",
   "#/ranks": "Ranks | CLOVER KINGDOM",
@@ -2722,6 +2727,19 @@ function routeFromHash() {
   if (more) more.removeAttribute("open");
   main.innerHTML = "";
   stopSceneCycleIfAny();
+  /* Sage front door (2026-11-21 preview): logged-out visitors see only Sage.
+     Everything else is behind the member login. GUEST_OPEN_ROUTES are the only exceptions. */
+  document.body.classList.toggle("guest-mode", !memberSession.signedIn);
+  if (!memberSession.signedIn && !GUEST_OPEN_ROUTES.has(page)) {
+    document.title = SAGE_FRONT_TITLE;
+    markNav("#/");
+    main.appendChild(buildSageFrontDoor());
+    window.scrollTo(0, 0);
+    applyMemberNav();
+    const gbg = document.getElementById("kingdom-bg-video");
+    if (gbg) gbg.pause();
+    return;
+  }
   if (page === "#/" || page === "#") {
     document.title = GATE_TITLE;
     markNav("#/");
