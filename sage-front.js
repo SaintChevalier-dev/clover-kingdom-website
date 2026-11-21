@@ -249,3 +249,13 @@ function buildSagePrivacy() {
     </div>`;
   return wrap;
 }
+
+/* Keep the existing login exactly as it is (Jacob, 7:25 AM CT voice). The front door only wraps it:
+   it never edits fetchMemberSession, clearMemberSession, memberPage, the gate modal or the auth Worker.
+   It just listens for the session the existing code already fetched, then shows the member site. */
+window.addEventListener("DOMContentLoaded", () => {
+  if (typeof fetchMemberSession !== "function") return;
+  fetchMemberSession().then((s) => {
+    if (s && s.signedIn && document.body.classList.contains("guest-mode")) routeFromHash();
+  });
+});

@@ -835,7 +835,6 @@ function fetchMemberSession() {
     .then((me) => {
       memberSession = { known: true, signedIn: !!(me && me.signedIn), me: (me && me.signedIn) ? me : null };
       applyMemberNav();
-      if (memberSession.signedIn && document.body.classList.contains("guest-mode")) routeFromHash();
       return memberSession;
     })
     .catch(() => {
@@ -850,7 +849,6 @@ function clearMemberSession() {
   memberSession = { known: true, signedIn: false, me: null };
   memberSessionPromise = Promise.resolve(memberSession);
   applyMemberNav();
-  if (!document.body.classList.contains("guest-mode")) routeFromHash();
 }
 
 function memberGateHtml(label) {

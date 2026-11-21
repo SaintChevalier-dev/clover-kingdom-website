@@ -39,3 +39,12 @@ test("archetype switcher is a documented hook only and always returns Sage", () 
   assert.match(sf, /function activeFrontArchetype\(\) \{ return SAGE_FRONT_DEFAULT_ARCHETYPE; \}/);
   assert.match(sf, /const SAGE_FRONT_DEFAULT_ARCHETYPE = "sage"/);
 });
+
+test("existing login is untouched: session functions do not know about the front door", () => {
+  const fms = app.slice(app.indexOf("function fetchMemberSession"), app.indexOf("function clearMemberSession"));
+  const cms = app.slice(app.indexOf("function clearMemberSession"), app.indexOf("function memberGateHtml"));
+  assert.equal(/routeFromHash|guest-mode/.test(fms), false);
+  assert.equal(/routeFromHash|guest-mode/.test(cms), false);
+  assert.match(app, /const CKW_AUTH = "https:\/\/auth\.cloverkingdom\.net"/);
+  assert.match(sf, /fetchMemberSession\(\)\.then/);
+});
