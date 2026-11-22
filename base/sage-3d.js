@@ -56,7 +56,8 @@ function failTo2D(why) {
   console.warn("CKW Sage 3D fallback:", why);
   const yard = document.getElementById("ckw-yard");
   if (yard) yard.hidden = true;
-  if (typeof window.CKWStart2DSage === "function") window.CKWStart2DSage(flags);
+  const still = document.getElementById("ckw-still");
+  if (still) still.hidden = false; /* v06 still; the old 2D sprite is archived */
 }
 
 function bone(name, parent, x, y, z) {

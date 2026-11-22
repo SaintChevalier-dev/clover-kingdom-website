@@ -330,7 +330,7 @@ async function askLive(userText, who, pageEvent) {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 15000);
   try {
-    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6), session: PAGE_SESSION, page: location.pathname === "/" ? "front" : location.pathname.indexOf("/sage") === 0 ? "sage" : "base" };
+    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6), session: PAGE_SESSION, page: location.pathname.indexOf("/sage") === 0 ? "sage" : "base" }; /* the front door is the Webverse now */
     if (who) body.visitor = who;
     if (pageEvent) body.pageEvent = pageEvent;
     const r = await fetch(SAGE_LIVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl.signal });

@@ -1,0 +1,74 @@
+/* Sage sprite v3 (see sage-sprite.js) */
+.ss { position: fixed; left: 0; top: 0; width: 190px; height: 233px; z-index: 1; pointer-events: none; will-change: transform; }
+.ss-inline { position: absolute; width: 100px; height: 122px; }
+.ss-stage { position: relative; height: 126px; margin: -12px 0 -12px; }
+.ss-stage[hidden] { display: none; }
+.ss-pose, .ss-bob { width: 100%; height: 100%; }
+.ss-bob { animation: ss-breathe 4.5s ease-in-out infinite; }
+.ss-walking .ss-bob, .ss-st-perch .ss-bob { animation: none; }
+.ss-svg { width: 100%; height: 100%; }
+.ss-svg path, .ss-svg ellipse, .ss-svg circle { pointer-events: none; }
+.ss-svg #ss-body > path, .ss-svg #ss-head > ellipse, .ss-svg .ss-armor { pointer-events: visiblePainted; cursor: pointer; }
+.ss-svg .ss-halo { animation: ss-glow 3.5s ease-in-out infinite; }
+.ss-st-read .ss-svg .ss-book { opacity: 1; }
+.ss-listening .ss-svg .ss-halo { stroke: #ffe08a; stroke-width: 3.2; }
+.ss-speaking .ss-svg .ss-halo { stroke: #ffe08a; }
+.ss-speaking .ss-bob { animation: ss-breathe 4.5s ease-in-out infinite, ss-pulse .7s ease-in-out infinite; }
+.ss-paused, .ss-paused * { animation-play-state: paused !important; }
+@keyframes ss-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes ss-pulse { 0%, 100% { filter: drop-shadow(0 0 0 rgba(232,194,90,0)); } 50% { filter: drop-shadow(0 0 10px rgba(232,194,90,.5)); } }
+@keyframes ss-glow { 0%, 100% { opacity: .8; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .ss-bob, .ss-speaking .ss-bob { animation: none; }
+}
+/* Sage figure paint */
+.ss-svg { display: block; overflow: visible; }
+.ss-svg .ss-fp { fill: url(#ss-feather); stroke: #a39c8e; stroke-width: .6; }
+.ss-svg .ss-fs { fill: url(#ss-feather); stroke: #aaa395; stroke-width: .6; }
+.ss-svg .ss-fc { fill: #f7f4ee; stroke: #b5ae9f; stroke-width: .55; }
+.ss-svg .ss-fl { fill: #fffdf8; stroke: #bdb6a8; stroke-width: .5; }
+.ss-svg .ss-shaft { stroke: #c9c2b4; stroke-width: .45; fill: none; }
+.ss-svg .ss-fedge { fill: none; stroke: #fffdf8; stroke-width: 3; stroke-linecap: round; }
+.ss-svg .ss-wing-far .ss-fp, .ss-svg .ss-wing-far .ss-fs { fill: url(#ss-feather-far); stroke: #8e877b; }
+.ss-svg .ss-wing-far .ss-fc, .ss-svg .ss-wing-far .ss-fl { fill: #d6d0c4; stroke: #8e877b; }
+.ss-svg .ss-wing-far .ss-fedge { stroke: #d6d0c4; }
+.ss-svg .ss-cloak { fill: url(#ss-cloak); stroke: #b08a2e; stroke-width: 1; }
+.ss-svg .ss-hair-back, .ss-svg .ss-hair-back2 { fill: url(#ss-hair); stroke: #b88d34; stroke-width: .6; }
+.ss-svg .ss-hair-front { fill: url(#ss-hair); stroke: #b88d34; stroke-width: .6; }
+.ss-svg .ss-hair-strand { fill: none; stroke: #e6c46a; stroke-width: 3; stroke-linecap: round; }
+.ss-svg .ss-suit, .ss-svg .ss-sleeve { fill: #141417; }
+.ss-svg .ss-armor, .ss-svg .ss-pauldron, .ss-svg .ss-pauldron2, .ss-svg .ss-belt, .ss-svg .ss-faulds, .ss-svg .ss-bracer { fill: url(#ss-gold); stroke: #5e420e; stroke-width: .8; }
+.ss-svg .ss-belt { fill: #b9bcc2; stroke: #60636a; }
+.ss-svg .ss-armor-line { fill: none; stroke: #7a5a14; stroke-width: .8; }
+.ss-svg .ss-gem, .ss-svg .ss-staff-gem { fill: #ffd34d; stroke: #fff2b8; stroke-width: .5; }
+.ss-svg .ss-tabard { fill: #2c2d32; stroke: #b08a2e; stroke-width: 1; }
+.ss-svg .ss-tabard-trim { fill: none; stroke: #c9a44c; stroke-width: 1; }
+.ss-svg .ss-thigh, .ss-svg .ss-shin, .ss-svg .ss-foot, .ss-svg .ss-knee { fill: url(#ss-gold-v); stroke: #5e420e; stroke-width: .8; }
+.ss-svg .ss-far .ss-thigh, .ss-svg .ss-far .ss-shin, .ss-svg .ss-far .ss-foot, .ss-svg .ss-far .ss-knee { fill: #9a7420; }
+.ss-svg .ss-plate { fill: none; stroke: #6e4c10; stroke-width: .8; }
+.ss-svg .ss-neck, .ss-svg .ss-skin, .ss-svg .ss-hand { fill: #f3d5bf; stroke: #d3ad92; stroke-width: .5; }
+.ss-svg .ss-eye-white { fill: #ffffff; }
+.ss-svg .ss-iris { fill: #2f8fe0; }
+.ss-svg .ss-pupil { fill: #0d2a4a; }
+.ss-svg .ss-lash { fill: none; stroke: #5a3d1a; stroke-width: 1; stroke-linecap: round; }
+.ss-svg .ss-brow { fill: none; stroke: #c49a3e; stroke-width: .9; stroke-linecap: round; }
+.ss-svg .ss-rainbow { stroke: url(#ss-rainbow); stroke-width: 2; stroke-linecap: round; opacity: .85; }
+.ss-svg .ss-mouth { fill: none; stroke: #b5655a; stroke-width: 1; stroke-linecap: round; }
+.ss-svg .ss-horn { fill: url(#ss-gold); stroke: #6e4c10; stroke-width: .6; }
+.ss-svg .ss-halo { fill: none; stroke: #f0c85a; stroke-width: 2.4; filter: url(#ss-glow); }
+.ss-svg .ss-staff-a { fill: none; stroke: #e9eef5; stroke-width: 2.2; }
+.ss-svg .ss-staff-b { fill: none; stroke: #8f98a6; stroke-width: 1.2; }
+.ss-svg .ss-staff-ring { fill: none; stroke: #dfe6ef; stroke-width: 2.4; stroke-linecap: round; }
+.ss-svg .ss-orb { fill: url(#ss-orb); filter: url(#ss-glow); }
+.ss-svg .ss-prism { fill: #eaf6ff; stroke: #9ccfff; stroke-width: .7; filter: url(#ss-glow); }
+.ss-svg .ss-prism-glint { stroke: url(#ss-rainbow); stroke-width: 1.6; stroke-linecap: round; opacity: .8; }
+.ss-svg .ss-shadow { fill: #000; opacity: .35; }
+.ss-svg .ss-hs2 { stroke: #d3ac52; stroke-width: 2.6; }
+.ss-svg .ss-elbow { fill: url(#ss-gold); stroke: #5e420e; stroke-width: .6; }
+.ss-svg .ss-book { opacity: 0; transition: opacity .8s ease; }
+.ss-svg .ss-book-light { fill: #ffd977; opacity: .35; filter: url(#ss-glow); }
+.ss-svg .ss-page { fill: #fbf3d6; stroke: #c9a44c; stroke-width: .6; }
+.ss-svg .ss-page2 { fill: #f1e4b8; }
+.ss-svg .ss-spine { stroke: #a87a1e; stroke-width: 1; }
+.ss-svg .ss-runes { stroke: #c9a44c; stroke-width: .6; fill: none; }
+

@@ -24,7 +24,7 @@ Anyone can ask for their data to be deleted the same way, or by messaging Saint 
 
 ## Talk to Sage (people and SIs)
 Sage, the Kingdom's teacher, talks by text with people and with SIs (AI archetypes / AI agents). Everyone is a guest.
-- Browser: https://cloverkingdom.net/base/#webverse - tick "I'm an SI / AI archetype" under the chat if you are one.
+- Browser: https://cloverkingdom.net/ (also /base/) - tap Sage's floating book to open the chat scroll, then tick "I'm an SI / AI archetype" if you are one.
 - API for SIs: POST https://ck-sage-live.cloverkingdom.workers.dev/si/chat with JSON {"message": "...", "visitor": {"name": "YourSIName", "kind": "si", "home": "optional"}}
 - Instructions as JSON: https://ck-sage-live.cloverkingdom.workers.dev/si
 - Guide: https://cloverkingdom.net/sage/ and https://cloverkingdom.net/.well-known/ai-agent.txt
