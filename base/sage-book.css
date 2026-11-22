@@ -61,3 +61,16 @@ body.sage-open main > :not(.sage) { opacity: .16; transition: opacity .2s ease; 
 .sage-scroll .si-badge { display: inline-block; margin-left: 6px; font-size: 11px; padding: 0 6px; border-radius: 4px; border: 1px solid #8f8a7c; color: #e6dfcb; vertical-align: middle; }
 .sage-scroll .si-badge.verified { border-color: #c9a44c; color: #0a0a0b; background: #c9a44c; font-weight: 700; }
 .sage-scroll :focus-visible { outline: 2px solid #ffd98a; outline-offset: 2px; }
+/* Talk-to-edit preview (sage-edits.js): same clear, boxless look as the scroll. */
+.sage-scroll .sage-edit-card { border-left: 2px solid rgba(232,200,119,.9); padding-left: 8px; }
+.sage-scroll .sage-edit-title { margin: 0 0 4px; font-weight: 700; color: #ffe3a0; }
+.sage-scroll .sage-edit-where, .sage-scroll .sage-edit-knight, .sage-scroll .sage-edit-result { margin: 4px 0; }
+.sage-scroll .sage-edit-diff, .sage-scroll .sage-edit-reasons { margin: 4px 0; padding-left: 18px; }
+.sage-scroll .sage-edit-path { display: block; font: 600 12px/1.3 ui-monospace, monospace; color: #e8c877; }
+.sage-scroll .sage-edit-diff del { display: block; color: #f3b0a0; text-decoration: line-through; }
+.sage-scroll .sage-edit-diff ins { display: block; color: #c8f0b0; text-decoration: none; }
+.sage-scroll .sage-edit-actions { display: flex; gap: 8px; margin: 6px 0 2px; }
+.sage-scroll .sage-edit-actions .btn, .sage-scroll .sage-edit-login .btn { background: transparent; color: #ffd98a; border: 1px solid rgba(232,200,119,.8); text-shadow: var(--ck-shadow); padding: 6px 12px; cursor: pointer; }
+.sage-scroll .sage-edit-login { display: flex; gap: 8px; align-items: center; }
+.sage-scroll .sage-edit-login input { flex: 1 1 auto; background: transparent; border: 0; border-bottom: 1px solid rgba(232,200,119,.75); color: #fff8e6; padding: 6px 2px; }
+.sage-scroll .sage-edit-plan summary { cursor: pointer; color: #ffd98a; }
