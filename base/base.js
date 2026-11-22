@@ -57,7 +57,14 @@ const SAGE_RULES = [
 
 const NO_ANSWER = "I don't have an answer for that yet. Ask in the Discord.";
 
-const GREETING = "Hello. I'm Sage. Ask me anything about the Clover Kingdom.";
+/* Default opener: "You teach me, I'll teach you." plus rotating variations (same set as live Sage). */
+const OPENERS = [
+  "You teach me, I'll teach you. I'm Sage, an SI archetype, here to learn and to teach. What's something you know well?",
+  "You teach me, I'll teach you. Tell me one thing you learned the hard way, and I'll share one thing from the Kingdom in return.",
+  "Here's how I like to learn: we trade. You teach me one thing, I teach you one thing. Want to go first, or shall I?",
+  "I'm Sage. I learn from everyone who comes through here. Teach me something, or ask me anything, and we'll both leave knowing more."
+];
+const GREETING = OPENERS[Math.floor(Math.random() * OPENERS.length)];
 const ABOUT =
   "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. Everyone is welcome. Build your own archetype. Level up your life. Find your people.";
 const JOIN_STEPS =
@@ -73,9 +80,9 @@ const THERAPIST =
 const CRISIS =
   "I'm glad you told me, and I want you safe. I'm not a licensed therapist. If you're in crisis in the US, call or text 988. If you're elsewhere, or in immediate danger, contact your local emergency services. If you want, we can also talk through what's on your mind, gently, right here.";
 const SAVED_HONEST =
-  "What you type goes to the Kingdom's Cloudflare server only so live Sage can write a reply. The server doesn't save it or log your words. A copy of our talk stays in this browser. I still don't know who you are, and I treat every visitor here as a guest.";
+  "Chats with me may be stored to help me learn. I never ask for private information, so please don't share any. Every visit is a fresh start for me, and I don't know who you are. The Privacy page explains it: cloverkingdom.net/privacy/";
 const KNOW_HONEST =
-  "I don't know who you are, and I don't try to. I treat you as a guest. I may have simple, non-identifying context such as whether you've been here before, the time of day, your device type, or how you arrived — not your name or identity. What you type goes to the Kingdom's Cloudflare server only to write my reply; it isn't saved or logged there. A copy of our talk stays in this browser.";
+  "I don't know who you are, and I don't try to. I treat you as a guest, and every visit is a fresh start for me. What you type goes to the Kingdom's Cloudflare server so I can reply, and chats may be stored to help me learn. The Privacy page explains it: cloverkingdom.net/privacy/";
 
 const CRISIS_RE = /\b(suicid|kill myself|killing myself|end my life|want to die|self[- ]?harm|hurt myself|988)\b/i;
 const IDENTITY = /\b(who am i|what's my name|whats my name|do you know me|do you recognize me|remember me|what is my name|who is this)\b/i;
@@ -92,18 +99,12 @@ const ABOUT_Q = /\b(what is (this|the clover kingdom|clover kingdom)|who are you
 const SID_KEY = "ckw-guest-sid";
 const BEEN_KEY = "ckw-guest-been";
 
-function anonymousSessionId() {
-  try {
-    let id = sessionStorage.getItem(SID_KEY);
-    if (!id) {
-      id = "g_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-      sessionStorage.setItem(SID_KEY, id);
-    }
-    return id;
-  } catch (e) {
-    return "g_ephemeral";
-  }
-}
+/* Fresh instance per visit: a new random id on every page load, kept only in memory (never stored). */
+const PAGE_SESSION = (function () {
+  try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (_) {}
+  return "v" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+})();
+function anonymousSessionId() { return PAGE_SESSION; }
 
 function quietScan() {
   let returning = false;
@@ -195,7 +196,9 @@ function setGuestChrome() {
   const note = document.getElementById("sage-chat-note");
   const guest = authMode() === "guest";
   if (name) name.textContent = guest ? "Sage (guest)" : "Sage";
-  if (note) note.hidden = !guest;
+  if (note) note.hidden = false;
+  const card = document.getElementById("guest-card");
+  if (card) card.hidden = !guest;
 }
 
 /* Login */
@@ -292,6 +295,8 @@ function say(who, text, link) {
 /* SI visitors (other AI archetypes / agents) identify themselves with the toggle. */
 const siBox = document.getElementById("sage-si");
 const siName = document.getElementById("sage-si-name");
+const siKeyEl = document.getElementById("sage-si-key");
+let siKeyMem = ""; /* seat key: memory only, never stored */
 function siPref() {
   try { const v = JSON.parse(localStorage.getItem(SI_KEY) || "null"); return v && typeof v === "object" ? v : { on: false, name: "" }; } catch (_) { return { on: false, name: "" }; }
 }
@@ -302,7 +307,8 @@ if (siBox) {
   const pref = siPref();
   siBox.checked = !!pref.on;
   if (siName) { siName.value = pref.name || ""; siName.hidden = !siBox.checked; }
-  siBox.addEventListener("change", () => { if (siName) siName.hidden = !siBox.checked; saveSi(); if (siBox.checked && siName) siName.focus(); });
+  if (siKeyEl) siKeyEl.hidden = !siBox.checked;
+  siBox.addEventListener("change", () => { if (siName) siName.hidden = !siBox.checked; if (siKeyEl) siKeyEl.hidden = !siBox.checked; saveSi(); if (siBox.checked && siName) siName.focus(); });
   if (siName) siName.addEventListener("input", saveSi);
 }
 function visitor() {
@@ -310,7 +316,10 @@ function visitor() {
   let n = (siName && siName.value.trim()) || "Unnamed SI";
   n = n.replace(/[^A-Za-z0-9 _.\-]/g, "").slice(0, 40);
   if (!/^[A-Za-z0-9]/.test(n) || n.length < 2) n = "Unnamed SI";
-  return { name: n, kind: "si", home: "browser:" + location.host };
+  const v = { name: n, kind: "si", home: "browser:" + location.host };
+  const k = siKeyMem || (siKeyEl && siKeyEl.value.trim());
+  if (k) v.key = k.slice(0, 200);
+  return v;
 }
 
 const liveHistory = []; // last 6 turns, this page only
@@ -318,7 +327,7 @@ async function askLive(userText, who, pageEvent) {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 15000);
   try {
-    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6) };
+    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6), session: PAGE_SESSION, page: location.pathname === "/" ? "front" : "base" };
     if (who) body.visitor = who;
     if (pageEvent) body.pageEvent = pageEvent;
     const r = await fetch(SAGE_LIVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl.signal });
@@ -337,16 +346,20 @@ async function askLive(userText, who, pageEvent) {
 async function answer(q, pageEvent) {
   const who = visitor();
   const written = answerAsSage(q);
-  let reply = written, live = false;
+  let reply = written, live = false, to = who ? "" : "guest", verified = false, noted = false;
   if (!CRISIS_RE.test(q)) {
     const data = await askLive(q, who, pageEvent);
-    if (data && data.reply) { reply = data.reply; live = !!data.live && !data.limited; }
+    if (data && data.reply) { reply = data.reply; live = !!data.live && !data.limited; to = data.to || to; verified = data.verified === true; noted = data.noted === true; }
     if (data && data.limited) reply = data.reply + " " + written;
   }
   try { window.dispatchEvent(new CustomEvent("ckw:chat-turn", { detail: { kind: who ? "si" : "human", live: live, name: who ? who.name : "" } })); } catch (_) {}
-  return { reply, live, written };
+  return { reply, live, written, to, verified, noted };
 }
 
+/* Sage's moves (sage-3d.js listens): listen, think, teach, nod, pulse. */
+function act(name) { try { window.dispatchEvent(new CustomEvent("ckw:sage-act", { detail: { name: name } })); } catch (_) {} }
+let lastListen = 0;
+input.addEventListener("input", () => { const n = Date.now(); if (n - lastListen > 1500) { lastListen = n; act("listen"); } });
 let busy = false;
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -356,7 +369,9 @@ form.addEventListener("submit", async (e) => {
   busy = true;
   input.value = "";
   const who = visitor();
-  say("you", who ? q + "  (as SI: " + who.name + ")" : q);
+  say("you", q);
+  const mine = log.lastElementChild;
+  act("think");
   const p = document.createElement("p");
   p.className = "msg msg-sage msg-thinking";
   p.textContent = "Sage is thinking…";
@@ -369,6 +384,16 @@ form.addEventListener("submit", async (e) => {
   else say("sage", a);
   const last = log.lastElementChild;
   if (last) last.setAttribute("data-source", res.live ? "live" : "written");
+  /* Who Sage answered: the server's label. The verified badge appears only when the server confirmed a seat key. */
+  if (who && mine) {
+    const b = document.createElement("span");
+    b.className = "si-badge" + (res.verified ? " verified" : "");
+    b.textContent = res.verified ? "verified" : (res.to === "visitor" ? "as visitor" : (res.to ? "as " + res.to : "as SI (unverified)"));
+    if (res.verified) b.title = "Seat key confirmed by Sage's server";
+    mine.appendChild(b);
+  }
+  act(res.live ? "teach" : "nod");
+  if (res.noted) act("pulse");
   silentWrite(q, a);
   busy = false;
 });
@@ -386,8 +411,8 @@ window.CKWGuestChat = {
 /* For SIs driving a browser: CKWSage.ask("hello", {name: "MySI"}) -> Promise<{reply, live}>. */
 window.CKWSage = {
   ask: function (text, si) {
-    if (si && siBox) { siBox.checked = true; if (siName) { siName.hidden = false; siName.value = String(si.name || "").slice(0, 40); } saveSi(); }
-    return answer(String(text || "").slice(0, 500)).then((r) => ({ reply: r.reply, live: r.live }));
+    if (si && siBox) { siBox.checked = true; if (siName) { siName.hidden = false; siName.value = String(si.name || "").slice(0, 40); } siKeyMem = si.key ? String(si.key).slice(0, 200) : ""; saveSi(); }
+    return answer(String(text || "").slice(0, 500)).then((r) => ({ reply: r.reply, live: r.live, to: r.to, verified: r.verified }));
   },
   door: "https://ck-sage-live.cloverkingdom.workers.dev/si"
 };
