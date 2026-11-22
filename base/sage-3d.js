@@ -1141,8 +1141,8 @@ async function boot() {
   function backToIdle() { busy = false; setState(reduce.matches ? "pause" : "idle_pages"); nextAt = 3; }
   window.addEventListener("ckw:sage-act", (e) => {
     const name = e && e.detail && e.detail.name;
+    if (reduce.matches) return; /* reduced motion: no moves and no halo flash */
     if (name === "pulse") { haloPulse = 1; return; }
-    if (reduce.matches) return;
     if (name === "listen") { if (busy) return; moveFor("listen", 2.6, () => { if (!busy) backToIdle(); }); }
     else if (name === "think") { busy = true; moveFor("think", 0); }
     else if (name === "teach" || name === "nod") {
@@ -1249,7 +1249,10 @@ async function boot() {
   function tick() {
     requestAnimationFrame(tick);
     if (hidden) return;
-    const now = performance.now(); const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    const now = performance.now();
+    /* reduced motion: the scene holds still, so redraw ~8 times a second for pose/turn controls only */
+    if (reduce.matches && now - lastT < 120) return;
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
     stateT += dt;
     if (!reduce.matches) tAll += dt;
     if (mixer) mixer.update(dt);
