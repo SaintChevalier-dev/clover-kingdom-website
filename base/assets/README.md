@@ -12,7 +12,7 @@ Optional later: per-layer PNGs in `layers/` (halo.png, wings.png, armor.png, cap
 
 ## 3D model contract: `sage/sage.glb` (shared skeleton)
 
-Drop the real Sage model in `sage/` as `sage/sage.glb` (path `/base/assets/sage/sage.glb`). Until that file is present, the page builds Sage in code on the same skeleton, in the approved v04 look, and labels it "Sage, v04 look (built in code)". Full drop-in steps: `docs/sage-3d-phase6.md`, section "Drop-in avatar slot".
+Drop the real Sage model in `sage/` as `sage/sage.glb` (path `/base/assets/sage/sage.glb`). Until that file is present, the page builds Sage in code on the same skeleton, in the locked v06 look, and labels it "Sage, v06 look (built in code)". Full drop-in steps: `docs/sage-3d-phase6.md`, section "Drop-in avatar slot".
 
 ### Coordinates
 - Y-up, units in meters, character faces +Z at rest.

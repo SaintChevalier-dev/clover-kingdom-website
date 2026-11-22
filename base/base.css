@@ -147,3 +147,33 @@ html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 syst
 
 .foot-links { margin: 0 0 .5rem; font-size: .85rem; }
 .foot-links a { color: #d4a63a; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Webverse playtest (client-side only) */
+.wv { position: relative; z-index: 2; border: 1px solid #2a2a2e; border-radius: 10px; padding: 16px; background: #121214; display: flex; flex-direction: column; gap: 14px; }
+.wv[hidden], .wv-block[hidden] { display: none; }
+.wv h2, .wv h3 { margin: 0; color: #c9a44c; letter-spacing: .04em; }
+.wv h2 { font-size: 18px; }
+.wv h3 { font-size: 15px; margin-bottom: 8px; }
+.wv-note, .wv-small { margin: 0; color: #b9b3a3; font-size: 13px; line-height: 1.45; }
+.wv-ladder { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.wv-layer { border: 1px solid #2a2a2e; border-radius: 8px; padding: 10px 12px; background: #0e0e10; }
+.wv-layer.wv-open { border-color: #6e5a2a; }
+.wv-goal { margin: 6px 0 0; color: #8f8a7c; font-size: 13px; }
+.wv-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; font-size: 12px; background: #2b2516; color: #e8d6a0; }
+.wv-tag.wv-locked { background: #1c1c20; color: #8f8a7c; }
+.wv-block { border-top: 1px solid #2a2a2e; padding-top: 12px; }
+.wv-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.wv-row .btn { padding: 8px 12px; font-size: 14px; }
+.wv-label { display: block; margin: 10px 0 4px; font-size: 14px; }
+.wv input[type="range"] { width: 100%; accent-color: #c9a44c; }
+.wv fieldset { border: 1px solid #2a2a2e; border-radius: 8px; margin: 8px 0 0; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.wv legend { color: #e8d6a0; font-size: 13px; padding: 0 4px; }
+.wv fieldset label { font-size: 14px; cursor: pointer; }
+.wv textarea { width: 100%; box-sizing: border-box; background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 10px 12px; font: inherit; margin-bottom: 8px; resize: vertical; }
+.wv-glyph-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.wv-glyph-list li { font-size: 14px; line-height: 1.45; }
+.wv-glyph-list .wv-st { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+.wv-st-sourced { background: #23361f; color: #bfe3b0; }
+.wv-st-proposed { background: #3a2f12; color: #f0d58a; }
+.wv-ref-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wv-ref-row img { width: 100%; height: auto; border-radius: 8px; border: 1px solid #2a2a2e; background: #e8e6e2; }

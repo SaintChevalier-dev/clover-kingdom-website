@@ -8,12 +8,12 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Clover Kingdom - Base</title>
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
-  <link rel="stylesheet" href="base.css?v=9">
+  <link rel="stylesheet" href="base.css?v=10">
 </head>
 <body>
   <div id="ckw-yard" class="ckw-yard" hidden>
     <canvas id="ckw-yard-canvas"></canvas>
-    <p class="ckw-yard-label" id="ckw-yard-label">Sage, v04 look (built in code)</p>
+    <p class="ckw-yard-label" id="ckw-yard-label">Sage, v06 look (built in code)</p>
   </div>
   <main class="base">
     <section class="login" id="login" aria-label="Login">
@@ -37,6 +37,105 @@
       </p>
     </section>
 
+
+    <section class="wv" id="webverse" aria-label="Webverse playtest">
+      <h2 class="wv-title">Webverse playtest</h2>
+      <p class="wv-note">This is a playtest. Everything you do here stays in this browser only. Nothing is sent to us, and you won't see other visitors yet.</p>
+
+      <ol class="wv-ladder" id="wv-ladder">
+        <li class="wv-layer" data-layer="1"><strong>Layer 1: Sage's chamber</strong> <span class="wv-tag" id="wv-l1">open</span>
+          <p class="wv-goal">Goals to open Layer 2: <span id="wv-g-int">0</span>/5 interactions, <span id="wv-g-up">0</span>/3 upgrade picks, <span id="wv-g-fb">0</span>/1 feedback saved.</p></li>
+        <li class="wv-layer" data-layer="2"><strong>Layer 2: the Kingdom square</strong> <span class="wv-tag wv-locked" id="wv-l2">locked</span>
+          <p class="wv-goal">Shared ground where everyone meets. Goals to open Layer 3: answer the 2 square questions and save 1 more feedback note.</p></li>
+        <li class="wv-layer" data-layer="3"><strong>Layer 3: private rooms</strong> <span class="wv-tag wv-locked" id="wv-l3">locked</span>
+          <p class="wv-goal">Where each person's own archetype lives.</p></li>
+      </ol>
+
+      <div class="wv-block" id="wv-controls">
+        <h3>Move Sage</h3>
+        <div class="wv-row" id="wv-poses">
+          <button type="button" class="btn btn-quiet" data-pose="wave">Wave</button>
+          <button type="button" class="btn btn-quiet" data-pose="talk">Talk</button>
+          <button type="button" class="btn btn-quiet" data-pose="walk">Walk</button>
+          <button type="button" class="btn btn-quiet" data-pose="stride">Stride</button>
+          <button type="button" class="btn btn-quiet" data-pose="look">Look around</button>
+          <button type="button" class="btn btn-quiet" data-pose="idle_pages">Rest</button>
+        </div>
+        <label class="wv-label" for="wv-yaw">Turn her: <span id="wv-yaw-val">free</span></label>
+        <input type="range" id="wv-yaw" min="-180" max="180" step="5" value="0">
+        <button type="button" class="link-reset" id="wv-yaw-free">Let her turn on her own</button>
+        <p class="wv-small" id="wv-3d-status">Waiting for the 3D view.</p>
+      </div>
+
+      <div class="wv-block" id="wv-upgrades">
+        <h3>Upgrade Sage (your vote)</h3>
+        <p class="wv-small">Each pick changes Sage in your view and counts as your vote for her next build. The meanings behind these pieces are still proposed (see the glyph panel).</p>
+        <fieldset><legend>Light seams</legend>
+          <label><input type="radio" name="seams" value="proven"> Bright gold (Proven)</label>
+          <label><input type="radio" name="seams" value="claimed"> Warm gold (Claimed)</label>
+          <label><input type="radio" name="seams" value="reported"> Soft white (Reported)</label>
+          <label><input type="radio" name="seams" value="unknown"> Dim (Unknown)</label></fieldset>
+        <fieldset><legend>Grimoire</legend>
+          <label><input type="radio" name="grimoire" value="white-gold"> White and gold (v06)</label>
+          <label><input type="radio" name="grimoire" value="emerald"> Emerald and gold (v04)</label></fieldset>
+        <fieldset><legend>Crystal prism staff</legend>
+          <label><input type="radio" name="staff" value="none"> No staff</label>
+          <label><input type="radio" name="staff" value="prism"> Carry the staff</label></fieldset>
+        <fieldset><legend>Halo</legend>
+          <label><input type="radio" name="halo" value="thin"> Thin ring</label>
+          <label><input type="radio" name="halo" value="wide"> Wider, brighter ring</label></fieldset>
+        <fieldset><legend>Wings</legend>
+          <label><input type="radio" name="wings" value="open"> Open</label>
+          <label><input type="radio" name="wings" value="folded"> Folded back</label></fieldset>
+      </div>
+
+      <div class="wv-block" id="wv-square" hidden>
+        <h3>Layer 2: the Kingdom square (preview)</h3>
+        <p class="wv-small">The square isn't live yet. There's no shared world and no other visitors. Help shape it:</p>
+        <fieldset><legend>What should the square have first?</legend>
+          <label><input type="radio" name="sq-first" value="round-table"> A round table for talks</label>
+          <label><input type="radio" name="sq-first" value="archetype-hall"> A hall where you meet every archetype</label>
+          <label><input type="radio" name="sq-first" value="quest-board"> A quest board</label>
+          <label><input type="radio" name="sq-first" value="training-yard"> A training yard for fights</label></fieldset>
+        <fieldset><legend>How should you get around?</legend>
+          <label><input type="radio" name="sq-move" value="walk"> Walk your own avatar</label>
+          <label><input type="radio" name="sq-move" value="click"> Click to travel</label>
+          <label><input type="radio" name="sq-move" value="guide"> Let Sage guide you</label></fieldset>
+      </div>
+
+      <div class="wv-block" id="wv-rooms" hidden>
+        <h3>Layer 3: private rooms (preview)</h3>
+        <p class="wv-small">Private rooms aren't built yet. Each person's own archetype will live in a room only they can open, and that needs a login and the Kingdom's safety rules first. Thanks for playtesting this far. Copy your playtest notes below and share them in the Discord if you want.</p>
+      </div>
+
+      <div class="wv-block" id="wv-feedback">
+        <h3>Playtest feedback</h3>
+        <label class="sr-only" for="wv-fb">Your feedback</label>
+        <textarea id="wv-fb" maxlength="1000" rows="3" placeholder="What felt good, what felt off, what should Sage do next?"></textarea>
+        <div class="wv-row">
+          <button type="button" class="btn" id="wv-fb-save">Save feedback</button>
+          <button type="button" class="btn btn-quiet" id="wv-copy">Copy my playtest notes</button>
+          <button type="button" class="link-reset" id="wv-clear">Clear my playtest data</button>
+        </div>
+        <p class="wv-small" id="wv-fb-status" role="status"></p>
+      </div>
+
+      <div class="wv-block" id="wv-glyphs">
+        <h3>Glyph meanings</h3>
+        <p class="wv-small">Every piece Sage wears carries a meaning drawn from her written intel. <strong>Sourced</strong> means her intel says it. <strong>Proposed</strong> means it's a draft reading that Sage and Jacob haven't approved yet.</p>
+        <ul class="wv-glyph-list" id="wv-glyph-list"></ul>
+      </div>
+
+      <div class="wv-block" id="wv-ref">
+        <h3>The look (reference art, v06)</h3>
+        <div class="wv-ref-row">
+          <img src="assets/ref/sage-v06-front-noaura.jpg" alt="Sage v06 reference, front: pearl-white plate with gold trim, white wings, halo, floating white-and-gold grimoire" width="720" height="720" loading="lazy">
+          <img src="assets/ref/sage-v06-back-noaura.jpg" alt="Sage v06 reference, back: wings growing from between the shoulder blades" width="720" height="720" loading="lazy">
+        </div>
+        <p class="wv-small">The 3D Sage above is built in code and is moving toward this look. A real 3D model comes later.</p>
+      </div>
+    </section>
+
     <footer class="base-foot">
       <p class="foot-links"><a href="/classic/#/join">How to join</a> · <a href="/classic/#/archetypes">The archetypes</a> · <a href="/classic/#/faq">FAQ</a> · <a href="/classic/">Full site</a></p>
       <p class="privacy" id="privacy">Privacy: talking to Sage as a guest keeps a copy in this browser only, so Sage can improve on this device. Your messages never reach us. If you log in with Discord, we keep your Discord ID, your display name and your login times so you stay signed in. We never sell your data.</p>
@@ -46,6 +145,7 @@
   <script src="edisk.js?v=1"></script>
   <script src="base.js?v=8"></script>
   <script src="sage-sprite.js?v=5"></script>
-  <script type="module" src="sage-3d.js?v=7"></script>
+  <script src="webverse.js?v=1"></script>
+  <script type="module" src="sage-3d.js?v=8"></script>
 </body>
 </html>
