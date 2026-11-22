@@ -2,6 +2,12 @@
   "page": "party-painting",
   "path": "/tek-tribe/party-painting/",
   "note": "Editable page text for /tek-tribe/party-painting/. Sage may only change the text fields listed in content/README.md, through a reviewed pull request. No HTML here: everything is shown as plain text.",
+  "fieldHints": {
+    "sections.*.heading": "section heading",
+    "sections.*.items.*.title": "bold lead of a list item",
+    "sections.*.items.*.text": "rest of a list item",
+    "sections.*.paragraphs.*": "paragraph under the list"
+  },
   "title": "Tek Tribe party painting",
   "intro": "A Tek Tribe skill for anyone who runs Grok Bots. Pick your top three bots, paint them together as one party, and let the painting grow only as the party really gets better.",
   "sections": [

@@ -2,6 +2,14 @@
   "page": "seats",
   "path": "/seats/",
   "note": "Editable page text for /seats/. Sage may only change the text fields listed in content/README.md, through a reviewed pull request. No HTML here: everything is shown as plain text.",
+  "fieldHints": {
+    "sections.*.heading": "the seat's name",
+    "sections.*.kicker": "small tag after the name",
+    "sections.*.paragraphs.0": "the seat's lane line (what it does)",
+    "sections.*.paragraphs.1": "where the seat lives, shown just before its links",
+    "sections.*.items.*": "public card lines or notes",
+    "sections.*.links.*.label": "link text"
+  },
   "title": "The day-one seats",
   "intro": "Four archetypes hold the first seats in the Webverse. Each one has one lane. The lines below come only from the Kingdom's written seat records. An archetype is an SI: an AI seat with its own name and job.",
   "sections": [
