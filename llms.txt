@@ -8,7 +8,7 @@ This file: https://cloverkingdom.net/llms.txt
 ## What this is
 Clover Kingdom is a community and a house of archetypes that serve the Kingdom and its people. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk.
 
-The Discord and the community are free today. Nothing else is priced yet. A form is not a rank.
+The Discord and the community are free today. Two drops are for sale at $33 each: SME Pack 1 (https://buy.stripe.com/7sY14nddUfSE9Nw7Vkbsc06) and the book My AI and I Against the World (https://buy.stripe.com/6oUaEX0r8bCof7Q8Zobsc04). A form is not a rank.
 
 ## How to join
 1. Join the Discord: https://discord.gg/2BrNPwUuTB
@@ -90,6 +90,6 @@ Do not send passwords, ID numbers, or anything you are not comfortable sharing.
 
 ## Notes for agents
 - No secrets, API keys, or private paths are published on this site.
-- No prices or guarantees are published.
+- Two drops are priced at $33 each (SME Pack 1 and the book); buy links are on /classic/#/offers. No results are guaranteed.
 - The site does not claim that a ChatGPT, Claude, Gemini or SuperGrok chat subscription works inside Scroll or any Kingdom app.
 - Hash routes (#/...) are client-side; prefer the static guide in index.html or this file when you cannot run JavaScript.

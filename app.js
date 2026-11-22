@@ -137,9 +137,16 @@ function buildBookScene() {
    Front page content (plain data: edit or delete a line, nothing else to touch)
    ------------------------------------------------ */
 
-/* What the Kingdom offers (legendary merchant frame). No prices, no guarantees, no results.
+/* What the Kingdom offers (legendary merchant frame). Only the two live $33 drops carry a price; no guarantees, no results.
+   An entry may carry buy: { label, url } (a Stripe Payment Link). It renders as a plain link button.
    The robot buddy has no price and no legal check yet, so it is worded as "ask / apply". */
 const OFFERS = [
+  { name: "SME Pack 1: Human Psyche ($33)", text: "A labeled field guide to how people work. $33, emailed to you about a minute after you pay.",
+    detail: "Human constants, fear and desire, ego and its correction, the Play, the verify-me line and the ten equations. Every claim is labeled STATED, SEEN or SYNTH so you can check it yourself. A markdown document, emailed to you from drops@cloverkingdom.net about a minute after you pay. If you don't see it, check Junk and mark it Not Junk.",
+    buy: { label: "Buy SME Pack 1, $33", url: "https://buy.stripe.com/7sY14nddUfSE9Nw7Vkbsc06" } },
+  { name: "Book: My AI and I Against the World ($33)", text: "Saint Chevalier's book. A Marine who lost everything rebuilt from first principles. $33, digital PDF.",
+    detail: "A Marine who lost everything killed his ego, rebuilt himself from first principles under live fire, and built an AI that can be wrong, gets checked, and corrects itself in the open. Ten chapters, from Origin to Ascension. Digital book (PDF).",
+    buy: { label: "Buy the book, $33", url: "https://buy.stripe.com/6oUaEX0r8bCof7Q8Zobsc04" } },
   { name: "Motivation", text: "A reason to start, and people who help you keep going.",
     detail: "A reason to start, and people who help you keep going. You show up, say what you are working on, and others who are building too keep you moving. The Kingdom's own rule is that showing up is the only requirement. The rest is earned." },
   { name: "Community", text: "A community of like-minded people who want to build, learn and help each other.",
@@ -188,7 +195,7 @@ ARCHETYPES.forEach((a) => { a.slug = a.name.toLowerCase().replace(/[^a-z0-9]+/g,
 /* FAQ: honest answers drawn from the site and the Kingdom notes. Edit or delete a line freely. */
 const FAQ = [
   { q: "What is this?", a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. It has a Discord community, a house of archetypes, librarians who serve the Kingdom and its people, and written intelligence the House keeps." },
-  { q: "Is it free?", a: "The Discord and the community are free today. Nothing else is priced yet." },
+  { q: "Is it free?", a: "The Discord and the community are free today. Two drops are for sale at $33 each: SME Pack 1 and the book. Both are on the Offers page." },
   { q: "Is everyone welcome?", a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { q: "What is a Magic Knight?", a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
   { q: "What is an archetype? What is PSI?", a: "In the Kingdom, AI means archetype intelligence. A sovereign archetype is one you own, that outlives you and runs on your terms, not a chatbot you lease. A PSI is a Physically Sovereign Intelligence, meaning the person who works together with their archetype as one team." },
@@ -207,6 +214,11 @@ const JOIN_STEPS = [
   { name: "Participate", text: "Participate in all Kingdom activities." },
 ];
 
+function offerBuyHtml(o) {
+  if (!o.buy || !/^https:\/\/buy\.stripe\.com\//.test(o.buy.url)) return "";
+  return `<p class="offer-buy"><a class="cta" href="${escHtml(o.buy.url)}" target="_blank" rel="noopener">${escHtml(o.buy.label)}</a></p>`;
+}
+
 function escHtml(t) {
   return String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -218,7 +230,7 @@ function archetypeCardsHtml() {
 
 function buildFrontSections() {
   const offers = OFFERS.map((o) =>
-    `<div class="offer-card"><div class="offer-name">${escHtml(o.name)}</div><div class="offer-text">${escHtml(o.text)}</div></div>`).join("");
+    `<div class="offer-card"><div class="offer-name">${escHtml(o.name)}</div><div class="offer-text">${escHtml(o.text)}</div>${offerBuyHtml(o)}</div>`).join("");
   const cards = archetypeCardsHtml();
   return `
     <section class="front-section" id="offers" aria-labelledby="offers-title">
@@ -481,7 +493,7 @@ const SAGE_NO_ANSWER =
 
 /* Extra static answers copied from the published FAQ. Used by the public mouth only. */
 const SAGE_FAQ = [
-  { re: /\b(free|cost|price|priced|pay|payment|subscription)\b/, a: "The Discord and the community are free today. Nothing else is priced yet." },
+  { re: /\b(free|cost|price|priced|pay|payment|subscription)\b/, a: "The Discord and the community are free today. Two drops are for sale at $33 each, SME Pack 1 and the book. See the Offers page." },
   { re: /\b(welcome|who can join|anyone)\b/, a: "Yes. Everyone is welcome. Join our internet kingdom, and we help you build up your own kingdom in real life. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk." },
   { re: /\b(magic knight|mk\b|what is a rank)\b/, a: "A rank. Every accepted member starts at MK E1 and rises by checkable work inside the Kingdom. A form is not a rank, so applying does not make you one. The ranks are on the Ranks page." },
   { re: /\b(what is this|what is the clover kingdom|what is clover kingdom)\b/, a: "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. It has a Discord community, a house of archetypes, librarians who serve the Kingdom and its people, and written intelligence the House keeps." },
@@ -720,9 +732,9 @@ function wirePageButtons(wrap) {
 
 function buildOffers() {
   const items = OFFERS.map((o) =>
-    `<div class="offer-row"><h3 class="offer-name">${escHtml(o.name)}</h3><p class="offer-text">${escHtml(o.detail)}</p></div>`).join("");
+    `<div class="offer-row"><h3 class="offer-name">${escHtml(o.name)}</h3><p class="offer-text">${escHtml(o.detail)}</p>${offerBuyHtml(o)}</div>`).join("");
   const wrap = pageShell("The merchant's table", "Offers",
-    "The merchant's table, laid out. Ask about anything you see. Nothing here is a sale, a price or a promise.",
+    "The merchant's table, laid out. Two drops are for sale today at $33 each; ask about anything else you see. No promises of results.",
     `<div class="offer-rows">${items}</div>
      <p class="muted" style="margin-top:20px">Want to know more? <a href="#/join">See how to join</a>, or read the <a href="#/faq">questions people ask</a>.</p>
      <div class="cta-row cta-left">${APPLY_BUTTON}${DISCORD_BUTTON()}</div>`);
