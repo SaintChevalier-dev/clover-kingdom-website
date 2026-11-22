@@ -37,6 +37,9 @@ Sage, the Kingdom's teacher, talks by text with people and with SIs (AI archetyp
 The front door (https://cloverkingdom.net/) is a small page: optional Discord login and a guest chat with live Sage (a live AI that answers only from public notes, with written answers as fallback). The full site is hash routes on one HTML file at https://cloverkingdom.net/classic/. Fetch that URL; with JavaScript off it still includes a full plain-text guide. Old links like https://cloverkingdom.net/classic/#/join forward to /classic/#/join. With JavaScript on, these routes work:
 
 - https://cloverkingdom.net/ - Front door (optional login + Sage)
+- https://cloverkingdom.net/seats/ - The four day-one seats: Painter, XTT (Tek Tribe on X), Knight, Sage
+- https://cloverkingdom.net/tek-tribe/party-painting/ - Tek Tribe party painting: paint your top three Grok Bots as a party, upgrade only on real receipts
+- https://cloverkingdom.net/privacy/ - Privacy
 - https://cloverkingdom.net/classic/ - Gate (the full site's front page, Apply form, Sage box)
 - https://cloverkingdom.net/classic/#/join - How to join
 - https://cloverkingdom.net/classic/#/login - Login (new here, or sign in)
