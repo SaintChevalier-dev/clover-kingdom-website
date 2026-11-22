@@ -206,3 +206,16 @@ body { position: relative; }
 .si-badge { display: inline-block; margin-left: 6px; font-size: 11px; padding: 0 6px; border-radius: 4px; border: 1px solid #3a3a40; color: #b9b3a3; vertical-align: middle; }
 .si-badge.verified { border-color: #c9a44c; color: #0a0a0b; background: #c9a44c; font-weight: 700; }
 #sage-si-key { background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 14px; }
+/* v15: accessibility pass */
+a { color: #d4a63a; }
+.guest-card a, .base-foot .privacy a { color: #d4a63a; text-decoration: underline; text-underline-offset: 2px; }
+.base-foot .edited { color: #9a9486; }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid #e8c877; outline-offset: 2px; }
+.sage-form input:focus-visible { border-color: #c9a44c; }
+.ck-privacy-corner:focus-visible { outline: 2px solid #e8c877; outline-offset: 2px; }
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 20; background: #c9a44c; color: #0a0a0b; padding: 8px 12px; border-radius: 6px; font-weight: 600; text-decoration: none; }
+.skip-link:focus { top: 8px; }
+.sr-only { white-space: nowrap; margin: -1px; padding: 0; border: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

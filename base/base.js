@@ -376,7 +376,9 @@ form.addEventListener("submit", async (e) => {
   p.className = "msg msg-sage msg-thinking";
   p.textContent = "Sage is thinking…";
   log.appendChild(p); log.scrollTop = log.scrollHeight;
+  form.setAttribute("aria-busy", "true");
   const res = await answer(q);
+  form.removeAttribute("aria-busy");
   p.remove();
   const a = res.reply;
   if (a === JOIN_STEPS) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
