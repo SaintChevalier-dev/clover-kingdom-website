@@ -1,4 +1,10 @@
-Optional overlay PNGs for 2D customization layers, once Painter paints them.
+<!--
+  Clover Kingdom
+  Copyright (c) 2026 Saint Chevalier / Clover Kingdom. All rights reserved.
+  Origin: https://github.com/SaintChevalier-dev/clover-kingdom-website
+  See SEED.md and LICENSE.
+-->
 
-Names: halo.png, wings.png, armor.png, cape.png, crest.png.
-Until a file is here, the 2D v3 figure uses additive CSS for that layer, and the 3D stand-in uses bone sockets.
+# Optional overlays
+
+Optional overlay images may be added here when they are ready.
