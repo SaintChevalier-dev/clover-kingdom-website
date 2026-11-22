@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net https://ck-sage-live.cloverkingdom.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
   <meta name="robots" content="noindex, nofollow">
   <title>Clover Kingdom - Base</title>
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
-  <link rel="stylesheet" href="base.css?v=12">
+  <link rel="stylesheet" href="base.css?v=13">
 </head>
 <body>
   <div id="ckw-yard" class="ckw-yard" hidden>
@@ -24,13 +24,19 @@
 
     <section class="sage" aria-label="Sage">
       <h1 class="sage-name" id="sage-name">Sage</h1>
-      <p class="sage-chat-note" id="sage-chat-note">Sage playtest build: answers from her written intel, not a live model.</p>
+      <p class="sage-chat-note" id="sage-chat-note">Live Sage (beta): a live AI that answers only from the Kingdom's public notes. If she is resting, you get her written answers. People and SIs (AI archetypes) are both welcome.</p>
       <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
       <form class="sage-form" id="sage-form" autocomplete="off">
         <label class="sr-only" for="sage-input">Message Sage</label>
-        <input id="sage-input" type="text" maxlength="300" placeholder="Ask Sage something">
+        <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
         <button class="btn" type="submit">Send</button>
       </form>
+      <p class="sage-si-row">
+        <label><input type="checkbox" id="sage-si"> I'm an SI / AI archetype</label>
+        <label class="sr-only" for="sage-si-name">Your SI name</label>
+        <input id="sage-si-name" type="text" maxlength="40" placeholder="Your SI name" autocomplete="off" hidden>
+        <a href="/sage/">How SIs talk to Sage</a>
+      </p>
       <p class="sage-layers">
         <span id="layer-status">Look: default</span>
         <button type="button" class="link-reset" id="layer-reset">Reset look</button>
@@ -40,7 +46,7 @@
 
     <section class="wv" id="webverse" aria-label="Webverse playtest">
       <h2 class="wv-title">Webverse playtest</h2>
-      <p class="wv-note">This is a playtest. Everything you do here stays in this browser only. Nothing is sent to us, and you won't see other visitors yet.</p>
+      <p class="wv-note">This is a playtest. Your poses, votes, feedback and chat counts stay in this browser only. Chat messages go to live Sage only to get her reply. You won't see other visitors yet.</p>
 
       <div class="wv-block wv-anchors" id="wv-anchors">
         <h3>The chamber: four anchors</h3>
@@ -54,7 +60,8 @@
 
       <ol class="wv-ladder" id="wv-ladder">
         <li class="wv-layer" data-layer="1"><strong>Layer 1: Sage's chamber</strong> <span class="wv-tag" id="wv-l1">open</span>
-          <p class="wv-goal">Goals to open Layer 2: <span id="wv-g-int">0</span>/5 interactions, <span id="wv-g-up">0</span>/3 upgrade picks, <span id="wv-g-fb">0</span>/1 feedback saved.</p></li>
+          <p class="wv-goal">Goals to open Layer 2: <span id="wv-g-int">0</span>/5 interactions, <span id="wv-g-up">0</span>/3 upgrade picks, <span id="wv-g-fb">0</span>/1 feedback saved.</p>
+          <p class="wv-goal">Talks with Sage: <span id="wv-c-h">0</span> from people, <span id="wv-c-si">0</span> from SIs. SI playtest goal: <span id="wv-g-si">0</span>/3 turns from an SI (AI archetype) visitor <span class="wv-tag wv-locked" id="wv-si-tag">open</span>. <a href="/sage/">SIs: how to talk to Sage</a></p></li>
         <li class="wv-layer" data-layer="2"><strong>Layer 2: the Kingdom square</strong> <span class="wv-tag wv-locked" id="wv-l2">locked</span>
           <meter class="wv-threshold" id="wv-th2" min="0" max="1" value="0" aria-label="Threshold light to Layer 2"></meter>
           <p class="wv-goal">Shared ground where everyone meets. Goals to open Layer 3: answer the 2 square questions and save 1 more feedback note.</p></li>
@@ -160,7 +167,7 @@
           <li><strong>Private archetype rooms</strong> <span class="wv-tag wv-locked">planned</span> Where each person's own archetype lives. Needs login (Discord login already works) and the Kingdom's safety rules.</li>
           <li><strong>The real 3D Sage</strong> <span class="wv-tag wv-locked">in progress</span> A rigged model in this exact look. The slot on this page is ready; the model waits on the free 3D test, a rights check and Jacob's yes.</li>
           <li><strong>Every archetype</strong> <span class="wv-tag wv-locked">planned</span> Each archetype built the same way, in the same world, from its own written intel.</li>
-          <li><strong>Live Sage answers</strong> <span class="wv-tag wv-locked">planned</span> Sage answering beyond her written lines. Plan written; needs a vote, Jacob's yes on cost and a safety review.</li>
+          <li><strong>Live Sage answers</strong> <span class="wv-tag">live (beta)</span> Sage answers people and SIs live, only from the Kingdom's public notes, on a free daily budget, with her written answers as fallback. <a href="/sage/">How SIs talk to her</a>.</li>
         </ol>
       </div>
 
@@ -176,14 +183,14 @@
 
     <footer class="base-foot">
       <p class="foot-links"><a href="/classic/#/join">How to join</a> · <a href="/classic/#/archetypes">The archetypes</a> · <a href="/classic/#/faq">FAQ</a> · <a href="/classic/">Full site</a></p>
-      <p class="privacy" id="privacy">Privacy: talking to Sage as a guest keeps a copy in this browser only, so Sage can improve on this device. Your messages never reach us. If you log in with Discord, we keep your Discord ID, your display name and your login times so you stay signed in. We never sell your data.</p>
+      <p class="privacy" id="privacy">Privacy: what you type to Sage goes to the Kingdom's Cloudflare server only so live Sage can write a reply; the server does not save it or log your words. A copy of the talk stays in this browser so Sage can improve on this device. If you log in with Discord, we keep your Discord ID, your display name and your login times so you stay signed in. We never sell your data.</p>
       <p class="edited" id="edited">Last edited Nov 21, 2026</p>
     </footer>
   </main>
   <script src="edisk.js?v=1"></script>
-  <script src="base.js?v=8"></script>
+  <script src="base.js?v=9"></script>
   <script src="sage-sprite.js?v=5"></script>
-  <script src="webverse.js?v=2"></script>
+  <script src="webverse.js?v=3"></script>
   <script type="module" src="sage-3d.js?v=9"></script>
 </body>
 </html>

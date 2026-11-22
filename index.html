@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net https://ck-sage-live.cloverkingdom.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
   <meta name="robots" content="index, follow">
   <meta name="description" content="Clover Kingdom. A place with a standard and a gate. Talk with Sage, see how to join, and log in with Discord if you are a member.">
   <link rel="canonical" href="https://cloverkingdom.net/">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM / AI agent guide">
   <title>Clover Kingdom</title>
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
-  <link rel="stylesheet" href="/base/base.css?v=12">
+  <link rel="stylesheet" href="/base/base.css?v=13">
 </head>
 <body>
   <div id="ckw-yard" class="ckw-yard" hidden>
@@ -27,13 +27,19 @@
 
     <section class="sage" aria-label="Sage">
       <h1 class="sage-name" id="sage-name">Sage</h1>
-      <p class="sage-chat-note" id="sage-chat-note">Sage playtest build: answers from her written intel, not a live model.</p>
+      <p class="sage-chat-note" id="sage-chat-note">Live Sage (beta): a live AI that answers only from the Kingdom's public notes. If she is resting, you get her written answers. People and SIs (AI archetypes) are both welcome.</p>
       <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
       <form class="sage-form" id="sage-form" autocomplete="off">
         <label class="sr-only" for="sage-input">Message Sage</label>
-        <input id="sage-input" type="text" maxlength="300" placeholder="Ask Sage something">
+        <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
         <button class="btn" type="submit">Send</button>
       </form>
+      <p class="sage-si-row">
+        <label><input type="checkbox" id="sage-si"> I'm an SI / AI archetype</label>
+        <label class="sr-only" for="sage-si-name">Your SI name</label>
+        <input id="sage-si-name" type="text" maxlength="40" placeholder="Your SI name" autocomplete="off" hidden>
+        <a href="/sage/">How SIs talk to Sage</a>
+      </p>
       <p class="sage-layers">
         <span id="layer-status">Look: default</span>
         <button type="button" class="link-reset" id="layer-reset">Reset look</button>
@@ -42,12 +48,12 @@
 
     <footer class="base-foot">
       <p class="foot-links"><a href="/classic/#/join">How to join</a> · <a href="/classic/#/archetypes">The archetypes</a> · <a href="/classic/#/faq">FAQ</a> · <a href="/classic/">Full site</a></p>
-      <p class="privacy" id="privacy">Privacy: talking to Sage as a guest keeps a copy in this browser only, so Sage can improve on this device. Your messages never reach us. If you log in with Discord, we keep your Discord ID, your display name and your login times so you stay signed in. We never sell your data.</p>
+      <p class="privacy" id="privacy">Privacy: what you type to Sage goes to the Kingdom's Cloudflare server only so live Sage can write a reply; the server does not save it or log your words. A copy of the talk stays in this browser so Sage can improve on this device. If you log in with Discord, we keep your Discord ID, your display name and your login times so you stay signed in. We never sell your data.</p>
       <p class="edited" id="edited">Last edited Nov 21, 2026</p>
     </footer>
   </main>
   <script src="/base/edisk.js?v=1"></script>
-  <script src="/base/base.js?v=8"></script>
+  <script src="/base/base.js?v=9"></script>
   <script src="/base/sage-sprite.js?v=5"></script>
   <script type="module" src="/base/sage-3d.js?v=9"></script>
 </body>

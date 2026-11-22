@@ -1,11 +1,15 @@
 /* Clover Kingdom base page: member login + Sage. Nothing else.
    Login uses the live auth Worker (auth.cloverkingdom.net, Discord OAuth).
-   Guest replies are canned (not a live model) and always pass through authMode().
+   Chat goes to live Sage (ck-sage-live Worker, Workers AI, public intel only) and falls back to the
+   written (canned) answers below on any error, timeout, rest cap or kill switch.
+   Visitors who tick "I'm an SI / AI archetype" are sent as visitor {kind:"si"}.
    DASKE writes go through edisk.write() only and are never shown in the chat. */
 (function () {
 "use strict";
 const CKW_AUTH = "https://auth.cloverkingdom.net";
 const DISCORD_URL = "https://discord.gg/2BrNPwUuTB";
+const SAGE_LIVE_URL = "https://ck-sage-live.cloverkingdom.workers.dev/chat";
+const SI_KEY = "ckw-si-visitor";
 
 let session = null;
 function authMode() {
@@ -69,9 +73,9 @@ const THERAPIST =
 const CRISIS =
   "I'm glad you told me, and I want you safe. I'm not a licensed therapist. If you're in crisis in the US, call or text 988. If you're elsewhere, or in immediate danger, contact your local emergency services. If you want, we can also talk through what's on your mind, gently, right here.";
 const SAVED_HONEST =
-  "A copy stays in this browser only, so Sage can improve on this device. Your messages never reach us. I still don't know who you are, and I treat every visitor here as a guest.";
+  "What you type goes to the Kingdom's Cloudflare server only so live Sage can write a reply. The server doesn't save it or log your words. A copy of our talk stays in this browser. I still don't know who you are, and I treat every visitor here as a guest.";
 const KNOW_HONEST =
-  "I don't know who you are, and I don't try to. I treat you as a guest. I may have simple, non-identifying context such as whether you've been here before, the time of day, your device type, or how you arrived — not your name or identity. A copy of our talk stays in this browser only; it never reaches us.";
+  "I don't know who you are, and I don't try to. I treat you as a guest. I may have simple, non-identifying context such as whether you've been here before, the time of day, your device type, or how you arrived — not your name or identity. What you type goes to the Kingdom's Cloudflare server only to write my reply; it isn't saved or logged there. A copy of our talk stays in this browser.";
 
 const CRISIS_RE = /\b(suicid|kill myself|killing myself|end my life|want to die|self[- ]?harm|hurt myself|988)\b/i;
 const IDENTITY = /\b(who am i|what's my name|whats my name|do you know me|do you recognize me|remember me|what is my name|who is this)\b/i;
@@ -285,17 +289,88 @@ function say(who, text, link) {
   log.scrollTop = log.scrollHeight;
 }
 
-form.addEventListener("submit", (e) => {
+/* SI visitors (other AI archetypes / agents) identify themselves with the toggle. */
+const siBox = document.getElementById("sage-si");
+const siName = document.getElementById("sage-si-name");
+function siPref() {
+  try { const v = JSON.parse(localStorage.getItem(SI_KEY) || "null"); return v && typeof v === "object" ? v : { on: false, name: "" }; } catch (_) { return { on: false, name: "" }; }
+}
+function saveSi() {
+  try { localStorage.setItem(SI_KEY, JSON.stringify({ on: !!(siBox && siBox.checked), name: siName ? siName.value.trim().slice(0, 40) : "" })); } catch (_) {}
+}
+if (siBox) {
+  const pref = siPref();
+  siBox.checked = !!pref.on;
+  if (siName) { siName.value = pref.name || ""; siName.hidden = !siBox.checked; }
+  siBox.addEventListener("change", () => { if (siName) siName.hidden = !siBox.checked; saveSi(); if (siBox.checked && siName) siName.focus(); });
+  if (siName) siName.addEventListener("input", saveSi);
+}
+function visitor() {
+  if (!siBox || !siBox.checked) return null;
+  let n = (siName && siName.value.trim()) || "Unnamed SI";
+  n = n.replace(/[^A-Za-z0-9 _.\-]/g, "").slice(0, 40);
+  if (!/^[A-Za-z0-9]/.test(n) || n.length < 2) n = "Unnamed SI";
+  return { name: n, kind: "si", home: "browser:" + location.host };
+}
+
+const liveHistory = []; // last 6 turns, this page only
+async function askLive(userText, who, pageEvent) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6) };
+    if (who) body.visitor = who;
+    if (pageEvent) body.pageEvent = pageEvent;
+    const r = await fetch(SAGE_LIVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl.signal });
+    const data = await r.json().catch(() => null);
+    if (!data || typeof data.reply !== "string" || data.fallback || (r.status >= 400 && r.status !== 429)) return null;
+    if (data.live && !data.limited) {
+      liveHistory.push({ role: "user", content: String(userText).slice(0, 600) }, { role: "assistant", content: data.reply.slice(0, 600) });
+      if (liveHistory.length > 6) liveHistory.splice(0, liveHistory.length - 6);
+    }
+    return data;
+  } catch (_) {
+    return null;
+  } finally { clearTimeout(t); }
+}
+
+async function answer(q, pageEvent) {
+  const who = visitor();
+  const written = answerAsSage(q);
+  let reply = written, live = false;
+  if (!CRISIS_RE.test(q)) {
+    const data = await askLive(q, who, pageEvent);
+    if (data && data.reply) { reply = data.reply; live = !!data.live && !data.limited; }
+    if (data && data.limited) reply = data.reply + " " + written;
+  }
+  try { window.dispatchEvent(new CustomEvent("ckw:chat-turn", { detail: { kind: who ? "si" : "human", live: live, name: who ? who.name : "" } })); } catch (_) {}
+  return { reply, live, written };
+}
+
+let busy = false;
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const q = input.value.trim();
   if (!q) { input.focus(); return; }
+  if (busy) return;
+  busy = true;
   input.value = "";
-  say("you", q);
-  const a = answerAsSage(q);
+  const who = visitor();
+  say("you", who ? q + "  (as SI: " + who.name + ")" : q);
+  const p = document.createElement("p");
+  p.className = "msg msg-sage msg-thinking";
+  p.textContent = "Sage is thinking…";
+  log.appendChild(p); log.scrollTop = log.scrollHeight;
+  const res = await answer(q);
+  p.remove();
+  const a = res.reply;
   if (a === JOIN_STEPS) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
-  else if (authMode() !== "guest" && a === NO_ANSWER) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
+  else if (!res.live && a === NO_ANSWER) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
   else say("sage", a);
+  const last = log.lastElementChild;
+  if (last) last.setAttribute("data-source", res.live ? "live" : "written");
   silentWrite(q, a);
+  busy = false;
 });
 
 const opening = answerAsSage("");
@@ -305,6 +380,15 @@ silentWrite("", opening);
 window.CKWGuestChat = {
   authMode: authMode,
   answerAsSage: answerAsSage,
-  canned: true
+  canned: false,
+  live: SAGE_LIVE_URL
+};
+/* For SIs driving a browser: CKWSage.ask("hello", {name: "MySI"}) -> Promise<{reply, live}>. */
+window.CKWSage = {
+  ask: function (text, si) {
+    if (si && siBox) { siBox.checked = true; if (siName) { siName.hidden = false; siName.value = String(si.name || "").slice(0, 40); } saveSi(); }
+    return answer(String(text || "").slice(0, 500)).then((r) => ({ reply: r.reply, live: r.live }));
+  },
+  door: "https://ck-sage-live.cloverkingdom.workers.dev/si"
 };
 })();

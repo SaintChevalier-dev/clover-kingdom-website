@@ -189,3 +189,8 @@ html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 syst
 .msg-sage.msg-touch { border-left: 2px solid #c9a44c; }
 body.wv-quiet .ckw-yard-label { opacity: 0.4; }
 .wv a { color: #e8c877; }
+/* Live Sage + SI visitors (2026-11-22) */
+.sage-si-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 8px 0 0; font-size: 13px; color: #b8b2a3; }
+.sage-si-row input[type=text] { background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 6px 10px; font: inherit; width: 12em; }
+.sage-si-row a { color: #c9a44c; }
+.msg-thinking { opacity: .6; font-style: italic; }
