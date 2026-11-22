@@ -8,6 +8,24 @@ Live at `/base/` (section "Webverse playtest"); `/webverse/` redirects there. Bu
 - Leave playtest feedback, copy all of their playtest notes as JSON, or clear them.
 - Read the glyph meanings panel (each meaning marked sourced or proposed) and see the v06 reference art.
 
+## Sage reacts (2026-11-22, 8:28 AM CT call)
+- Labelled on the page: "Sage playtest build: answers from her written intel, not a live model."
+- Typed questions get her existing guest answers (`base/base.js`).
+- Page actions get in-character lines: clicking her in the 3D view (grimoire, halo, wings, face, crest, staff, armor; raycast in `sage-3d.js`, event `ckw:sage-touch`), the "Ask Sage about what she wears" buttons, poses, upgrade picks and the anchors. Lines come from her written intel and the glyph panel; meanings not approved yet end with "(Proposed meaning.)". All in `base/webverse.js`; no model, no API key, no back end.
+
+## The four anchors
+Quiet room, hum, threshold light and the walk. No existing written definition was found in this repo, the Kingdom intel repo or Painter's notes, so they are built as short scene elements:
+- **Quiet room:** a toggle; the motes stop and Sage stops wandering.
+- **Hum:** a soft three-tone drone made in the browser (Web Audio, no file), off until the visitor turns it on.
+- **Threshold light:** a gold light bar on each locked layer that fills as the playtest goals are met.
+- **The walk:** Sage walks a slow loop around the round table.
+
+## Roadmap to destiny (on the page)
+Chamber (live) → Kingdom square (next) → private archetype rooms (planned) → the real 3D Sage (in progress) → every archetype (planned), plus live Sage answers (planned). Status comes from [roadmap-status.md](roadmap-status.md); no dates.
+
+## Look guide on the site
+`/look/` is an HTML copy of [ck-look-intel.md](ck-look-intel.md). Source of truth: Painter's notes on Paragon (painter folder, `CK_LOOK_INTEL_2026-11-22.md`).
+
 ## Layer ladder (honest playtest gate)
 | Layer | What it is | How it opens |
 |---|---|---|
