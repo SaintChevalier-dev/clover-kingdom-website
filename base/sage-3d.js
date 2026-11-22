@@ -539,6 +539,13 @@ function buildStandIn() {
   bookCrest.position.set(0.005, 0, 0.037);
   book.add(bookCrest);
   const page = new THREE.Object3D(); page.name = "Page"; book.add(page);
+  /* flip page: hinged at the spine, only shown while she thinks */
+  page.position.set(-0.098, 0, 0.034);
+  const flipMat = new THREE.MeshStandardMaterial({ color: 0xf4ead0, roughness: 0.9, side: THREE.DoubleSide });
+  const flip = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.25), flipMat);
+  flip.position.set(0.092, 0, 0);
+  page.add(flip);
+  page.visible = false;
   const bookLight = new THREE.PointLight(0xffd690, 0.3, 1.0, 2);
   bookLight.position.set(0, 0, 0.15);
   book.add(bookLight);
@@ -946,6 +953,7 @@ async function boot() {
   closeCam();
   let state = "idle_pages", stateT = 0, busy = false, hidden = false, posed = false;
   let action = null, lookTarget = null, tAll = 0;
+  let wingSpread = 0, haloPulse = 0, haloBoost = 0, haloApplied = 0;
   let lastT = performance.now();
 
   function findClip(name) {
@@ -1007,21 +1015,65 @@ async function boot() {
       headZ = Math.sin(t * 0.6) * 0.05;
     } else if (name === "idle_pages") {
       aL = { x: -0.18 + breath * 0.02, z: 0.3 }; laL = -0.55; /* left hand open toward the floating book */
+    } else if (name === "greet") {
+      /* hand raise: right palm up and out, held, small settle */
+      const up = Math.min(1, t * 2.2);
+      aR = { x: -0.25 * up, z: -0.13 - 1.95 * up }; laR = -0.35 - 0.25 * up;
+      headX = 0.02; headZ = 0.05;
+    } else if (name === "listen") {
+      /* listening tilt: head tilts toward the speaker, hands quiet */
+      headX = 0.09; headZ = 0.13 + Math.sin(t * 1.2) * 0.015;
+      aL = { x: -0.08, z: 0.2 }; laL = -0.4;
+    } else if (name === "think") {
+      /* thinking: eyes to the grimoire, left hand open toward it, pages flip, halo brightens */
+      headX = 0.12; headZ = -0.08;
+      aL = { x: -0.3, z: 0.34 }; laL = -0.7;
+    } else if (name === "teach") {
+      /* teaching: open palm toward the book, steady head, light talk motion */
+      aL = { x: -0.62 + Math.sin(t * 2.4) * 0.05, z: 0.5 }; laL = -0.32;
+      headX = Math.sin(t * 5) * 0.025; headZ = -0.05;
+    } else if (name === "nod") {
+      const n = t < 1.3 ? Math.sin(t * 9) * 0.11 * (1 - t / 1.3) : 0;
+      headX = 0.06 + n;
+      aL = { x: -0.18, z: 0.3 }; laL = -0.55;
+    } else if (name === "emphasis") {
+      aL = { x: -0.45, z: 0.42 }; laL = -0.5; aR = { x: -0.1, z: -0.3 }; laR = -0.3;
+      headX = -0.02;
+    } else if (name === "rise") {
+      aL = { x: -0.1, z: 0.32 }; aR = { x: -0.1, z: -0.32 }; laL = -0.3; laR = -0.3;
+      headX = -0.03;
     }
+    /* rise-and-settle: a short lift (about 6 cm) and a soft landing */
+    if (name === "rise") { const r = Math.min(1, t / 1.8); hip.position.y += Math.sin(r * Math.PI) * 0.06; }
+    /* spine leans in a touch while listening/teaching */
+    if (b.Spine) ease(b.Spine, "x", name === "listen" ? 0.05 : name === "teach" ? 0.03 : name === "think" ? 0.04 : 0, k);
     if (b.UpperArmL) { ease(b.UpperArmL, "x", aL.x, k); ease(b.UpperArmL, "z", aL.z, k); }
     if (b.UpperArmR) { ease(b.UpperArmR, "x", aR.x, k); ease(b.UpperArmR, "z", aR.z, k); }
     if (b.LowerArmL) { ease(b.LowerArmL, "x", laL, k); ease(b.LowerArmL, "z", 0, k); }
     if (b.LowerArmR) { ease(b.LowerArmR, "x", laR, k); if (name !== "wave") ease(b.LowerArmR, "z", 0, k); }
-    if (b.HandL) ease(b.HandL, "x", name === "talk" || name === "idle_pages" ? -0.2 : 0.08, k);
+    if (b.HandL) ease(b.HandL, "x", name === "teach" ? -0.42 : (name === "talk" || name === "idle_pages" || name === "think") ? -0.2 : 0.08, k);
+    if (b.HandR) ease(b.HandR, "z", name === "greet" ? -0.25 : 0, k);
     if (b.HandR) ease(b.HandR, "x", 0.08, k);
     if (b.Head && !(lookTarget && name !== "walk")) { ease(b.Head, "x", headX, k); ease(b.Head, "z", headZ, k); }
     if (b.Head && lookTarget && name !== "walk") ease(b.Head, "z", headZ, k);
     /* wings breathe; grimoire bobs, turns slowly and pulses */
-    if (b.WingL) b.WingL.rotation.y = Math.sin(tAll * 0.9) * 0.04;
-    if (b.WingR) b.WingR.rotation.y = -Math.sin(tAll * 0.9) * 0.04;
+    /* wings breathe; on emphasis (and rise) they half-spread, then fold back */
+    wingSpread = lerp(wingSpread, (name === "emphasis" || name === "rise") ? 1 : 0, Math.min(1, dt * 3));
+    if (b.WingL) { b.WingL.rotation.y = Math.sin(tAll * 0.9) * 0.04 + (-1) * 0.45 * wingSpread; b.WingL.rotation.z = 0.12 * wingSpread; }
+    if (b.WingR) { b.WingR.rotation.y = -Math.sin(tAll * 0.9) * 0.04 - (-1) * 0.45 * wingSpread; b.WingR.rotation.z = -0.12 * wingSpread; }
+    /* halo: brighter while thinking, a soft pulse when she keeps a note (no text) */
+    haloPulse = Math.max(0, haloPulse - dt * 0.9);
+    const haloWant = (name === "think" ? 1.1 : 0) + Math.sin(Math.min(1, haloPulse) * Math.PI) * 1.6;
+    haloBoost = lerp(haloBoost, haloWant, Math.min(1, dt * 5));
+    if (parts.halo && parts.halo.material) { parts.halo.material.emissiveIntensity += haloBoost - haloApplied; haloApplied = haloBoost; }
+    /* grimoire pages flip while she thinks */
+    if (parts.page) {
+      parts.page.visible = name === "think";
+      if (parts.page.visible) parts.page.rotation.y = -((t * 1.6) % 1) * Math.PI * 0.92;
+    }
     const pulse = 0.5 + 0.5 * Math.sin(tAll * 1.8);
     if (parts.bookHolder) {
-      parts.bookHolder.position.y = 1.12 + Math.sin(tAll * 1.2) * 0.03 + (name === "talk" ? 0.06 : 0);
+      parts.bookHolder.position.y = 1.12 + Math.sin(tAll * 1.2) * 0.03 + (name === "talk" || name === "teach" || name === "think" ? 0.06 : 0);
       parts.book.rotation.y = -0.35 + Math.sin(tAll * 0.5) * 0.15;
       parts.book.rotation.z = 0.08 + Math.sin(tAll * 0.8) * 0.04;
     }
@@ -1034,8 +1086,8 @@ async function boot() {
       }
       sp.needsUpdate = true;
     }
-    if (parts.bookLight) parts.bookLight.intensity = 0.2 + pulse * 0.15 + (parts.bookLight.userData.boost || 0) + (name === "talk" ? 0.3 : 0);
-    if (parts.glowMat) parts.glowMat.emissiveIntensity = 0.9 + pulse * 0.5 + (name === "talk" ? 0.8 : 0);
+    if (parts.bookLight) parts.bookLight.intensity = 0.2 + pulse * 0.15 + (parts.bookLight.userData.boost || 0) + (name === "talk" || name === "teach" ? 0.3 : 0);
+    if (parts.glowMat) parts.glowMat.emissiveIntensity = 0.9 + pulse * 0.5 + (name === "talk" || name === "teach" ? 0.8 : 0);
     if (parts.bookAura) parts.bookAura.material.opacity = 0.4 + pulse * 0.25;
     if (parts.seamMat) parts.seamMat.emissiveIntensity = (parts.seamBase || 1.8) * (unlocked >= 3 ? 1.25 : 1) + pulse * 0.25 * (parts.seamBase || 1.8);
   }
@@ -1070,37 +1122,41 @@ async function boot() {
     const roll = Math.random();
     if (roll < 0.18) return "walk";
     if (roll < 0.4) return "look";
-    if (roll < 0.48) return "wave";
+    if (roll < 0.46) return "wave";
+    if (roll < 0.52) return "rise";
+    if (roll < 0.56) return "emphasis";
     return "idle_pages";
   }
 
   let nextAt = 3, dest = null, home = { x: tx, z: tz };
 
-  function goTalk() {
-    busy = true;
-    dest = { x: home.x + 0.1, z: home.z + 0.45 };
-    setState("walk");
+  /* Chat-driven moves (base.js fires ckw:sage-act): typing -> listen, waiting -> think,
+     reply -> teach then nod (sometimes a half wing-spread for emphasis), kept note -> halo pulse. */
+  let actToken = 0, replies = 0;
+  function moveFor(name, secs, then) {
+    const my = ++actToken;
+    dest = null; setState(name);
+    if (secs) setTimeout(() => { if (my === actToken && then) then(); }, secs * 1000);
   }
-
-  const form = document.getElementById("sage-form");
-  const log = document.getElementById("sage-log");
-  if (form) form.addEventListener("submit", () => { if (!reduce.matches) goTalk(); else setState("talk"); });
-  if (log) {
-    new MutationObserver((muts) => {
-      const spoke = muts.some((m) => Array.from(m.addedNodes).some((n) => n.classList && n.classList.contains("msg-sage")));
-      if (!spoke || !busy) return;
-      setTimeout(() => {
-        dest = null;
-        setState("talk");
-        setTimeout(() => {
-          if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); }
-          busy = false;
-          setState("idle_pages");
-          nextAt = 3;
-        }, 1800);
-      }, 200);
-    }).observe(log, { childList: true });
-  }
+  function backToIdle() { busy = false; setState(reduce.matches ? "pause" : "idle_pages"); nextAt = 3; }
+  window.addEventListener("ckw:sage-act", (e) => {
+    const name = e && e.detail && e.detail.name;
+    if (name === "pulse") { haloPulse = 1; return; }
+    if (reduce.matches) return;
+    if (name === "listen") { if (busy) return; moveFor("listen", 2.6, () => { if (!busy) backToIdle(); }); }
+    else if (name === "think") { busy = true; moveFor("think", 0); }
+    else if (name === "teach" || name === "nod") {
+      replies += 1;
+      const emph = replies % 3 === 0;
+      const finish = () => {
+        if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); }
+        backToIdle();
+      };
+      if (name === "nod") moveFor("nod", 1.4, finish);
+      else moveFor("teach", 1.8, () => (emph ? moveFor("emphasis", 1.3, () => moveFor("nod", 1.2, finish)) : moveFor("nod", 1.2, finish)));
+    }
+    else if (["greet", "emphasis", "rise"].includes(name)) moveFor(name, name === "rise" ? 1.9 : 1.6, () => { if (!busy) backToIdle(); });
+  });
 
   window.addEventListener("mousemove", (e) => {
     lookTarget = { x: (e.clientX / window.innerWidth) * 2 - 1, y: -(e.clientY / window.innerHeight) * 2 + 1 };
@@ -1153,9 +1209,12 @@ async function boot() {
     else if (flags.pose === "talk") { setState("talk"); busy = true; }
     else if (flags.pose === "wave") setState("wave");
     else if (flags.pose === "stride") { setState("stride"); tWalkFixed = parseFloat(flags.t || "0.22") || 0.22; }
+    else if (["greet", "listen", "think", "teach", "nod", "emphasis", "rise"].includes(flags.pose)) { setState(flags.pose); stateT = parseFloat(flags.t || "0") || 0; }
     else setState("idle_pages");
   } else {
     setState(reduce.matches ? "pause" : "idle_pages");
+    /* greet each fresh visit with a hand raise */
+    if (!reduce.matches) setTimeout(() => { if (!busy && state === "idle_pages") moveFor("greet", 1.8, () => { if (!busy) backToIdle(); }); }, 1400);
   }
 
   yard.hidden = false;
@@ -1179,7 +1238,9 @@ async function boot() {
     quiet: (on) => { quietRoom = !!on; motes.visible = !quietRoom; if (quietRoom) { dest = null; if (state === "walk") setState("idle_pages"); nextAt = 1e9; } else nextAt = 3; },
     /* the walk anchor: a slow loop around the round table */
     walk: () => { quietRoom = false; motes.visible = true; dest = { x: home.x - 0.9, z: home.z - 0.5 }; setState("walk"); nextAt = 99; walkLoop = 2; },
-    glyphKeys: () => Object.keys(GLYPH_MEANINGS)
+    glyphKeys: () => Object.keys(GLYPH_MEANINGS),
+    /* chat moves, also for playtesters: greet, listen, think, teach, nod, emphasis, rise, pulse */
+    act: (name) => window.dispatchEvent(new CustomEvent("ckw:sage-act", { detail: { name } }))
   };
   window.dispatchEvent(new Event("ckw:sage3d-ready"));
 
