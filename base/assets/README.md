@@ -12,7 +12,7 @@ Optional later: per-layer PNGs in `layers/` (halo.png, wings.png, armor.png, cap
 
 ## 3D model contract: `sage/sage.glb` (shared skeleton)
 
-Drop the real Sage model in `sage/` as `sage/sage.glb` (path `/base/assets/sage/sage.glb`). Until that file is present, the page builds a hooded, faceless procedural stand-in on the same skeleton and labels it "Sage stand-in, final body coming from the 3D bake-off". Full drop-in steps: `docs/sage-3d-phase6.md`, section "Drop-in avatar slot".
+Drop the real Sage model in `sage/` as `sage/sage.glb` (path `/base/assets/sage/sage.glb`). Until that file is present, the page builds Sage in code on the same skeleton, in the approved v04 look, and labels it "Sage, v04 look (built in code)". Full drop-in steps: `docs/sage-3d-phase6.md`, section "Drop-in avatar slot".
 
 ### Coordinates
 - Y-up, units in meters, character faces +Z at rest.
@@ -47,7 +47,7 @@ Halos, wings, armor, cape and crest snap to those sockets (and later holy-knight
 - `look` — look around
 
 ### Rights
-No Sage head or face in the official GLB until an original face is cleared. The residents pack says Sage is not cleared yet and must not be modeled on a copyrighted or trademarked character. The local 3D stand-in is faceless on purpose.
+Sage's original face is approved in the v04 look (Jacob, 2026-11-22). She must not be modeled on a copyrighted or trademarked character or a real person, and `images/sage-face.jpg` is never used. Armor in any GLB follows `docs/archetype-armor-standard.md`.
 
 ### Size budget (proposed, not decided)
 The residents pack leaves the budget to the site build. Proposed starting cap, open for Jacob and the site build to change:

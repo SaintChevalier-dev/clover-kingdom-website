@@ -4,21 +4,27 @@
    1. Drop-in avatar: /base/assets/sage/sage.glb (rigged GLB, PBR skin). Loaded only when
       the canvas has data-glb (or ?glb=1 for testing), so a missing file never 404s.
       See docs/sage-3d-phase6.md "Drop-in avatar slot". Rights first, always.
-   2. Procedural stand-in (default): a hooded, robed figure built here in code from
-      primitives. No downloaded or generated model, no face (the hood keeps it in
-      shadow until an original face is cleared). Not based on any copyrighted character. */
+   2. Procedural Sage (default), the approved v04 look (Jacob, 2026-11-22): original face,
+      no hood, sleek cyberpunk-saint armor with warm light seams over a black under-suit,
+      bare hands, halo, gold horns, white wings, and a floating emerald-and-gold grimoire.
+      Built here in code from primitives. No downloaded or generated model. Not based on any
+      copyrighted character. Armor rules: docs/archetype-armor-standard.md. */
 import * as THREE from "./vendor/three.module.min.js";
 import { GLTFLoader } from "./vendor/GLTFLoader.js";
 
 const GLB_URL = "/base/assets/sage/sage.glb";
+/* Glyph meanings panel hook: keys match glyphParts below. Empty until the mapping from Sage's
+   written intel is approved; nothing renders from it yet. Weapon slot is reserved. */
+export const GLYPH_MEANINGS = { armor: null, pauldrons: null, bracers: null, legArmor: null, halo: null, horns: null, crest: null, grimoire: null, wings: null, colors: null, weapon: null };
+let glyphParts = null;
 const SAGE_HEIGHT = 1.72;
 const LAYER_KEY = "ckw-sage-layers-v1";
 const LAYERS = [
   { id: "halo",  name: "halo glow",    socket: "HaloSocket" },
-  { id: "wings", name: "wings",        sockets: ["WingL", "WingR"] },
-  { id: "armor", name: "armor tint",   socket: "ArmorSocket" },
-  { id: "cape",  name: "cape",         socket: "CapeSocket" },
-  { id: "crest", name: "crest colors", socket: "CrestSocket" }
+  { id: "wings", name: "wing light",   sockets: ["WingL", "WingR"] },
+  { id: "armor", name: "armor seams",  socket: "ArmorSocket" },
+  { id: "cape",  name: "aura",         socket: "CapeSocket" },
+  { id: "crest", name: "crest glow",   socket: "CrestSocket" }
 ];
 
 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -141,7 +147,13 @@ function featherGeo(len, wid) {
   return new THREE.ShapeGeometry(s, 6);
 }
 
-/* Procedural stand-in. Same bone names as the GLB rig plan, so clips and layers line up. */
+/* Sage v04 look, cyberpunk-saint knight (Jacob 2026-11-22: v04 approved; t1625u leg plates
+   ride the leg bones; t1626u full-range armor for fights, jumps and runs; t1629u "cyberpunk
+   knight with our saint twist, highest timeline, not the technocratic one").
+   Sleek articulated plates in warm gold and pearl, thin warm light seams, black flexible
+   under-suit, bare hands, original face, blonde hair, gold horns, halo, white wings, and a
+   floating emerald grimoire with a gold aura. Every armor plate is parented to the bone
+   it rides on, so nothing floats or slides when she moves. */
 function buildStandIn() {
   const root = new THREE.Group();
   root.name = "Sage";
@@ -151,40 +163,39 @@ function buildStandIn() {
   const chest = bone("Chest", spine, 0, 0.18, 0);
   const neck = bone("Neck", chest, 0, 0.17, 0.0);
   const head = bone("Head", neck, 0, 0.09, 0.01);
-  const shoulderL = bone("ShoulderL", chest, 0.16, 0.1, -0.01);
-  const upperArmL = bone("UpperArmL", shoulderL, 0.02, 0, 0);
+  const shoulderL = bone("ShoulderL", chest, 0.165, 0.1, -0.01);
+  const upperArmL = bone("UpperArmL", shoulderL, 0.015, 0, 0);
   const lowerArmL = bone("LowerArmL", upperArmL, 0, -0.27, 0);
   const handL = bone("HandL", lowerArmL, 0, -0.24, 0);
-  const shoulderR = bone("ShoulderR", chest, -0.16, 0.1, -0.01);
-  const upperArmR = bone("UpperArmR", shoulderR, -0.02, 0, 0);
+  const shoulderR = bone("ShoulderR", chest, -0.165, 0.1, -0.01);
+  const upperArmR = bone("UpperArmR", shoulderR, -0.015, 0, 0);
   const lowerArmR = bone("LowerArmR", upperArmR, 0, -0.27, 0);
   const handR = bone("HandR", lowerArmR, 0, -0.24, 0);
-  const upperLegL = bone("UpperLegL", hips, 0.08, -0.02, 0);
-  const lowerLegL = bone("LowerLegL", upperLegL, 0, -0.42, 0);
-  const footL = bone("FootL", lowerLegL, 0, -0.44, 0.02);
-  const upperLegR = bone("UpperLegR", hips, -0.08, -0.02, 0);
-  const lowerLegR = bone("LowerLegR", upperLegR, 0, -0.42, 0);
-  const footR = bone("FootR", lowerLegR, 0, -0.44, 0.02);
-  const haloSock = bone("HaloSocket", head, 0, 0.2, -0.03);
-  const wingL = bone("WingL", chest, 0.07, 0.06, -0.14);
-  const wingR = bone("WingR", chest, -0.07, 0.06, -0.14);
+  const upperLegL = bone("UpperLegL", hips, 0.085, -0.03, 0);
+  const lowerLegL = bone("LowerLegL", upperLegL, 0, -0.43, 0);
+  const footL = bone("FootL", lowerLegL, 0, -0.43, 0.0);
+  const upperLegR = bone("UpperLegR", hips, -0.085, -0.03, 0);
+  const lowerLegR = bone("LowerLegR", upperLegR, 0, -0.43, 0);
+  const footR = bone("FootR", lowerLegR, 0, -0.43, 0.0);
+  const haloSock = bone("HaloSocket", head, 0, 0.215, -0.03);
+  const wingL = bone("WingL", chest, 0.06, 0.08, -0.13);
+  const wingR = bone("WingR", chest, -0.06, 0.08, -0.13);
   const armorSock = bone("ArmorSocket", chest, 0, 0.0, 0);
   const capeSock = bone("CapeSocket", chest, 0, 0.12, -0.02);
-  const crestSock = bone("CrestSocket", chest, 0, 0.13, 0.115);
-  const bookSock = bone("BookSocket", chest, 0, -0.3, 0.3);
+  const crestSock = bone("CrestSocket", chest, 0, 0.07, 0.118);
 
-  const gownMat = cloth(0xb3a78f, 0xe8dcc0, { roughness: 0.9, sheen: 0.7 });
-  const cloakMat = cloth(0x102624, 0x3d6b66, { side: THREE.DoubleSide, roughness: 0.92, sheen: 0.8 });
-  const cloakInMat = cloth(0x3a1418, 0x8a4048, { side: THREE.BackSide, roughness: 0.9, sheen: 0.6 });
-  const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xc9a44c, metalness: 0.9, roughness: 0.32, clearcoat: 0.3 });
-  const leatherMat = mat(0x3a2516, { roughness: 0.6 });
-  const shadowMat = new THREE.MeshStandardMaterial({ color: 0x050405, roughness: 1, metalness: 0 });
+  /* Materials: warm champagne gold, pearl ceramic, soft black suit, warm light seams. */
+  const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xe2b768, metalness: 0.92, roughness: 0.3, envMapIntensity: 1.5, clearcoat: 0.6, clearcoatRoughness: 0.15 });
+  const pearlMat = new THREE.MeshPhysicalMaterial({ color: 0xf1ece2, metalness: 0.05, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.08, sheen: 0.3, sheenColor: new THREE.Color(0xfff4dc) });
+  const suitMat = new THREE.MeshPhysicalMaterial({ color: 0x15151a, roughness: 0.55, metalness: 0.1, sheen: 0.6, sheenRoughness: 0.35, sheenColor: new THREE.Color(0x5a5560) });
+  const seamMat = new THREE.MeshStandardMaterial({ color: 0xfff0c8, emissive: 0xffc870, emissiveIntensity: 1.8, roughness: 0.4 });
   const skinMat = new THREE.MeshPhysicalMaterial({
-    color: 0x8c6a5a, roughness: 0.6, metalness: 0, sheen: 0.35, sheenRoughness: 0.5,
-    sheenColor: new THREE.Color(0xd08070), clearcoat: 0.08, clearcoatRoughness: 0.6
+    color: 0xd9a88c, roughness: 0.52, metalness: 0, sheen: 0.35, sheenRoughness: 0.5,
+    sheenColor: new THREE.Color(0xff9e88), clearcoat: 0.06, clearcoatRoughness: 0.6
   });
-  const featherMat = cloth(0xf2eee4, 0xffffff, { side: THREE.DoubleSide, roughness: 0.75 });
-  const haloMat = new THREE.MeshStandardMaterial({ color: 0xffe2a0, emissive: 0xe8c25a, emissiveIntensity: 1.6, roughness: 0.3 });
+  const hairMat = new THREE.MeshPhysicalMaterial({ color: 0xe8c47e, roughness: 0.45, metalness: 0, sheen: 1, sheenRoughness: 0.3, sheenColor: new THREE.Color(0xffe2a8), side: THREE.DoubleSide });
+  const featherMat = cloth(0xf4f1ea, 0xffffff, { side: THREE.DoubleSide, roughness: 0.7, emissive: 0x000000 });
+  const haloMat = new THREE.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffd27a, emissiveIntensity: 2.2, roughness: 0.3 });
 
   function mesh(geo, material, parent, px, py, pz) {
     const m = new THREE.Mesh(geo, material);
@@ -194,250 +205,356 @@ function buildStandIn() {
     parent.add(m);
     return m;
   }
+  /* A curved armor plate: a slice of a tapered tube, wrapped around a limb axis (local Y). */
+  function plate(parent, mat, rTop, rBot, h, arcStart, arcLen, px, py, pz, segs) {
+    const g = new THREE.CylinderGeometry(rTop, rBot, h, segs || 24, 3, true, arcStart, arcLen);
+    const p = g.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { /* gentle belly so plates read as formed metal */
+      v.fromBufferAttribute(p, i);
+      const t = 1 - Math.pow((v.y / (h / 2)), 2);
+      const k = 1 + t * 0.06;
+      p.setXYZ(i, v.x * k, v.y, v.z * k);
+    }
+    g.computeVertexNormals();
+    const m = mesh(g, mat, parent, px, py, pz);
+    m.material = mat;
+    if (mat === goldMat || mat === pearlMat) m.material.side = THREE.DoubleSide;
+    return m;
+  }
+  /* A thin glowing seam ring around a limb or plate edge. */
+  function seam(parent, r, px, py, pz, arc, rx, sx, sz) {
+    const m = mesh(new THREE.TorusGeometry(r, 0.0022, 4, 40, arc || Math.PI * 2), seamMat, parent, px, py, pz);
+    m.rotation.x = rx == null ? Math.PI / 2 : rx;
+    m.scale.set(sx || 1, sz || 1, 1);
+    m.castShadow = false;
+    return m;
+  }
+  goldMat.side = THREE.DoubleSide; pearlMat.side = THREE.DoubleSide;
 
-  /* Gown skirt: hangs from the hips to the floor in soft folds. */
-  const skirt = mesh(clothLathe([
-    [0.125, 0.08], [0.15, 0.0, 1.05], [0.178, -0.1, 1.08], [0.2, -0.3, 1.06], [0.235, -0.55, 1.04],
-    [0.285, -0.8], [0.315, -0.92], [0.312, -0.945]
-  ], { freq: 8, fold: (y) => 0.02 + y * y * 0.11, zScale: 0.82 }), gownMat, hips);
-  skirt.name = "Skirt";
-
-  /* Bodice: waist to shoulders, wider than deep. */
+  /* ---------- Body under-suit ---------- */
   mesh(clothLathe([
-    [0.118, -0.14, 1.0], [0.112, -0.02, 1.02], [0.128, 0.08, 1.08], [0.142, 0.16, 1.12],
-    [0.15, 0.23, 1.22], [0.14, 0.28, 1.32], [0.1, 0.32, 1.25], [0.058, 0.36, 1.0], [0.05, 0.4, 1.0]
-  ], { freq: 5, fold: () => 0.008, zScale: 0.72, sub: 2 }), gownMat, spine);
+    [0.118, -0.14, 1.0], [0.11, -0.02, 1.02], [0.125, 0.08, 1.1], [0.14, 0.16, 1.14],
+    [0.145, 0.23, 1.22], [0.135, 0.28, 1.3], [0.095, 0.32, 1.22], [0.05, 0.36, 1.0], [0.045, 0.42, 1.0]
+  ], { freq: 5, fold: () => 0.0, zScale: 0.74, sub: 2 }), suitMat, spine);
+  const pelvis = mesh(new THREE.SphereGeometry(0.15, 28, 18), suitMat, hips, 0, -0.02, 0);
+  pelvis.scale.set(1.0, 0.72, 0.74);
+  [[upperLegL, 1], [upperLegR, -1]].forEach(([b]) => {
+    mesh(new THREE.CapsuleGeometry(0.072, 0.3, 6, 18), suitMat, b, 0, -0.2, 0).scale.set(1, 1, 0.95);
+  });
+  [lowerLegL, lowerLegR].forEach((b) => mesh(new THREE.CapsuleGeometry(0.052, 0.32, 6, 16), suitMat, b, 0, -0.2, -0.005));
+  [upperArmL, upperArmR].forEach((b) => mesh(new THREE.CapsuleGeometry(0.043, 0.2, 6, 16), suitMat, b, 0, -0.13, 0));
+  [lowerArmL, lowerArmR].forEach((b) => mesh(new THREE.CapsuleGeometry(0.035, 0.18, 6, 14), suitMat, b, 0, -0.11, 0));
 
-  /* Belt with a gold clasp. */
-  const belt = mesh(new THREE.TorusGeometry(0.118, 0.014, 8, 40), leatherMat, spine, 0, -0.02, 0);
-  belt.rotation.x = Math.PI / 2;
-  belt.scale.set(1.02, 0.74, 1);
-  mesh(new THREE.BoxGeometry(0.04, 0.035, 0.012), goldMat, spine, 0, -0.02, 0.088);
-
-  /* Hem trim on the gown. */
-  const hem = mesh(new THREE.TorusGeometry(0.313, 0.008, 6, 64), goldMat, hips, 0, -0.935, 0);
-  hem.rotation.x = Math.PI / 2;
-  hem.scale.set(1.02, 0.82 * 1.02, 1);
-
-  /* Cloak: over the shoulders and back, open in front, to the floor. */
-  const cloakPts = [
-    [0.075, 0.26], [0.14, 0.215, 1.15], [0.2, 0.15, 1.3], [0.225, 0.07, 1.28], [0.23, -0.1, 1.2],
-    [0.25, -0.4, 1.12], [0.29, -0.75, 1.08], [0.35, -1.05, 1.05], [0.38, -1.2], [0.385, -1.215]
-  ];
-  const cloakFold = (y) => 0.015 + y * y * 0.13;
-  const cloak = mesh(clothLathe(cloakPts, { phiStart: 0.62, phiLength: Math.PI * 2 - 1.24, freq: 10, fold: cloakFold, zScale: 0.9 }), cloakMat, chest);
-  cloak.name = "Cloak";
-  const lining = mesh(clothLathe(cloakPts.map((p) => [p[0] * 0.985, p[1], p[2]]), { phiStart: 0.62, phiLength: Math.PI * 2 - 1.24, freq: 10, fold: cloakFold, zScale: 0.9 }), cloakInMat, chest);
-  lining.castShadow = false;
-
-  /* Gold chain across the chest holds the cloak closed at the collar. */
-  const chain = mesh(new THREE.TorusGeometry(0.11, 0.005, 6, 32, Math.PI), goldMat, chest, 0, 0.17, 0.1);
-  chain.rotation.set(0.25, 0, Math.PI);
-  chain.scale.set(1, 0.5, 1);
-  [1, -1].forEach((sd) => mesh(new THREE.SphereGeometry(0.016, 12, 8), goldMat, chest, sd * 0.11, 0.17, 0.1));
-
-  /* Neck and head. The head is a dark shape: the hood's shadow, no face. */
-  const cowl = mesh(new THREE.TorusGeometry(0.072, 0.034, 10, 32), gownMat, neck, 0, 0.005, 0.012);
-  cowl.rotation.x = Math.PI / 2 - 0.15; cowl.scale.set(1.1, 0.9, 1);
-  mesh(new THREE.CylinderGeometry(0.042, 0.05, 0.1, 16), shadowMat, neck, 0, 0.04, 0);
-  /* A person in shadow: skull, cheek and a jaw that tapers to a soft chin. No eyes, nose or
-     mouth on purpose (face not decided). Dark skin-toned so only rim light and the book's
-     glow catch the cheek and chin. */
-  const faceMat = new THREE.MeshPhysicalMaterial({ vertexColors: true, color: 0x4a3328, roughness: 0.62, sheen: 0.4, sheenRoughness: 0.5, sheenColor: new THREE.Color(0x8a5a48) });
-  const headGeo = new THREE.SphereGeometry(0.094, 40, 30);
-  {
-    const p = headGeo.attributes.position, v = new THREE.Vector3(), cols = [];
-    for (let i = 0; i < p.count; i++) {
-      v.fromBufferAttribute(p, i);
-      const low = Math.max(0, -v.y / 0.094);           /* 0 at the middle, 1 at the bottom */
-      const front = Math.max(0, v.z / 0.094);
-      v.x *= 1 - low * 0.38;                            /* jaw tapers */
-      if (v.y < 0) v.y *= 1 + front * 0.22;             /* chin drops a little */
-      v.z += front * low * 0.018;                       /* chin forward */
-      if (v.y > -0.03 && v.y < 0.03) v.x *= 1.03;       /* cheekbones */
-      p.setXYZ(i, v.x, v.y, v.z);
-      /* the hood's shadow, baked as a soft gradient: dark brow and eyes, a little light
-         on the cheek's edge, the chin catching the book glow */
-      const yy = v.y / 0.094;
-      let l = THREE.MathUtils.smoothstep(-yy, -0.15, 0.85);   /* 0 above the cheek, 1 at the chin */
-      const side = Math.min(1, Math.abs(v.x) / 0.07);
-      l = Math.max(l * 0.85, side * THREE.MathUtils.smoothstep(-yy, -0.35, 0.25) * 0.3);
-      const k = 0.06 + l * 0.94;
-      cols.push(k, k, k);
-    }
-    headGeo.setAttribute("color", new THREE.Float32BufferAttribute(cols, 3));
-    headGeo.computeVertexNormals();
+  /* ---------- Torso armor (rides Chest/Spine) ---------- */
+  const armor = new THREE.Group();
+  armor.name = "ArmorPlate";
+  armor.userData.mat = goldMat;
+  armorSock.add(armor);
+  /* breastplate: two sculpted halves with a center ridge, open at the sides for the arms */
+  const bp = clothLathe([[0.122, -0.06, 1.05], [0.142, 0.02, 1.12], [0.152, 0.1, 1.18], [0.148, 0.16, 1.24], [0.118, 0.2, 1.24], [0.08, 0.225, 1.1]],
+    { phiStart: -1.35, phiLength: 2.7, freq: 2, fold: () => 0, zScale: 0.84, seg: 48, sub: 3 });
+  const breast = mesh(bp, goldMat, chest, 0, -0.02, 0.004);
+  breast.scale.set(0.95, 1, 1.04);
+  const ridge = mesh(new THREE.BoxGeometry(0.008, 0.2, 0.01), pearlMat, chest, 0, 0.06, 0.142);
+  ridge.rotation.x = -0.12;
+  seam(chest, 0.15, 0, -0.07, 0.0, Math.PI * 0.86, Math.PI / 2, 1.06, 0.86).rotation.z = Math.PI * 0.07;
+  /* abdomen: three overlapping lames that can flex when she bends or jumps */
+  for (let i = 0; i < 3; i++) {
+    const lame = mesh(clothLathe([[0.12 - i * 0.004, 0.0, 1.03], [0.124 - i * 0.004, -0.04]], { phiStart: -1.05, phiLength: 2.1, fold: () => 0, zScale: 0.8, seg: 32, sub: 2 }),
+      i === 1 ? pearlMat : goldMat, spine, 0, 0.1 - i * 0.045, 0.006);
+    lame.scale.set(1.05, 1, 1.08);
   }
-  const headMesh = mesh(headGeo, faceMat, head, 0, 0.05, -0.012);
-  headMesh.scale.set(0.86, 1.08, 0.98);
-  headMesh.name = "HeadShadow";
+  seam(spine, 0.12, 0, 0.012, 0.006, Math.PI * 0.66, Math.PI / 2, 1.05, 0.86).rotation.z = Math.PI * 0.17;
+  /* back plate */
+  mesh(clothLathe([[0.12, -0.02, 1.05], [0.146, 0.1, 1.2], [0.12, 0.2, 1.22]], { phiStart: Math.PI - 1.2, phiLength: 2.4, fold: () => 0, zScale: 0.8, seg: 32, sub: 3 }), goldMat, chest, 0, -0.02, -0.004);
+  /* high collar with a light seam */
+  const collar = mesh(new THREE.CylinderGeometry(0.056, 0.07, 0.07, 28, 1, true), suitMat, neck, 0, -0.005, 0);
+  collar.material = suitMat;
+  seam(neck, 0.057, 0, 0.028, 0.0);
+  /* hip plate and belt line */
+  mesh(clothLathe([[0.15, 0.03, 1.02], [0.158, -0.04, 1.02]], { fold: () => 0, zScale: 0.76, seg: 48, sub: 2 }), goldMat, hips, 0, 0.02, 0);
+  seam(hips, 0.151, 0, 0.055, 0, Math.PI * 2, Math.PI / 2, 1.0, 0.76);
 
+  /* ---------- Crest on the chest (always on; layer 5 makes it glow) ---------- */
+  const crestMat = new THREE.MeshStandardMaterial({ color: 0xffe2a0, emissive: 0xe8a840, emissiveIntensity: 0.6, metalness: 0.6, roughness: 0.3, side: THREE.DoubleSide });
+  const crestDisc = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 32), goldMat, crestSock, 0, 0, -0.002);
+  crestDisc.rotation.x = Math.PI / 2;
+  const crest = crestGroup(crestMat, 0.022);
+  crest.name = "Crest";
+  crest.position.z = 0.0045;
+  crest.userData.mat = crestMat;
+  crestSock.add(crest);
+  seam(crestSock, 0.031, 0, 0, 0.003, Math.PI * 2, 0);
 
-  /* Deep hood: open at the front, peaked at the back, draping onto the shoulders. */
-  const hoodGeo = new THREE.SphereGeometry(0.145, LITE ? 28 : 48, LITE ? 20 : 32, Math.PI / 2 + 0.48, Math.PI * 2 - 0.96, 0, Math.PI * 0.86);
-  {
-    const p = hoodGeo.attributes.position, v = new THREE.Vector3();
-    for (let i = 0; i < p.count; i++) {
-      v.fromBufferAttribute(p, i);
-      if (v.z < 0 && v.y > 0) v.z -= (v.y / 0.145) * (-v.z / 0.145) * 0.05; /* peak */
-      if (v.z > 0) { v.z *= 1.18 + 0.12 * Math.max(0, v.y / 0.145); v.y -= (v.z / 0.145) * 0.012; } /* brim reaches forward over the face */
-      const w = Math.sin(Math.atan2(v.x, v.z) * 7) * 0.004;
-      p.setXYZ(i, v.x * (1 + w * 8), v.y, v.z);
+  /* ---------- Shoulders: layered pauldrons on the arm bone (they lift with the arm) ---------- */
+  [[upperArmL, 1], [upperArmR, -1]].forEach(([b, s]) => {
+    for (let i = 0; i < 3; i++) {
+      const cap = mesh(new THREE.SphereGeometry(0.088 - i * 0.008, 28, 14, 0, Math.PI * 2, 0, Math.PI * (0.42 - i * 0.04)),
+        i === 1 ? pearlMat : goldMat, b, s * (0.008 + i * 0.012), 0.04 - i * 0.045, 0);
+      cap.scale.set(1.0, 0.78, 0.94);
+      cap.rotation.z = s * (-0.25 - i * 0.12);
     }
-    hoodGeo.computeVertexNormals();
-  }
-  const hood = mesh(hoodGeo, cloakMat, head, 0, 0.07, 0.0);
-  hood.scale.set(1.04, 1.16, 1.3);
-  hood.name = "Hood";
-  const hoodIn = mesh(hoodGeo, cloth(0x1a0a0c, 0x4a2026, { side: THREE.BackSide, roughness: 0.95, sheen: 0.3 }), head, 0, 0.07, 0.0);
-  hoodIn.scale.set(1.025, 1.145, 1.285);
-  hoodIn.castShadow = false;
-  /* Sleeves: fitted at the shoulder, belled at the wrist. Hands: slender, skin PBR. */
-  function arm(upper, lower, hand, side) {
-    mesh(new THREE.CylinderGeometry(0.052, 0.058, 0.28, 18, 1, true), gownMat, upper, 0, -0.135, 0).material.side = THREE.DoubleSide;
-    const s = mesh(clothLathe([[0.048, 0.02], [0.055, -0.08], [0.066, -0.17], [0.084, -0.25], [0.086, -0.262]],
-      { freq: 6, fold: (y) => y * 0.12, zScale: 0.9, seg: 28 }), cloakMat, lower, 0, 0, 0);
-    s.name = side > 0 ? "SleeveL" : "SleeveR";
-    mesh(new THREE.CylinderGeometry(0.024, 0.028, 0.1, 12), skinMat, lower, 0, -0.22, 0);
-    const palm = mesh(new THREE.SphereGeometry(0.04, 16, 12), skinMat, hand, 0, -0.025, 0);
-    palm.scale.set(0.95, 1.15, 0.5);
+    seam(b, 0.07, s * 0.02, -0.035, 0, Math.PI * 2, Math.PI / 2 + s * 0.3, 1, 0.9).rotation.y = 0;
+  });
+
+  /* ---------- Arms: bracers on the forearm, couter on the elbow, bare hands ---------- */
+  [[upperArmL, lowerArmL, handL, 1], [upperArmR, lowerArmR, handR, -1]].forEach(([ua, la, hand, side]) => {
+    plate(la, goldMat, 0.041, 0.037, 0.15, 0, Math.PI * 2, 0, -0.14, 0, 28);
+    seam(la, 0.043, 0, -0.07, 0);
+    seam(la, 0.039, 0, -0.205, 0);
+    const insert = plate(la, pearlMat, 0.0425, 0.0385, 0.08, -0.6, 1.2, 0, -0.14, 0, 16);
+    insert.scale.set(1.02, 1, 1.02);
+    const elbow = mesh(new THREE.SphereGeometry(0.04, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), goldMat, la, 0, 0.0, -0.012);
+    elbow.rotation.x = -Math.PI / 2 - 0.3; elbow.scale.set(1, 1, 0.6);
+    mesh(new THREE.CylinderGeometry(0.022, 0.026, 0.06, 12), skinMat, la, 0, -0.23, 0);
+    const palm = mesh(new THREE.SphereGeometry(0.038, 18, 12), skinMat, hand, 0, -0.028, 0);
+    palm.scale.set(0.98, 1.2, 0.46);
     const seg = LITE ? 6 : 10;
     for (let f = 0; f < 4; f++) {
-      const len = [0.056, 0.063, 0.059, 0.047][f];
-      const rad = [0.0082, 0.0085, 0.008, 0.0072][f];
+      const len = [0.054, 0.062, 0.058, 0.046][f];
+      const rad = [0.0078, 0.008, 0.0076, 0.0068][f];
       const base = new THREE.Object3D();
-      base.position.set(side * (-0.021 + f * 0.0142), -0.066, 0.006);
-      base.rotation.set(0.55 + f * 0.05, 0, side * (f - 1.5) * 0.06);
+      base.position.set(side * (-0.021 + f * 0.0142), -0.068, 0.003);
+      base.rotation.set(0.18 + f * 0.04, 0, side * (f - 1.5) * 0.05);
       hand.add(base);
       const p1 = len * 0.55, p2 = len * 0.45;
       mesh(new THREE.CapsuleGeometry(rad, p1, 4, seg), skinMat, base, 0, -p1 / 2, 0);
       mesh(new THREE.SphereGeometry(rad * 1.12, 10, 8), skinMat, base, 0, 0, 0);
-      const mid = new THREE.Object3D();
-      mid.position.y = -p1;
-      mid.rotation.x = 0.6;
-      base.add(mid);
-      mesh(new THREE.SphereGeometry(rad * 1.05, 10, 8), skinMat, mid, 0, 0, 0);
-      const tip = mesh(new THREE.CapsuleGeometry(rad * 0.88, p2, 4, seg), skinMat, mid, 0, -p2 / 2, 0);
-      tip.scale.z = 0.92;
+      const mid = new THREE.Object3D(); mid.position.y = -p1; mid.rotation.x = 0.28; base.add(mid);
+      mesh(new THREE.SphereGeometry(rad * 1.04, 10, 8), skinMat, mid, 0, 0, 0);
+      mesh(new THREE.CapsuleGeometry(rad * 0.88, p2, 4, seg), skinMat, mid, 0, -p2 / 2, 0);
     }
-    const tb = new THREE.Object3D();
-    tb.position.set(side * -0.032, -0.03, 0.014);
-    tb.rotation.set(0.5, 0, side * -0.75);
-    hand.add(tb);
-    mesh(new THREE.CapsuleGeometry(0.0098, 0.026, 4, seg), skinMat, tb, 0, -0.013, 0);
-    const tbm = new THREE.Object3D(); tbm.position.y = -0.028; tbm.rotation.x = 0.35; tb.add(tbm);
-    mesh(new THREE.CapsuleGeometry(0.0088, 0.022, 4, seg), skinMat, tbm, 0, -0.011, 0);
-  }
-  arm(upperArmL, lowerArmL, handL, 1);
-  arm(upperArmR, lowerArmR, handR, -1);
-
-  /* Boots peek out under the hem. */
-  [footL, footR].forEach((f) => {
-    const b = mesh(new THREE.SphereGeometry(0.05, 14, 10), leatherMat, f, 0, 0.0, 0.05);
-    b.scale.set(0.85, 0.55, 1.6);
+    const tb = new THREE.Object3D(); tb.position.set(side * -0.031, -0.028, 0.013); tb.rotation.set(0.3, 0, side * -0.55); hand.add(tb);
+    mesh(new THREE.CapsuleGeometry(0.0095, 0.026, 4, seg), skinMat, tb, 0, -0.013, 0);
+    const tbm = new THREE.Object3D(); tbm.position.y = -0.028; tbm.rotation.x = 0.2; tb.add(tbm);
+    mesh(new THREE.CapsuleGeometry(0.0085, 0.022, 4, seg), skinMat, tbm, 0, -0.011, 0);
   });
 
-  /* Grimoire with the glowing five-leaf crest. */
-  const book = new THREE.Group();
-  book.name = "Book";
-  const coverMat = new THREE.MeshPhysicalMaterial({ color: 0x3a1216, roughness: 0.55, sheen: 0.4, sheenColor: new THREE.Color(0xc07060) });
-  const back = mesh(new THREE.BoxGeometry(0.2, 0.014, 0.27), coverMat, book, 0, -0.022, 0);
-  const pages = mesh(new THREE.BoxGeometry(0.188, 0.032, 0.258), mat(0xefe2c0, { roughness: 0.95 }), book, 0.004, 0, 0);
-  const front = mesh(new THREE.BoxGeometry(0.2, 0.014, 0.27), coverMat, book, 0, 0.022, 0);
-  mesh(new THREE.BoxGeometry(0.014, 0.058, 0.27), coverMat, book, -0.1, 0, 0);
-  [-0.1, 0.1].forEach((z) => mesh(new THREE.BoxGeometry(0.03, 0.06, 0.012), goldMat, book, 0.09, 0, z));
-  const page = mesh(new THREE.PlaneGeometry(0.17, 0.24), mat(0xf6ecd0, { roughness: 0.95, side: THREE.DoubleSide }), book, 0, 0.031, 0);
-  page.rotation.x = -Math.PI / 2;
-  page.name = "Page";
-  page.visible = false;
-  const glowMat = new THREE.MeshStandardMaterial({ color: 0xd9a441, emissive: 0xd99a3a, emissiveIntensity: 1.2, roughness: 0.4, side: THREE.DoubleSide });
-  const bookCrest = crestGroup(glowMat, 0.05);
-  bookCrest.rotation.x = -Math.PI / 2;
-  bookCrest.position.set(0.005, 0.0295, 0);
-  book.add(bookCrest);
-  book.rotation.set(0.3, 0, 0);
-  book.scale.set(1.25, 1, 1.05);
-  bookSock.add(book);
-  const bookLight = new THREE.PointLight(0xffc56a, 0.25, 1.0, 2);
-  bookLight.position.set(0, 0.3, 0.05);
-  book.add(bookLight);
+  /* ---------- Legs: every plate rides its own bone (t1625u) ---------- */
+  const legParts = [];
+  [[upperLegL, lowerLegL, footL, 1], [upperLegR, lowerLegR, footR, -1]].forEach(([ul, ll, ft, s]) => {
+    /* tassets: two lames hinged at the hip line, parented to the THIGH, front and outside */
+    const t1 = plate(ul, goldMat, 0.098, 0.104, 0.12, s > 0 ? -0.35 : -1.05, 1.4, 0, -0.05, 0.005, 24);
+    const t2 = plate(ul, pearlMat, 0.1, 0.104, 0.07, s > 0 ? -0.3 : -1.0, 1.3, 0, -0.135, 0.005, 20);
+    seam(ul, 0.099, 0, -0.105, 0.005, 1.3, Math.PI / 2).rotation.z = s > 0 ? -0.3 : Math.PI + 0.3 - 1.3 + 1.3;
+    t1.name = s > 0 ? "TassetL" : "TassetR"; t2.name = t1.name + "2";
+    /* cuisse on the thigh */
+    plate(ul, goldMat, 0.08, 0.07, 0.17, -1.0, 2.0, 0, -0.29, 0.0, 24);
+    /* poleyn (knee) on the SHIN bone top, so it bends with the knee */
+    const knee = mesh(new THREE.SphereGeometry(0.05, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), goldMat, ll, 0, 0.0, 0.03);
+    knee.rotation.x = Math.PI / 2 - 0.15; knee.scale.set(1, 1, 0.55);
+    seam(ll, 0.034, 0, 0.0, 0.054, Math.PI * 2, 0);
+    /* greave wraps the SHIN */
+    const gr = plate(ll, goldMat, 0.06, 0.05, 0.3, -1.25, 2.5, 0, -0.21, 0.004, 28);
+    gr.name = s > 0 ? "GreaveL" : "GreaveR";
+    plate(ll, pearlMat, 0.0615, 0.0515, 0.18, -0.35, 0.7, 0, -0.2, 0.004, 12);
+    seam(ll, 0.057, 0, -0.07, 0.004, 2.5, Math.PI / 2).rotation.z = 0;
+    /* sabaton on the FOOT */
+    const sb = mesh(new THREE.SphereGeometry(0.05, 20, 12), goldMat, ft, 0, -0.035, 0.045);
+    sb.scale.set(0.82, 0.6, 1.75);
+    const heel = mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.05, 16), goldMat, ft, 0, -0.035, -0.01);
+    heel.castShadow = true;
+    seam(ft, 0.05, 0, -0.012, 0.02, Math.PI * 2, Math.PI / 2, 0.84, 1.6);
+    legParts.push(t1, t2, gr);
+  });
 
-  /* Look layers (unlocked by talking to Sage). */
-  const halo = mesh(new THREE.TorusGeometry(0.15, 0.006, 8, 64), haloMat, haloSock, 0, 0, 0);
-  halo.rotation.x = Math.PI / 2 - 0.25;
+  /* ---------- Head: original face, blonde hair, gold horns ---------- */
+  mesh(new THREE.CylinderGeometry(0.038, 0.045, 0.09, 16), skinMat, neck, 0, 0.05, 0.004);
+  const headGeo = new THREE.SphereGeometry(0.092, 44, 34);
+  {
+    const p = headGeo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      const low = Math.max(0, -v.y / 0.092), front = Math.max(0, v.z / 0.092);
+      v.x *= 1 - low * 0.36;
+      if (v.y < 0) v.y *= 1 + front * 0.18;
+      v.z += front * low * 0.016;
+      if (v.y > -0.03 && v.y < 0.01) v.x *= 1.02;
+      p.setXYZ(i, v.x, v.y, v.z);
+    }
+    headGeo.computeVertexNormals();
+  }
+  const headMesh = mesh(headGeo, skinMat, head, 0, 0.05, 0);
+  headMesh.scale.set(0.88, 1.04, 0.98);
+  headMesh.name = "HeadSkin";
+  /* soft features only: brow, nose bridge, lips, deep blue eyes, subtle rainbow cheek glints */
+  const nose = mesh(new THREE.CapsuleGeometry(0.008, 0.026, 4, 8), skinMat, head, 0, 0.036, 0.087);
+  nose.rotation.x = -0.25;
+  const lipMat = new THREE.MeshPhysicalMaterial({ color: 0xb8706a, roughness: 0.4, clearcoat: 0.3 });
+  const lip = mesh(new THREE.CapsuleGeometry(0.006, 0.022, 4, 8), lipMat, head, 0, 0.008, 0.08);
+  lip.rotation.z = Math.PI / 2; lip.scale.set(1, 1, 0.6);
+  const eyeWhite = new THREE.MeshPhysicalMaterial({ color: 0xf2eee8, roughness: 0.15, clearcoat: 1 });
+  const iris = new THREE.MeshStandardMaterial({ color: 0x1b3a8f, emissive: 0x0b1f5c, emissiveIntensity: 0.35, roughness: 0.18 /* deep blue (Jacob, 2026-11-22) */ });
+  const browMat = new THREE.MeshStandardMaterial({ color: 0x8a6438, roughness: 0.7 });
+  const glintMat = new THREE.MeshStandardMaterial({ color: 0xf4f0ff, emissive: 0xc8d8ff, emissiveIntensity: 0.3, transparent: true, opacity: 0.45 }); /* subtle rainbow glints */
+  [1, -1].forEach((s) => {
+    const e = mesh(new THREE.SphereGeometry(0.0135, 16, 12), eyeWhite, head, s * 0.03, 0.058, 0.07);
+    e.scale.set(1.25, 0.7, 0.6);
+    const ir = mesh(new THREE.CircleGeometry(0.0072, 16), iris, head, s * 0.03, 0.058, 0.0772);
+    ir.castShadow = false;
+    const pu = mesh(new THREE.CircleGeometry(0.003, 12), new THREE.MeshBasicMaterial({ color: 0x0a0a10 }), head, s * 0.03, 0.058, 0.0775);
+    pu.castShadow = false;
+    const br = mesh(new THREE.CapsuleGeometry(0.0028, 0.024, 3, 6), browMat, head, s * 0.031, 0.077, 0.073);
+    br.rotation.z = Math.PI / 2 + s * 0.12;
+    const cg = mesh(new THREE.CircleGeometry(0.0028, 6), glintMat, head, s * 0.047, 0.03, 0.071);
+    cg.rotation.y = s * 0.55; cg.castShadow = false;
+  });
+  /* hair: crown cap, long wavy back fall, and side locks over the shoulders */
+  const cap = mesh(new THREE.SphereGeometry(0.1, 36, 24, 0, Math.PI * 2, 0, Math.PI * 0.5), hairMat, head, 0, 0.058, -0.014);
+  cap.scale.set(0.9, 1.08, 1.02);
+  cap.rotation.x = -0.42; /* hairline sits back so the forehead and eyes show */
+  const fall = mesh(clothLathe([[0.085, 0.08, 1.0], [0.1, 0.0, 1.05], [0.12, -0.12, 1.25], [0.15, -0.3, 1.4], [0.16, -0.42, 1.45]],
+    { phiStart: Math.PI / 2 + 0.75, phiLength: Math.PI * 2 - 1.5, freq: 14, fold: (y) => 0.03 + y * 0.12, zScale: 0.75, seg: 56 }), hairMat, head, 0, 0.05, -0.015);
+  fall.name = "Hair";
+  [1, -1].forEach((s) => {
+    const lock = mesh(clothLathe([[0.026, 0.0], [0.03, -0.12], [0.034, -0.24], [0.018, -0.3]], { freq: 5, fold: (y) => 0.1 * y, zScale: 0.5, seg: 18 }), hairMat, head, s * 0.072, 0.06, 0.03);
+    lock.rotation.z = s * 0.12;
+  });
+  /* horns: tapered and curving up-and-in, warm gold */
+  [1, -1].forEach((s) => {
+    const hg = new THREE.ConeGeometry(0.014, 0.12, 14, 10);
+    const p = hg.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      const t = (v.y + 0.06) / 0.12;
+      v.x += s * (0.035 * Math.sin(t * Math.PI * 0.55) - 0.03 * t * t * t);
+      v.z -= 0.012 * t;
+      p.setXYZ(i, v.x, v.y, v.z);
+    }
+    hg.computeVertexNormals();
+    const h = mesh(hg, goldMat, head, s * 0.048, 0.17, -0.006);
+    h.rotation.z = s * -0.18;
+  });
+
+  /* ---------- Halo ---------- */
+  const halo = mesh(new THREE.TorusGeometry(0.15, 0.0055, 8, 72), haloMat, haloSock, 0, 0, 0);
+  halo.rotation.x = Math.PI / 2 - 0.12;
   halo.castShadow = false;
   halo.name = "Halo";
 
+  /* ---------- Wings: large white feathered wings, tips reaching the knees ---------- */
   function makeWing(sock, side) {
     const g = new THREE.Group();
     g.name = side > 0 ? "WingMeshL" : "WingMeshR";
-    const rows = [[11, 0.62, 0.07, 0.0], [10, 0.38, 0.06, 0.02], [9, 0.22, 0.05, 0.04]];
-    rows.forEach(([n, len, wid, dz], r) => {
+    const n = LITE ? 14 : 22;
+    const edge = (t) => new THREE.Vector3(side * (0.03 + 0.5 * t), 0.08 + 0.3 * Math.sin(t * Math.PI * 0.75), -0.05 - 0.08 * t);
+    /* primaries and secondaries hang from the top edge; coverts layer over them */
+    [[1.0, 0.075, 0.0], [0.55, 0.068, 0.015], [0.3, 0.06, 0.03]].forEach(([scale, wid, dz], row) => {
       for (let i = 0; i < n; i++) {
         const t = i / (n - 1);
-        const f = new THREE.Mesh(featherGeo(len * (1 - t * 0.45), wid * 1.5), featherMat);
-        f.position.set(side * (0.02 + t * 0.42), 0.18 + Math.sin(t * Math.PI) * 0.16 - r * 0.05, -dz - t * 0.06);
-        f.rotation.set(0, side * 0.35, side * (Math.PI * 0.85 + t * 0.9));
+        const e = edge(t);
+        const len = scale * (0.35 + 0.95 * Math.pow(t, 0.8));
+        const f = new THREE.Mesh(featherGeo(len, wid * (1.2 + t * 0.5)), featherMat);
+        f.position.set(e.x, e.y - row * 0.03, e.z + dz);
+        f.rotation.set(0.05, side * 0.25, Math.PI + side * (0.05 + t * 0.22));
         f.castShadow = true;
         g.add(f);
       }
     });
-    g.rotation.y = side * -0.35;
     sock.add(g);
     return g;
   }
   makeWing(wingL, 1);
   makeWing(wingR, -1);
 
-  const armor = new THREE.Group();
-  armor.name = "ArmorPlate";
-  const armorMat = goldMat.clone();
-  armor.userData.mat = armorMat;
-  [1, -1].forEach((s) => {
-    const p = mesh(new THREE.SphereGeometry(0.085, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), armorMat, armor, s * 0.175, 0.105, -0.005);
-    p.scale.set(1.1, 0.7, 1.0);
-    p.rotation.z = s * -0.35;
+  /* ---------- Floating grimoire (new design: emerald leather, gold corners) ---------- */
+  const book = new THREE.Group();
+  book.name = "Book";
+  const coverMat = new THREE.MeshPhysicalMaterial({ color: 0x0e5a42, roughness: 0.45, sheen: 0.5, sheenColor: new THREE.Color(0x6ac8a0), clearcoat: 0.2 });
+  const pagesMat = mat(0xefe2c0, { roughness: 0.95 });
+  mesh(new THREE.BoxGeometry(0.2, 0.27, 0.012), coverMat, book, 0, 0, 0.026);
+  mesh(new THREE.BoxGeometry(0.2, 0.27, 0.012), coverMat, book, 0, 0, -0.026);
+  mesh(new THREE.BoxGeometry(0.19, 0.258, 0.042), pagesMat, book, 0.004, 0, 0);
+  mesh(new THREE.BoxGeometry(0.016, 0.27, 0.064), coverMat, book, -0.1, 0, 0);
+  [-0.09, -0.03, 0.03, 0.09].forEach((y) => mesh(new THREE.BoxGeometry(0.019, 0.008, 0.066), goldMat, book, -0.1, y, 0));
+  [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([sx, sy]) => {
+    const c = mesh(new THREE.BoxGeometry(0.04, 0.04, 0.068), goldMat, book, sx * 0.082, sy * 0.117, 0);
+    c.scale.set(1, 1, 1);
   });
-  const gorget = mesh(new THREE.TorusGeometry(0.085, 0.018, 8, 32, Math.PI), armorMat, armor, 0, 0.16, 0.035);
-  gorget.rotation.set(Math.PI / 2 + 0.25, 0, Math.PI);
-  gorget.scale.set(1, 0.85, 1);
-  armorSock.add(armor);
+  const medal = mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.006, 40), goldMat, book, 0.005, 0, 0.033);
+  medal.rotation.x = Math.PI / 2;
+  const glowMat = new THREE.MeshStandardMaterial({ color: 0xffe7a8, emissive: 0xffb84a, emissiveIntensity: 1.4, roughness: 0.4, side: THREE.DoubleSide });
+  const bookCrest = crestGroup(glowMat, 0.038);
+  bookCrest.position.set(0.005, 0, 0.037);
+  book.add(bookCrest);
+  const page = new THREE.Object3D(); page.name = "Page"; book.add(page);
+  const bookLight = new THREE.PointLight(0xffc56a, 0.5, 1.4, 2);
+  bookLight.position.set(0, 0, 0.15);
+  book.add(bookLight);
+  /* gold aura: a soft additive glow and a ring of drifting sparks */
+  const auraTex = glowTexture();
+  const bookAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: auraTex, color: 0xffcf7a, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  bookAura.scale.set(0.55, 0.55, 1);
+  book.add(bookAura);
+  const sparks = makeSparks(LITE ? 24 : 48, 0.22);
+  book.add(sparks);
+  const bookHolder = new THREE.Group();
+  bookHolder.name = "BookFloat";
+  bookHolder.position.set(0.52, 1.12, 0.12);
+  bookHolder.add(book);
+  book.rotation.set(0.05, -0.35, 0.08);
+  root.add(bookHolder);
 
-  const cape = mesh(clothLathe([[0.13, 0.12, 1.2], [0.22, 0.04, 1.3], [0.27, -0.08, 1.25], [0.28, -0.2], [0.282, -0.215]],
-    { phiStart: 0.9, phiLength: Math.PI * 2 - 1.8, freq: 12, fold: (y) => 0.02 + y * 0.06, zScale: 0.95, seg: 48 }),
-    cloth(0x5b1a20, 0xd08080, { side: THREE.DoubleSide }), capeSock, 0, -0.02, 0);
-  cape.name = "Cape";
+  /* body aura: faint warm rim around her */
+  const bodyAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: auraTex, color: 0xffd890, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending }));
+  bodyAura.scale.set(1.5, 2.3, 1);
+  bodyAura.position.set(0, 1.0, -0.2);
+  root.add(bodyAura);
 
-  const crestMat = goldMat.clone();
-  const crest = crestGroup(crestMat, 0.026);
-  crest.name = "Crest";
-  crest.userData.mat = crestMat;
-  crestSock.add(crest);
-
-  root.userData.parts = { halo, cape, armor, crest, book, page, wingL, wingR, bookLight, glowMat, skirt, cloak };
-  root.traverse((o) => { if (o.isMesh) o.frustumCulled = true; });
+  root.userData.parts = { halo, armor, crest, crestMat, book, bookHolder, page, wingL, wingR, bookLight, glowMat, bookAura, bodyAura, sparks, seamMat, legParts, featherMat };
+  /* Glyph hook: every piece carries a meaning drawn from Sage's written intel (Jacob, 2026-11-22).
+     Meanings are mapped by a separate sheet run and are NOT invented here; a later "glyph meanings"
+     panel fills GLYPH_MEANINGS[key] and reads these part keys. */
+  glyphParts = { armor, pauldrons: [upperArmL, upperArmR], bracers: [lowerArmL, lowerArmR], legArmor: legParts,
+    halo, horns: head, crest, grimoire: book, wings: [wingL, wingR], colors: { goldMat, pearlMat, suitMat, seamMat } };
   return root;
 }
 
+function glowTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext("2d");
+  const r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  r.addColorStop(0, "rgba(255,255,255,1)");
+  r.addColorStop(0.25, "rgba(255,240,200,0.55)");
+  r.addColorStop(0.6, "rgba(255,210,140,0.15)");
+  r.addColorStop(1, "rgba(255,200,120,0)");
+  g.fillStyle = r;
+  g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function makeSparks(count, radius) {
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3), seed = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const a = hn(i * 4.1) * Math.PI * 2, r = radius * (0.5 + hn(i * 2.7) * 0.7);
+    pos[i * 3] = Math.cos(a) * r; pos[i * 3 + 1] = (hn(i * 6.3) - 0.5) * radius * 1.6; pos[i * 3 + 2] = Math.sin(a) * r * 0.6;
+    seed[i] = hn(i * 8.8);
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const p = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffd98a, size: 0.012, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
+  p.userData.seed = seed;
+  p.userData.base = pos.slice();
+  return p;
+}
+
+/* Talking to Sage still unlocks five looks; on v04 they brighten what she already wears. */
 function applyAttachments(root, unlocked) {
   const parts = root.userData.parts || {};
   if (parts.halo) {
-    parts.halo.visible = unlocked >= 1;
-    if (parts.halo.material && parts.halo.material.emissiveIntensity != null) parts.halo.material.emissiveIntensity = unlocked >= 1 ? 1.8 : 0.2;
+    parts.halo.visible = true;
+    if (parts.halo.material) parts.halo.material.emissiveIntensity = unlocked >= 1 ? 3.2 : 2.0;
   }
-  if (parts.wingL) parts.wingL.visible = unlocked >= 2;
-  if (parts.wingR) parts.wingR.visible = unlocked >= 2;
-  if (parts.armor) {
-    parts.armor.visible = unlocked >= 3;
-    const m = parts.armor.userData.mat || parts.armor.material;
-    if (m && m.color) m.color.setHex(unlocked >= 3 ? 0xf0c85a : 0xc9a44c);
-  }
-  if (parts.cape) parts.cape.visible = unlocked >= 4;
-  if (parts.crest) {
-    parts.crest.visible = unlocked >= 5;
-    const m = parts.crest.userData.mat || parts.crest.material;
-    if (m && m.color) m.color.setHex(0xffe08a);
-  }
+  if (parts.wingL) parts.wingL.visible = true;
+  if (parts.wingR) parts.wingR.visible = true;
+  if (parts.featherMat) parts.featherMat.emissive.setHex(unlocked >= 2 ? 0x3a3020 : 0x000000);
+  if (parts.armor && parts.armor.userData.mat) parts.armor.userData.mat.color.setHex(unlocked >= 3 ? 0xd9a656 : 0xc8954a);
+  if (parts.seamMat) parts.seamMat.emissiveIntensity = unlocked >= 3 ? 2.6 : 1.8;
+  if (parts.bodyAura) parts.bodyAura.material.opacity = unlocked >= 4 ? 0.28 : 0.16;
+  if (parts.crestMat) parts.crestMat.emissiveIntensity = unlocked >= 5 ? 2.2 : 0.6;
   const status = document.getElementById("layer-status");
   if (status) {
     status.textContent = unlocked <= 0 ? "Look: default" : "Look: " + LAYERS.slice(0, unlocked).map((L) => L.name).join(", ");
@@ -699,7 +816,7 @@ async function boot() {
     usingGLB = false;
     if (label) {
       label.hidden = false;
-      label.textContent = "Sage stand-in, final body coming from the 3D bake-off";
+      label.textContent = "Sage, v04 look (built in code)";
     }
   }
   scene.add(sage);
@@ -758,56 +875,75 @@ async function boot() {
   const lerp = THREE.MathUtils.lerp;
   function ease(o, axis, v, k) { o.rotation[axis] = lerp(o.rotation[axis] || 0, v, k); }
 
-  /* Holding pose: both forearms forward, cradling the grimoire at the waist. */
+  /* Free-hands pose (v04): the grimoire floats on its own, so her arms rest, swing and gesture.
+     ?pose=stride freezes a mid-stride frame for review (?t= picks the phase). */
   function poseProcedural(name, t, dt) {
     const b = bones;
     const hip = b.Hips;
     if (!hip) return;
     const k = Math.min(1, dt * 6);
     const breath = Math.sin(tAll * 1.5);
-    const holdL = { x: -0.3, z: -0.16 }, holdR = { x: -0.3, z: 0.16 };
-    let lowL = -1.0, lowR = -1.0, headX = 0.12 + breath * 0.012, headZ = 0;
-    let skirtSway = Math.sin(tAll * 0.9) * 0.012;
-    let aRx = holdR.x, aRz = holdR.z, laR = lowR;
+    let aL = { x: 0.04, z: 0.13 }, aR = { x: 0.04, z: -0.13 }, laL = -0.16, laR = -0.16;
+    let headX = 0.04 + breath * 0.01, headZ = 0;
     hip.position.y = 0.95 + breath * 0.003;
-    if (b.Chest) b.Chest.scale.set(1 + breath * 0.008, 1, 1 + breath * 0.012);
-    if (name === "walk") {
+    if (b.Chest) b.Chest.scale.set(1 + breath * 0.006, 1, 1 + breath * 0.01);
+    if (name === "walk" || name === "stride") {
       const s = Math.sin(t * 7);
-      ["UpperLegL", "UpperLegR"].forEach((n, i) => { if (b[n]) b[n].rotation.x = (i ? -s : s) * 0.42; });
-      if (b.LowerLegL) b.LowerLegL.rotation.x = Math.max(0, -s) * 0.6;
-      if (b.LowerLegR) b.LowerLegR.rotation.x = Math.max(0, s) * 0.6;
-      hip.position.y = 0.95 + Math.abs(s) * 0.018;
-      hip.rotation.y = s * 0.05;
-      skirtSway = s * 0.05;
-      headX = 0.05;
+      if (b.UpperLegL) b.UpperLegL.rotation.x = s * 0.5;
+      if (b.UpperLegR) b.UpperLegR.rotation.x = -s * 0.5;
+      if (b.LowerLegL) b.LowerLegL.rotation.x = Math.max(0, -s) * 0.75 + 0.05;
+      if (b.LowerLegR) b.LowerLegR.rotation.x = Math.max(0, s) * 0.75 + 0.05;
+      if (b.FootL) b.FootL.rotation.x = -s * 0.18;
+      if (b.FootR) b.FootR.rotation.x = s * 0.18;
+      hip.position.y = 0.95 - (1 - Math.abs(s)) * 0.02;
+      hip.rotation.y = s * 0.06;
+      aL.x = -s * 0.32; aR.x = s * 0.32; laL = -0.25 - Math.max(0, s) * 0.2; laR = -0.25 - Math.max(0, -s) * 0.2;
+      headX = 0.02;
     } else {
-      ["UpperLegL", "UpperLegR", "LowerLegL", "LowerLegR"].forEach((n) => { if (b[n]) ease(b[n], "x", 0, k); });
+      ["UpperLegL", "UpperLegR", "LowerLegL", "LowerLegR", "FootL", "FootR"].forEach((n) => { if (b[n]) ease(b[n], "x", 0, k); });
       hip.rotation.y = lerp(hip.rotation.y, 0, k);
     }
     if (name === "talk") {
-      aRx = -0.55 + Math.sin(t * 4) * 0.12; aRz = 0.2; laR = -1.35 + Math.sin(t * 5) * 0.15;
-      headX = 0.02 + Math.sin(t * 6) * 0.04;
+      aL = { x: -0.5 + Math.sin(t * 3) * 0.08, z: 0.35 }; laL = -0.9 + Math.sin(t * 4) * 0.12;
+      headX = Math.sin(t * 6) * 0.03; headZ = -0.04;
     } else if (name === "wave") {
-      aRx = -2.4 + Math.sin(t * 2) * 0.05; aRz = 0.35 + Math.sin(t * 8) * 0.25; laR = -0.35;
-      headX = -0.02;
+      aR = { x: -0.2, z: -2.5 + Math.sin(t * 2) * 0.05 }; laR = -0.2;
+      if (b.LowerArmR) ease(b.LowerArmR, "z", Math.sin(t * 8) * 0.35, k);
     } else if (name === "look") {
-      headZ = Math.sin(t * 0.6) * 0.06;
+      headZ = Math.sin(t * 0.6) * 0.05;
     } else if (name === "idle_pages") {
-      headX = 0.22 + breath * 0.015;
+      aL = { x: -0.18 + breath * 0.02, z: 0.3 }; laL = -0.55; /* left hand open toward the floating book */
     }
-    if (b.UpperArmL) { ease(b.UpperArmL, "x", holdL.x, k); ease(b.UpperArmL, "z", holdL.z, k); }
-    if (b.LowerArmL) { ease(b.LowerArmL, "x", lowL, k); ease(b.LowerArmL, "y", 0, k); ease(b.LowerArmL, "z", 0.12, k); }
-    if (b.UpperArmR) { ease(b.UpperArmR, "x", aRx, k); ease(b.UpperArmR, "z", aRz, k); }
-    if (b.LowerArmR) { ease(b.LowerArmR, "x", laR, k); ease(b.LowerArmR, "y", 0, k); ease(b.LowerArmR, "z", name === "wave" ? 0 : -0.12, k); }
-    if (b.HandL) ease(b.HandL, "x", 0.25, k);
-    if (b.HandR) ease(b.HandR, "x", name === "wave" ? -0.3 : 0.25, k);
+    if (b.UpperArmL) { ease(b.UpperArmL, "x", aL.x, k); ease(b.UpperArmL, "z", aL.z, k); }
+    if (b.UpperArmR) { ease(b.UpperArmR, "x", aR.x, k); ease(b.UpperArmR, "z", aR.z, k); }
+    if (b.LowerArmL) { ease(b.LowerArmL, "x", laL, k); ease(b.LowerArmL, "z", 0, k); }
+    if (b.LowerArmR) { ease(b.LowerArmR, "x", laR, k); if (name !== "wave") ease(b.LowerArmR, "z", 0, k); }
+    if (b.HandL) ease(b.HandL, "x", name === "talk" || name === "idle_pages" ? -0.2 : 0.08, k);
+    if (b.HandR) ease(b.HandR, "x", 0.08, k);
     if (b.Head && !(lookTarget && name !== "walk")) { ease(b.Head, "x", headX, k); ease(b.Head, "z", headZ, k); }
     if (b.Head && lookTarget && name !== "walk") ease(b.Head, "z", headZ, k);
-    if (parts.skirt) { parts.skirt.rotation.x = skirtSway * 0.6; parts.skirt.rotation.z = Math.sin(tAll * 0.7) * 0.008; }
-    if (parts.cloak) parts.cloak.rotation.x = -Math.abs(skirtSway) * 0.5 - 0.01;
+    /* wings breathe; grimoire bobs, turns slowly and pulses */
+    if (b.WingL) b.WingL.rotation.y = Math.sin(tAll * 0.9) * 0.04;
+    if (b.WingR) b.WingR.rotation.y = -Math.sin(tAll * 0.9) * 0.04;
     const pulse = 0.5 + 0.5 * Math.sin(tAll * 1.8);
-    if (parts.bookLight) parts.bookLight.intensity = 0.18 + pulse * 0.2 + (name === "talk" ? 0.3 : 0);
-    if (parts.glowMat) parts.glowMat.emissiveIntensity = 0.9 + pulse * 0.7 + (name === "talk" ? 0.8 : 0);
+    if (parts.bookHolder) {
+      parts.bookHolder.position.y = 1.12 + Math.sin(tAll * 1.2) * 0.03 + (name === "talk" ? 0.06 : 0);
+      parts.book.rotation.y = -0.35 + Math.sin(tAll * 0.5) * 0.15;
+      parts.book.rotation.z = 0.08 + Math.sin(tAll * 0.8) * 0.04;
+    }
+    if (parts.sparks) {
+      const sp = parts.sparks.geometry.attributes.position, base = parts.sparks.userData.base, sd = parts.sparks.userData.seed;
+      for (let i = 0; i < sd.length; i++) {
+        const a = tAll * (0.4 + sd[i] * 0.6) + sd[i] * 6.28;
+        sp.setX(i, base[i * 3] * Math.cos(a * 0.3) - base[i * 3 + 2] * Math.sin(a * 0.3));
+        sp.setY(i, base[i * 3 + 1] + Math.sin(a) * 0.03);
+      }
+      sp.needsUpdate = true;
+    }
+    if (parts.bookLight) parts.bookLight.intensity = 0.35 + pulse * 0.3 + (name === "talk" ? 0.4 : 0);
+    if (parts.glowMat) parts.glowMat.emissiveIntensity = 1.1 + pulse * 0.9 + (name === "talk" ? 1 : 0);
+    if (parts.bookAura) parts.bookAura.material.opacity = 0.4 + pulse * 0.25;
+    if (parts.seamMat) parts.seamMat.emissiveIntensity = (unlocked >= 3 ? 2.4 : 1.6) + pulse * 0.5;
   }
 
   function setState(name) {
@@ -888,6 +1024,7 @@ async function boot() {
     if (!hidden) lastT = performance.now();
   });
 
+  let tWalkFixed = 0;
   if (flags.pose) {
     posed = true;
     if (flags.pose === "walk") {
@@ -898,6 +1035,7 @@ async function boot() {
     }
     else if (flags.pose === "talk") { setState("talk"); busy = true; }
     else if (flags.pose === "wave") setState("wave");
+    else if (flags.pose === "stride") { setState("stride"); tWalkFixed = parseFloat(flags.t || "0.22") || 0.22; }
     else setState("idle_pages");
   } else {
     setState(reduce.matches ? "pause" : "idle_pages");
@@ -947,6 +1085,8 @@ async function boot() {
         faceToward(dest.x, dest.z, dt, 2.4);
         tWalk += dt;
       }
+    } else if (flags.yaw != null && posed) {
+      yaw = parseFloat(flags.yaw) || 0; sage.rotation.y = yaw;
     } else if (state !== "walk" && !dest) {
       /* settle facing the viewer, slightly toward the table */
       faceToward(sage.position.x + 0.35, sage.position.z + 1, dt, 1.2);
@@ -958,7 +1098,7 @@ async function boot() {
     }
     key.target.position.set(sage.position.x, 1.0, sage.position.z);
 
-    if (!usingGLB) poseProcedural(reduce.matches ? "pause" : state, state === "walk" ? tWalk : stateT, reduce.matches ? 1 : dt);
+    if (!usingGLB) poseProcedural(reduce.matches ? "pause" : state, state === "walk" ? tWalk : state === "stride" ? tWalkFixed : stateT, reduce.matches ? 1 : dt);
 
     if (!reduce.matches) {
       for (let i = 0; i < seeds.length; i++) {
