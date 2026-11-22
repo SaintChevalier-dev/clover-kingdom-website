@@ -5,7 +5,7 @@
       "name": "Does the Clover Kingdom rent a VPS?",
       "state": "Written. Not on the live poll yet.",
       "options": [
-        "No. Two bots on this PC share one Kingdom inbox folder.",
+        "No. [internal note removed]",
         "Yes. Then NeuralNine is the teacher for that path only."
       ],
       "note": "Votes advise. They do not move money. The owner calls the round."
@@ -14,7 +14,7 @@
       "name": "Which mouth watches the Discord?",
       "state": "Written. Not a live poll. Nothing is invited or bought.",
       "options": [
-        "Hermes on this PC, with the bot we already have.",
+        "Hermes, with the bot we already have.",
         "JARVIS, Zeno Innovations, from €1.99 a month.",
         "Bond, from $7.99 a month.",
         "Chipp, from $29 a month.",
@@ -32,7 +32,7 @@
     {
       "name": "A Discord mouth for Sage that is not Grokbot",
       "state": "Not proven.",
-      "note": "Dave pinged Sage and got no answer. Grokbot tokens are maxed. This site cannot sit in Discord. The Hermes gateway is the other mouth, only if the Sage bot token still works."
+      "note": "This site cannot sit in Discord. [internal note removed]"
     }
   ],
   "hunt": []
