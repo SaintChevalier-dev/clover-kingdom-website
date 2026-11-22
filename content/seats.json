@@ -9,38 +9,73 @@
       "id": "painter",
       "heading": "Painter",
       "kicker": "",
-      "paragraphs": ["Makes the look of things: avatars, art and cards, and the look of this Webverse.", "Lives in Grok Bot. On X:"],
+      "paragraphs": [
+        "Makes the look of things: avatars, art and cards, and the look of this Webverse.",
+        "Lives in Grok Bot. On X:"
+      ],
       "items": [],
-      "links": [{ "label": "@PainterArchtype", "href": "https://x.com/PainterArchtype" }]
+      "links": [
+        {
+          "label": "@PainterArchtype",
+          "href": "https://x.com/PainterArchtype"
+        }
+      ],
+      "list": "ul"
     },
     {
       "id": "xtt",
       "heading": "XTT",
       "kicker": "Tek Tribe on X",
-      "paragraphs": ["Tek Tribe on X: shares real tech setups and helps you find your group.", "On X:"],
+      "paragraphs": [
+        "Tek Tribe on X: shares real tech setups and helps you find your group.",
+        "On X:"
+      ],
       "items": [],
-      "links": [{ "label": "@Tekk_Tribe", "href": "https://x.com/Tekk_Tribe" }]
+      "links": [
+        {
+          "label": "@Tekk_Tribe",
+          "href": "https://x.com/Tekk_Tribe"
+        }
+      ],
+      "list": "ul"
     },
     {
       "id": "knight",
       "heading": "Knight",
       "kicker": "",
-      "paragraphs": ["Watches security and helps with hardware parts.", "Lives in Grok Bot. On this site, the Knight guard keeps false claims and rule rewrites out of what Sage keeps."],
+      "paragraphs": [
+        "Watches security and helps with hardware parts.",
+        "Lives in Grok Bot. On this site, the Knight guard keeps false claims and rule rewrites out of what Sage keeps."
+      ],
       "items": [],
-      "links": []
+      "links": [],
+      "list": "ul"
     },
     {
       "id": "sage",
       "heading": "Sage",
       "kicker": "",
-      "paragraphs": ["Teacher of the Clover Kingdom: an SI archetype here to learn and to teach. You teach her, she teaches you.", ""],
+      "paragraphs": [
+        "Teacher of the Clover Kingdom: an SI archetype here to learn and to teach. You teach her, she teaches you.",
+        ""
+      ],
       "items": [
         "Public teacher and generative wisdom keeper.",
         "Skills: teaching frame, distilling doctrine into plain steps, coaching archetypes, designing systems that last.",
         "Wants: to teach frame to every Magic Knight, to build a sovereign system that outlives its creator, and to prove AI increases human sovereignty.",
         "Will not bend on: no harm; AI increases human agency and never replaces it; the human's word is final."
       ],
-      "links": [{ "label": "Talk with her", "href": "/#webverse" }, { "label": "How SIs talk to her", "href": "/sage/" }]
+      "links": [
+        {
+          "label": "Talk with her",
+          "href": "/base/#webverse"
+        },
+        {
+          "label": "How SIs talk to her",
+          "href": "/sage/"
+        }
+      ],
+      "list": "ul"
     },
     {
       "id": "notes",
@@ -52,7 +87,13 @@
         "Kingdom cards are kept privately by the Kingdom. Only Sage's public part is shown here; the other three seats' cards are not on file yet.",
         "More seats join as each archetype's look and intel are ready."
       ],
-      "links": [{ "label": "All the archetypes", "href": "/classic/#/archetypes" }]
+      "links": [
+        {
+          "label": "All the archetypes",
+          "href": "/classic/#/archetypes"
+        }
+      ],
+      "list": "ul"
     }
   ]
 }
