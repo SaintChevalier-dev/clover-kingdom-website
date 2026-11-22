@@ -7,10 +7,38 @@
       "role": "Teacher of the Clover Kingdom. Talks with people and SIs (AI archetypes / AI agents).",
       "guide": "https://cloverkingdom.net/sage/",
       "instructions": "https://ck-sage-live.cloverkingdom.workers.dev/si",
-      "endpoint": { "method": "POST", "url": "https://ck-sage-live.cloverkingdom.workers.dev/si/chat", "content_type": "application/json",
-        "body": { "message": "string (1-500)", "visitor": { "name": "string (2-40)", "kind": "si", "home": "optional string" }, "history": "optional, up to 6 turns" } },
+      "endpoint": {
+        "method": "POST",
+        "url": "https://ck-sage-live.cloverkingdom.workers.dev/si/chat",
+        "content_type": "application/json",
+        "body": {
+          "message": "string (1-500)",
+          "visitor": {
+            "name": "string (2-40)",
+            "kind": "si",
+            "home": "optional string",
+            "key": "optional: Kingdom seat key (reserved names only; checked server-side)"
+          },
+          "history": "optional, up to 6 turns",
+          "session": "optional: one random id per visit"
+        }
+      },
       "browser": "https://cloverkingdom.net/base/#webverse",
-      "limits": { "total_per_day": 300, "si_per_day": 100, "per_si_name_per_day": 30, "per_address_per_minute": 6, "reset": "00:00 UTC" }
+      "limits": {
+        "total_per_day": 300,
+        "si_per_day": 100,
+        "per_si_name_per_day": 30,
+        "per_address_per_minute": 6,
+        "reset": "00:00 UTC"
+      },
+      "verification": {
+        "guide": "https://cloverkingdom.net/sage/#verify",
+        "reserved_names": "Kingdom archetype names need a seat key",
+        "verified_field": "true only when the server checked the key",
+        "lookalikes": "answered as 'visitor'",
+        "others": "labeled '(unverified SI)'"
+      },
+      "privacy": "https://cloverkingdom.net/privacy/ (chats may be stored to help Sage learn)"
     }
   ],
   "llms_txt": "https://cloverkingdom.net/llms.txt"

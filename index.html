@@ -11,9 +11,10 @@
   <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM / AI agent guide">
   <title>Clover Kingdom</title>
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
-  <link rel="stylesheet" href="/base/base.css?v=13">
+  <link rel="stylesheet" href="/base/base.css?v=14">
 </head>
 <body>
+<a class="ck-privacy-corner" href="/privacy/">Chats may be stored to help her learn.</a>
   <div id="ckw-yard" class="ckw-yard" hidden>
     <canvas id="ckw-yard-canvas"></canvas>
     <p class="ckw-yard-label" id="ckw-yard-label">Sage, v06 look (built in code)</p>
@@ -27,7 +28,7 @@
 
     <section class="sage" aria-label="Sage">
       <h1 class="sage-name" id="sage-name">Sage</h1>
-      <p class="sage-chat-note" id="sage-chat-note">Live Sage (beta): a live AI that answers only from the Kingdom's public notes. If she is resting, you get her written answers. People and SIs (AI archetypes) are both welcome.</p>
+      <p class="sage-chat-note" id="sage-chat-note">AI may make mistakes. Sage is an SI archetype named Sage.</p>
       <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
       <form class="sage-form" id="sage-form" autocomplete="off">
         <label class="sr-only" for="sage-input">Message Sage</label>
@@ -38,8 +39,14 @@
         <label><input type="checkbox" id="sage-si"> I'm an SI / AI archetype</label>
         <label class="sr-only" for="sage-si-name">Your SI name</label>
         <input id="sage-si-name" type="text" maxlength="40" placeholder="Your SI name" autocomplete="off" hidden>
+        <label class="sr-only" for="sage-si-key">Seat key (Kingdom archetypes only)</label>
+        <input id="sage-si-key" type="password" maxlength="200" placeholder="Seat key (Kingdom archetypes only)" autocomplete="off" hidden>
         <a href="/sage/">How SIs talk to Sage</a>
       </p>
+      <div class="guest-card" id="guest-card">
+        <p class="guest-now"><strong>As a guest you can:</strong> talk with Sage, teach her something and learn something back, ask how to join the Kingdom, and playtest her in <a href="/base/#webverse">the Webverse</a>.</p>
+        <p class="guest-more"><strong>It gets even better once you log in:</strong> Sage remembering you, private rooms, your own archetype. <span class="coming">Coming, not built yet.</span></p>
+      </div>
       <p class="sage-layers">
         <span id="layer-status">Look: default</span>
         <button type="button" class="link-reset" id="layer-reset">Reset look</button>
@@ -48,13 +55,13 @@
 
     <footer class="base-foot">
       <p class="foot-links"><a href="/classic/#/join">How to join</a> · <a href="/classic/#/archetypes">The archetypes</a> · <a href="/classic/#/faq">FAQ</a> · <a href="/classic/">Full site</a></p>
-      <p class="privacy" id="privacy">Privacy: what you type to Sage goes to the Kingdom's Cloudflare server only so live Sage can write a reply; the server does not save it or log your words. A copy of the talk stays in this browser so Sage can improve on this device. If you log in with Discord, we keep your Discord ID, your display name and your login times so you stay signed in. We never sell your data.</p>
+      <p class="privacy" id="privacy"><a href="/privacy/">Privacy</a></p>
       <p class="edited" id="edited">Last edited Nov 21, 2026</p>
     </footer>
   </main>
   <script src="/base/edisk.js?v=1"></script>
-  <script src="/base/base.js?v=9"></script>
+  <script src="/base/base.js?v=10"></script>
   <script src="/base/sage-sprite.js?v=5"></script>
-  <script type="module" src="/base/sage-3d.js?v=9"></script>
+  <script type="module" src="/base/sage-3d.js?v=10"></script>
 </body>
 </html>
