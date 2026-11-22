@@ -1120,6 +1120,28 @@ async function boot() {
 
   let tWalkFixed = 0;
   let manualYaw = null;
+  let quietRoom = false, walkLoop = 0;
+  const PART_OF = { Book: "grimoire", BookFloat: "grimoire", Page: "grimoire", Halo: "halo", WingMeshL: "wings", WingMeshR: "wings", Staff: "staff", HeadSkin: "face", Crest: "crest", Hair: "face" };
+  function partOf(obj) {
+    for (let o = obj; o; o = o.parent) { if (PART_OF[o.name]) return PART_OF[o.name]; if (o === sage) break; }
+    return "armor";
+  }
+  function reactTo(part) {
+    if (part === "grimoire" || part === "staff") { dest = null; setState("talk"); }
+    else if (part === "wings") { dest = null; setState("look"); }
+    else if (part === "halo" || part === "face" || part === "crest") { dest = null; setState("wave"); }
+    else { dest = null; setState("stride"); tWalkFixed = 0.22; }
+    nextAt = 5;
+    window.dispatchEvent(new CustomEvent("ckw:sage-touch", { detail: { part } }));
+  }
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  canvas.addEventListener("click", (e) => {
+    const r = canvas.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObject(sage, true).find((h) => h.object.visible && !(h.object.isSprite) && !(h.object.isPoints));
+    if (hit) reactTo(partOf(hit.object));
+  });
   if (flags.pose) {
     posed = true;
     if (flags.pose === "walk") {
@@ -1151,6 +1173,12 @@ async function boot() {
     },
     setYaw: (r) => { manualYaw = (r == null || isNaN(r)) ? null : r; },
     upgrade: (key, val) => applyUpgrade(sage, key, val),
+    /* touch a part (also fired by clicking her in the 3D view): she reacts, the page says why */
+    touch: (part) => reactTo(part),
+    /* quiet room anchor: no drifting motes, no wandering */
+    quiet: (on) => { quietRoom = !!on; motes.visible = !quietRoom; if (quietRoom) { dest = null; if (state === "walk") setState("idle_pages"); nextAt = 1e9; } else nextAt = 3; },
+    /* the walk anchor: a slow loop around the round table */
+    walk: () => { quietRoom = false; motes.visible = true; dest = { x: home.x - 0.9, z: home.z - 0.5 }; setState("walk"); nextAt = 99; walkLoop = 2; },
     glyphKeys: () => Object.keys(GLYPH_MEANINGS)
   };
   window.dispatchEvent(new Event("ckw:sage3d-ready"));
@@ -1165,7 +1193,7 @@ async function boot() {
     if (!reduce.matches) tAll += dt;
     if (mixer) mixer.update(dt);
 
-    if (!posed && !busy && !reduce.matches) {
+    if (!posed && !busy && !quietRoom && !reduce.matches) {
       nextAt -= dt;
       if (nextAt <= 0 && state !== "walk") {
         const n = pickFreeWill();
@@ -1179,7 +1207,10 @@ async function boot() {
       const dx = dest.x - sage.position.x, dz = dest.z - sage.position.z;
       const dist = Math.hypot(dx, dz);
       const speed = 0.6;
-      if (dist < 0.05) {
+      if (dist < 0.05 && walkLoop > 0) {
+        walkLoop -= 1;
+        dest = walkLoop === 1 ? { x: home.x + 0.6, z: home.z - 0.9 } : { x: home.x, z: home.z };
+      } else if (dist < 0.05) {
         dest = null;
         if (!busy) { setState("idle_pages"); nextAt = 3 + Math.random() * 3; }
         else setState("talk");
