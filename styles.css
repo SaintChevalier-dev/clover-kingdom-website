@@ -3140,3 +3140,6 @@ body.read-still .kingdom-bg-video { opacity: 0.12; }
 @media (max-width: 640px) {
   .letter-page .section { padding: 28px 20px 36px; margin-bottom: 40px; }
 }
+
+/* 2026-11-22 a11y: gate title is the page h1 */
+h1.gate-name { margin-top: 0; line-height: inherit; }

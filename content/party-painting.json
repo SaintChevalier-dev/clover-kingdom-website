@@ -1,0 +1,57 @@
+{
+  "page": "party-painting",
+  "path": "/tek-tribe/party-painting/",
+  "note": "Editable page text for /tek-tribe/party-painting/. Sage may only change the text fields listed in content/README.md, through a reviewed pull request. No HTML here: everything is shown as plain text.",
+  "title": "Tek Tribe party painting",
+  "intro": "A Tek Tribe skill for anyone who runs Grok Bots. Pick your top three bots, paint them together as one party, and let the painting grow only as the party really gets better.",
+  "sections": [
+    {
+      "id": "how",
+      "heading": "How it works",
+      "kicker": "",
+      "paragraphs": [],
+      "items": [
+        { "title": "Intake.", "text": "Name your three bots, each one's job, the skills and connectors it really uses, and one goal for the party. Nothing is guessed. Unknown stays unknown." },
+        { "title": "Paint v01 at Recruit.", "text": "One canvas, three figures, one party. Every element has a reason tied to a job (the glyph rule). Original characters by default, no real faces." },
+        { "title": "Ask, act, keep a receipt.", "text": "Work through the 100 questions with your party. A receipt is something you can inspect: a file, a routine that really ran, a draft you accepted, a before and after." },
+        { "title": "Level check.", "text": "The painting is upgraded only when the receipts meet the next level and you say yes. Chatting more doesn't level it up." }
+      ],
+      "links": []
+    },
+    {
+      "id": "ladder",
+      "heading": "The ladder",
+      "kicker": "",
+      "paragraphs": ["No skipping levels. Same three characters from v01 to v05, so the painting tells the party's real story."],
+      "items": [
+        { "title": "Recruit", "text": "(v01): intake done. Three bots, their lanes and the goal are confirmed." },
+        { "title": "Trained", "text": "(v02): each bot has one real, accepted result in its lane, and a skill or routine was used once." },
+        { "title": "Proven", "text": "(v03): at least one result a stranger could check without trusting the chat." },
+        { "title": "Party Synergy", "text": "(v04): a real handoff ran, with one bot's output used by the next, and you accepted the combined result." },
+        { "title": "Legend", "text": "(v05): sustained proof. The party shipped more than once, finished a no-spend plan with receipts, and you can do something you couldn't do at Recruit." }
+      ],
+      "links": []
+    },
+    {
+      "id": "sets",
+      "heading": "100 questions, ten sets",
+      "kicker": "",
+      "paragraphs": ["Ten questions per set. Some go to one bot, some to the whole party. The last one asks which ten to ask next."],
+      "items": ["Know yourself", "Connect tools", "Routines", "Skills", "Memory", "Teamwork and handoffs", "Quality checks", "Creativity", "Earning and building", "Legacy"],
+      "links": []
+    },
+    {
+      "id": "rules",
+      "heading": "Ground rules",
+      "kicker": "",
+      "paragraphs": ["Want to try it? Ask in the Clover Kingdom Discord or follow Tek Tribe on X."],
+      "items": [
+        "Nothing is spent and nothing is posted without your yes on the exact words and image.",
+        "No private information in paintings or shared trackers.",
+        "No real faces without clear consent.",
+        "No made-up titles, ranks or name meanings."
+      ],
+      "links": [{ "label": "discord.gg/2BrNPwUuTB", "href": "https://discord.gg/2BrNPwUuTB" }, { "label": "@Tekk_Tribe", "href": "https://x.com/Tekk_Tribe" }]
+    }
+  ]
+}

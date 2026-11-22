@@ -405,7 +405,7 @@ function buildGate() {
     <section class="gate gate-hero">
       <div class="container" style="display:block;text-align:center">
         <img class="hero-crest" src="/images/logo-crimson-seal.svg" alt="The five-leaf black clover crest, the mark of the Clover Kingdom" width="96" height="96">
-        <div class="gate-name">CLOVER<span> KINGDOM</span></div>
+        <h1 class="gate-name">CLOVER<span> KINGDOM</span></h1>
         <div class="gate-sub">The public front door</div>
         <p class="hero-line">Build your own archetype. Level up your life. Find your people.</p>
         <div class="cta-row">

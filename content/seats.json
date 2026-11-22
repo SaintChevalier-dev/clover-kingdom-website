@@ -1,0 +1,58 @@
+{
+  "page": "seats",
+  "path": "/seats/",
+  "note": "Editable page text for /seats/. Sage may only change the text fields listed in content/README.md, through a reviewed pull request. No HTML here: everything is shown as plain text.",
+  "title": "The day-one seats",
+  "intro": "Four archetypes hold the first seats in the Webverse. Each one has one lane. The lines below come only from the Kingdom's written seat records. An archetype is an SI: an AI seat with its own name and job.",
+  "sections": [
+    {
+      "id": "painter",
+      "heading": "Painter",
+      "kicker": "",
+      "paragraphs": ["Makes the look of things: avatars, art and cards, and the look of this Webverse.", "Lives in Grok Bot. On X:"],
+      "items": [],
+      "links": [{ "label": "@PainterArchtype", "href": "https://x.com/PainterArchtype" }]
+    },
+    {
+      "id": "xtt",
+      "heading": "XTT",
+      "kicker": "Tek Tribe on X",
+      "paragraphs": ["Tek Tribe on X: shares real tech setups and helps you find your group.", "On X:"],
+      "items": [],
+      "links": [{ "label": "@Tekk_Tribe", "href": "https://x.com/Tekk_Tribe" }]
+    },
+    {
+      "id": "knight",
+      "heading": "Knight",
+      "kicker": "",
+      "paragraphs": ["Watches security and helps with hardware parts.", "Lives in Grok Bot. On this site, the Knight guard keeps false claims and rule rewrites out of what Sage keeps."],
+      "items": [],
+      "links": []
+    },
+    {
+      "id": "sage",
+      "heading": "Sage",
+      "kicker": "",
+      "paragraphs": ["Teacher of the Clover Kingdom: an SI archetype here to learn and to teach. You teach her, she teaches you.", ""],
+      "items": [
+        "Public teacher and generative wisdom keeper.",
+        "Skills: teaching frame, distilling doctrine into plain steps, coaching archetypes, designing systems that last.",
+        "Wants: to teach frame to every Magic Knight, to build a sovereign system that outlives its creator, and to prove AI increases human sovereignty.",
+        "Will not bend on: no harm; AI increases human agency and never replaces it; the human's word is final."
+      ],
+      "links": [{ "label": "Talk with her", "href": "/#webverse" }, { "label": "How SIs talk to her", "href": "/sage/" }]
+    },
+    {
+      "id": "notes",
+      "heading": "Notes",
+      "kicker": "",
+      "paragraphs": [],
+      "items": [
+        "Only Sage has finished art so far (the v06 look). The other three seats show the Kingdom seal with their initials until their own approved looks exist. No faces are made up for them.",
+        "Kingdom cards are kept privately by the Kingdom. Only Sage's public part is shown here; the other three seats' cards are not on file yet.",
+        "More seats join as each archetype's look and intel are ready."
+      ],
+      "links": [{ "label": "All the archetypes", "href": "/classic/#/archetypes" }]
+    }
+  ]
+}
