@@ -4,9 +4,11 @@
    1. Drop-in avatar: /base/assets/sage/sage.glb (rigged GLB, PBR skin). Loaded only when
       the canvas has data-glb (or ?glb=1 for testing), so a missing file never 404s.
       See docs/sage-3d-phase6.md "Drop-in avatar slot". Rights first, always.
-   2. Procedural Sage (default), the approved v04 look (Jacob, 2026-11-22): original face,
-      no hood, sleek cyberpunk-saint armor with warm light seams over a black under-suit,
-      bare hands, halo, gold horns, white wings, and a floating emerald-and-gold grimoire.
+   2. Procedural Sage (default), the locked v06 look (Jacob, 2026-11-22): v04 face with deep
+      blue eyes, no hood, pearl-white plate with brushed-gold trim and warm light seams over a
+      black under-suit (stomach, glutes and knee backs plated), bare hands, halo, small gold
+      horns, full white wings from between the shoulder blades, and a floating white-and-gold
+      grimoire. No aura on the avatar.
       Built here in code from primitives. No downloaded or generated model. Not based on any
       copyrighted character. Armor rules: docs/archetype-armor-standard.md. */
 import * as THREE from "./vendor/three.module.min.js";
@@ -15,7 +17,7 @@ import { GLTFLoader } from "./vendor/GLTFLoader.js";
 const GLB_URL = "/base/assets/sage/sage.glb";
 /* Glyph meanings panel hook: keys match glyphParts below. Empty until the mapping from Sage's
    written intel is approved; nothing renders from it yet. Weapon slot is reserved. */
-export const GLYPH_MEANINGS = { armor: null, pauldrons: null, bracers: null, legArmor: null, halo: null, horns: null, crest: null, grimoire: null, wings: null, colors: null, weapon: null };
+export const GLYPH_MEANINGS = { staff: null, armor: null, pauldrons: null, bracers: null, legArmor: null, halo: null, horns: null, crest: null, grimoire: null, wings: null, colors: null, weapon: null };
 let glyphParts = null;
 const SAGE_HEIGHT = 1.72;
 const LAYER_KEY = "ckw-sage-layers-v1";
@@ -184,9 +186,11 @@ function buildStandIn() {
   const capeSock = bone("CapeSocket", chest, 0, 0.12, -0.02);
   const crestSock = bone("CrestSocket", chest, 0, 0.07, 0.118);
 
-  /* Materials: warm champagne gold, pearl ceramic, soft black suit, warm light seams. */
-  const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xe2b768, metalness: 0.92, roughness: 0.3, envMapIntensity: 1.5, clearcoat: 0.6, clearcoatRoughness: 0.15 });
-  const pearlMat = new THREE.MeshPhysicalMaterial({ color: 0xf1ece2, metalness: 0.05, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.08, sheen: 0.3, sheenColor: new THREE.Color(0xfff4dc) });
+  /* Materials (v06): pearl-white plate, brushed-gold trim, soft black suit, warm light seams. */
+  /* v06: pearl-white ceramic-composite plate */
+  const plateMat = new THREE.MeshPhysicalMaterial({ color: 0xf4f0e8, metalness: 0.04, roughness: 0.26, clearcoat: 1, clearcoatRoughness: 0.06, sheen: 0.25, sheenColor: new THREE.Color(0xfff6e4), envMapIntensity: 1.2 });
+  /* v06: brushed-gold trim */
+  const trimMat = new THREE.MeshPhysicalMaterial({ color: 0xdcb46a, metalness: 0.95, roughness: 0.28, envMapIntensity: 1.6, clearcoat: 0.5, clearcoatRoughness: 0.2 });
   const suitMat = new THREE.MeshPhysicalMaterial({ color: 0x15151a, roughness: 0.55, metalness: 0.1, sheen: 0.6, sheenRoughness: 0.35, sheenColor: new THREE.Color(0x5a5560) });
   const seamMat = new THREE.MeshStandardMaterial({ color: 0xfff0c8, emissive: 0xffc870, emissiveIntensity: 1.8, roughness: 0.4 });
   const skinMat = new THREE.MeshPhysicalMaterial({
@@ -218,7 +222,7 @@ function buildStandIn() {
     g.computeVertexNormals();
     const m = mesh(g, mat, parent, px, py, pz);
     m.material = mat;
-    if (mat === goldMat || mat === pearlMat) m.material.side = THREE.DoubleSide;
+    if (mat === plateMat || mat === trimMat) m.material.side = THREE.DoubleSide;
     return m;
   }
   /* A thin glowing seam ring around a limb or plate edge. */
@@ -229,7 +233,7 @@ function buildStandIn() {
     m.castShadow = false;
     return m;
   }
-  goldMat.side = THREE.DoubleSide; pearlMat.side = THREE.DoubleSide;
+  plateMat.side = THREE.DoubleSide; trimMat.side = THREE.DoubleSide;
 
   /* ---------- Body under-suit ---------- */
   mesh(clothLathe([
@@ -248,36 +252,41 @@ function buildStandIn() {
   /* ---------- Torso armor (rides Chest/Spine) ---------- */
   const armor = new THREE.Group();
   armor.name = "ArmorPlate";
-  armor.userData.mat = goldMat;
+  armor.userData.mat = plateMat;
   armorSock.add(armor);
   /* breastplate: two sculpted halves with a center ridge, open at the sides for the arms */
   const bp = clothLathe([[0.122, -0.06, 1.05], [0.142, 0.02, 1.12], [0.152, 0.1, 1.18], [0.148, 0.16, 1.24], [0.118, 0.2, 1.24], [0.08, 0.225, 1.1]],
     { phiStart: -1.35, phiLength: 2.7, freq: 2, fold: () => 0, zScale: 0.84, seg: 48, sub: 3 });
-  const breast = mesh(bp, goldMat, chest, 0, -0.02, 0.004);
+  const breast = mesh(bp, plateMat, chest, 0, -0.02, 0.004);
   breast.scale.set(0.95, 1, 1.04);
-  const ridge = mesh(new THREE.BoxGeometry(0.008, 0.2, 0.01), pearlMat, chest, 0, 0.06, 0.142);
+  const ridge = mesh(new THREE.BoxGeometry(0.008, 0.2, 0.01), trimMat, chest, 0, 0.06, 0.142);
   ridge.rotation.x = -0.12;
   seam(chest, 0.15, 0, -0.07, 0.0, Math.PI * 0.86, Math.PI / 2, 1.06, 0.86).rotation.z = Math.PI * 0.07;
   /* abdomen: three overlapping lames that can flex when she bends or jumps */
   for (let i = 0; i < 3; i++) {
-    const lame = mesh(clothLathe([[0.12 - i * 0.004, 0.0, 1.03], [0.124 - i * 0.004, -0.04]], { phiStart: -1.05, phiLength: 2.1, fold: () => 0, zScale: 0.8, seg: 32, sub: 2 }),
-      i === 1 ? pearlMat : goldMat, spine, 0, 0.1 - i * 0.045, 0.006);
+    const lame = mesh(clothLathe([[0.12 - i * 0.004, 0.0, 1.03], [0.124 - i * 0.004, -0.04]], { phiStart: -1.35, phiLength: 2.7, fold: () => 0, zScale: 0.8, seg: 32, sub: 2 }),
+      plateMat, spine, 0, 0.1 - i * 0.045, 0.006);
     lame.scale.set(1.05, 1, 1.08);
   }
   seam(spine, 0.12, 0, 0.012, 0.006, Math.PI * 0.66, Math.PI / 2, 1.05, 0.86).rotation.z = Math.PI * 0.17;
+  /* v06: back lames over the lower back (ride the Spine), so the middle is covered all round */
+  for (let i = 0; i < 2; i++) {
+    const bl = mesh(clothLathe([[0.122 - i * 0.004, 0.0, 1.03], [0.126 - i * 0.004, -0.05]], { phiStart: Math.PI - 1.25, phiLength: 2.5, fold: () => 0, zScale: 0.8, seg: 28, sub: 2 }), plateMat, spine, 0, 0.14 - i * 0.055, -0.004);
+    bl.scale.set(1.05, 1, 1.08);
+  }
   /* back plate */
-  mesh(clothLathe([[0.12, -0.02, 1.05], [0.146, 0.1, 1.2], [0.12, 0.2, 1.22]], { phiStart: Math.PI - 1.2, phiLength: 2.4, fold: () => 0, zScale: 0.8, seg: 32, sub: 3 }), goldMat, chest, 0, -0.02, -0.004);
+  mesh(clothLathe([[0.12, -0.02, 1.05], [0.146, 0.1, 1.2], [0.12, 0.2, 1.22]], { phiStart: Math.PI - 1.2, phiLength: 2.4, fold: () => 0, zScale: 0.8, seg: 32, sub: 3 }), plateMat, chest, 0, -0.02, -0.004);
   /* high collar with a light seam */
   const collar = mesh(new THREE.CylinderGeometry(0.056, 0.07, 0.07, 28, 1, true), suitMat, neck, 0, -0.005, 0);
   collar.material = suitMat;
   seam(neck, 0.057, 0, 0.028, 0.0);
   /* hip plate and belt line */
-  mesh(clothLathe([[0.15, 0.03, 1.02], [0.158, -0.04, 1.02]], { fold: () => 0, zScale: 0.76, seg: 48, sub: 2 }), goldMat, hips, 0, 0.02, 0);
+  mesh(clothLathe([[0.15, 0.03, 1.02], [0.158, -0.04, 1.02]], { fold: () => 0, zScale: 0.76, seg: 48, sub: 2 }), plateMat, hips, 0, 0.02, 0);
   seam(hips, 0.151, 0, 0.055, 0, Math.PI * 2, Math.PI / 2, 1.0, 0.76);
 
   /* ---------- Crest on the chest (always on; layer 5 makes it glow) ---------- */
   const crestMat = new THREE.MeshStandardMaterial({ color: 0xffe2a0, emissive: 0xe8a840, emissiveIntensity: 0.6, metalness: 0.6, roughness: 0.3, side: THREE.DoubleSide });
-  const crestDisc = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 32), goldMat, crestSock, 0, 0, -0.002);
+  const crestDisc = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 32), trimMat, crestSock, 0, 0, -0.002);
   crestDisc.rotation.x = Math.PI / 2;
   const crest = crestGroup(crestMat, 0.022);
   crest.name = "Crest";
@@ -290,7 +299,7 @@ function buildStandIn() {
   [[upperArmL, 1], [upperArmR, -1]].forEach(([b, s]) => {
     for (let i = 0; i < 3; i++) {
       const cap = mesh(new THREE.SphereGeometry(0.088 - i * 0.008, 28, 14, 0, Math.PI * 2, 0, Math.PI * (0.42 - i * 0.04)),
-        i === 1 ? pearlMat : goldMat, b, s * (0.008 + i * 0.012), 0.04 - i * 0.045, 0);
+        i === 1 ? trimMat : plateMat, b, s * (0.008 + i * 0.012), 0.04 - i * 0.045, 0);
       cap.scale.set(1.0, 0.78, 0.94);
       cap.rotation.z = s * (-0.25 - i * 0.12);
     }
@@ -299,12 +308,12 @@ function buildStandIn() {
 
   /* ---------- Arms: bracers on the forearm, couter on the elbow, bare hands ---------- */
   [[upperArmL, lowerArmL, handL, 1], [upperArmR, lowerArmR, handR, -1]].forEach(([ua, la, hand, side]) => {
-    plate(la, goldMat, 0.041, 0.037, 0.15, 0, Math.PI * 2, 0, -0.14, 0, 28);
+    plate(la, plateMat, 0.041, 0.037, 0.15, 0, Math.PI * 2, 0, -0.14, 0, 28);
     seam(la, 0.043, 0, -0.07, 0);
     seam(la, 0.039, 0, -0.205, 0);
-    const insert = plate(la, pearlMat, 0.0425, 0.0385, 0.08, -0.6, 1.2, 0, -0.14, 0, 16);
+    const insert = plate(la, trimMat, 0.0425, 0.0385, 0.08, -0.6, 1.2, 0, -0.14, 0, 16);
     insert.scale.set(1.02, 1, 1.02);
-    const elbow = mesh(new THREE.SphereGeometry(0.04, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), goldMat, la, 0, 0.0, -0.012);
+    const elbow = mesh(new THREE.SphereGeometry(0.04, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), plateMat, la, 0, 0.0, -0.012);
     elbow.rotation.x = -Math.PI / 2 - 0.3; elbow.scale.set(1, 1, 0.6);
     mesh(new THREE.CylinderGeometry(0.022, 0.026, 0.06, 12), skinMat, la, 0, -0.23, 0);
     const palm = mesh(new THREE.SphereGeometry(0.038, 18, 12), skinMat, hand, 0, -0.028, 0);
@@ -334,28 +343,38 @@ function buildStandIn() {
   const legParts = [];
   [[upperLegL, lowerLegL, footL, 1], [upperLegR, lowerLegR, footR, -1]].forEach(([ul, ll, ft, s]) => {
     /* tassets: two lames hinged at the hip line, parented to the THIGH, front and outside */
-    const t1 = plate(ul, goldMat, 0.098, 0.104, 0.12, s > 0 ? -0.35 : -1.05, 1.4, 0, -0.05, 0.005, 24);
-    const t2 = plate(ul, pearlMat, 0.1, 0.104, 0.07, s > 0 ? -0.3 : -1.0, 1.3, 0, -0.135, 0.005, 20);
+    const t1 = plate(ul, plateMat, 0.098, 0.104, 0.12, s > 0 ? -0.35 : -1.05, 1.4, 0, -0.05, 0.005, 24);
+    const t2 = plate(ul, trimMat, 0.1, 0.104, 0.07, s > 0 ? -0.3 : -1.0, 1.3, 0, -0.135, 0.005, 20);
     seam(ul, 0.099, 0, -0.105, 0.005, 1.3, Math.PI / 2).rotation.z = s > 0 ? -0.3 : Math.PI + 0.3 - 1.3 + 1.3;
     t1.name = s > 0 ? "TassetL" : "TassetR"; t2.name = t1.name + "2";
     /* cuisse on the thigh */
-    plate(ul, goldMat, 0.08, 0.07, 0.17, -1.0, 2.0, 0, -0.29, 0.0, 24);
+    plate(ul, plateMat, 0.08, 0.07, 0.17, -1.0, 2.0, 0, -0.29, 0.0, 24);
     /* poleyn (knee) on the SHIN bone top, so it bends with the knee */
-    const knee = mesh(new THREE.SphereGeometry(0.05, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), goldMat, ll, 0, 0.0, 0.03);
+    const knee = mesh(new THREE.SphereGeometry(0.05, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), plateMat, ll, 0, 0.0, 0.03);
     knee.rotation.x = Math.PI / 2 - 0.15; knee.scale.set(1, 1, 0.55);
     seam(ll, 0.034, 0, 0.0, 0.054, Math.PI * 2, 0);
     /* greave wraps the SHIN */
-    const gr = plate(ll, goldMat, 0.06, 0.05, 0.3, -1.25, 2.5, 0, -0.21, 0.004, 28);
+    const gr = plate(ll, plateMat, 0.06, 0.05, 0.3, -1.25, 2.5, 0, -0.21, 0.004, 28);
     gr.name = s > 0 ? "GreaveL" : "GreaveR";
-    plate(ll, pearlMat, 0.0615, 0.0515, 0.18, -0.35, 0.7, 0, -0.2, 0.004, 12);
+    plate(ll, trimMat, 0.0615, 0.0515, 0.18, -0.35, 0.7, 0, -0.2, 0.004, 12);
     seam(ll, 0.057, 0, -0.07, 0.004, 2.5, Math.PI / 2).rotation.z = 0;
     /* sabaton on the FOOT */
-    const sb = mesh(new THREE.SphereGeometry(0.05, 20, 12), goldMat, ft, 0, -0.035, 0.045);
+    const sb = mesh(new THREE.SphereGeometry(0.05, 20, 12), plateMat, ft, 0, -0.035, 0.045);
     sb.scale.set(0.82, 0.6, 1.75);
-    const heel = mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.05, 16), goldMat, ft, 0, -0.035, -0.01);
+    const heel = mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.05, 16), plateMat, ft, 0, -0.035, -0.01);
     heel.castShadow = true;
     seam(ft, 0.05, 0, -0.012, 0.02, Math.PI * 2, Math.PI / 2, 0.84, 1.6);
-    legParts.push(t1, t2, gr);
+    /* v06: plate over the glutes (rides the THIGH) and a knee-back lame (rides the SHIN) */
+    const glute = plate(ul, plateMat, 0.088, 0.098, 0.15, Math.PI - 1.0, 2.0, 0, -0.06, -0.012, 24);
+    glute.name = s > 0 ? "GluteL" : "GluteR";
+    seam(ul, 0.093, 0, -0.135, -0.012, 1.6, Math.PI / 2).rotation.z = Math.PI / 2 + 0.8;
+    const kb = plate(ll, plateMat, 0.054, 0.056, 0.07, Math.PI - 0.9, 1.8, 0, -0.06, -0.004, 16);
+    kb.name = s > 0 ? "KneeBackL" : "KneeBackR";
+    /* v06 back of the leg: thigh and calf plates (each on its own bone) */
+    plate(ul, plateMat, 0.076, 0.066, 0.17, Math.PI - 1.1, 2.2, 0, -0.29, -0.002, 20).name = s > 0 ? "CuisseBackL" : "CuisseBackR";
+    plate(ll, plateMat, 0.058, 0.047, 0.24, Math.PI - 1.2, 2.4, 0, -0.24, -0.004, 20).name = s > 0 ? "CalfL" : "CalfR";
+    seam(ll, 0.055, 0, -0.12, -0.004, 2.4, Math.PI / 2).rotation.z = Math.PI / 2 + 1.2;
+    legParts.push(t1, t2, gr, glute, kb);
   });
 
   /* ---------- Head: original face, blonde hair, gold horns ---------- */
@@ -422,8 +441,9 @@ function buildStandIn() {
       p.setXYZ(i, v.x, v.y, v.z);
     }
     hg.computeVertexNormals();
-    const h = mesh(hg, goldMat, head, s * 0.048, 0.17, -0.006);
+    const h = mesh(hg, trimMat, head, s * 0.046, 0.16, -0.006);
     h.rotation.z = s * -0.18;
+    h.scale.setScalar(0.72); /* v06: small gold horns */
   });
 
   /* ---------- Halo ---------- */
@@ -432,53 +452,94 @@ function buildStandIn() {
   halo.castShadow = false;
   halo.name = "Halo";
 
-  /* ---------- Wings: large white feathered wings, tips reaching the knees ---------- */
+  /* ---------- Wings (v06): full white wings growing from between the shoulder blades ----------
+     Built on the WingL/WingR bones behind the back plate. Smooth layered rows: scapulars and
+     coverts near the root, secondaries, and long primaries whose tips reach below the knees.
+     Feathers are rounded, cupped and slightly varied so the wing reads as one soft shape. */
+  const featherMat2 = cloth(0xe9e5dd, 0xffffff, { side: THREE.DoubleSide, roughness: 0.75 });
+  function softFeather(len, wid) {
+    const sh = new THREE.Shape();
+    sh.moveTo(-wid * 0.25, 0);
+    sh.quadraticCurveTo(-wid, len * 0.5, -wid * 0.6, len * 0.9);
+    sh.quadraticCurveTo(-wid * 0.1, len * 1.04, wid * 0.45, len * 0.92);
+    sh.quadraticCurveTo(wid * 0.85, len * 0.5, wid * 0.25, 0);
+    sh.lineTo(-wid * 0.25, 0);
+    const g = new THREE.ShapeGeometry(sh, 8);
+    const p = g.attributes.position;
+    for (let k = 0; k < p.count; k++) {
+      const x = p.getX(k), y = p.getY(k);
+      p.setZ(k, -0.35 * x * x / Math.max(wid, 0.001) + 0.04 * len * Math.pow(y / len, 2));
+    }
+    g.computeVertexNormals();
+    return g;
+  }
   function makeWing(sock, side) {
     const g = new THREE.Group();
     g.name = side > 0 ? "WingMeshL" : "WingMeshR";
-    const n = LITE ? 14 : 22;
-    const edge = (t) => new THREE.Vector3(side * (0.03 + 0.5 * t), 0.08 + 0.3 * Math.sin(t * Math.PI * 0.75), -0.05 - 0.08 * t);
-    /* primaries and secondaries hang from the top edge; coverts layer over them */
-    [[1.0, 0.075, 0.0], [0.55, 0.068, 0.015], [0.3, 0.06, 0.03]].forEach(([scale, wid, dz], row) => {
-      for (let i = 0; i < n; i++) {
-        const t = i / (n - 1);
+    g.rotation.y = side * 0.42; /* swept back from the shoulder blades */
+    const n = LITE ? 18 : 30;
+    /* leading edge: up and out from the root, then over and down toward the tip */
+    const edge = (t) => new THREE.Vector3(side * (0.05 + 0.64 * t), 0.02 + 0.44 * Math.sin(Math.min(1, t * 1.35) * Math.PI * 0.5) - 0.2 * Math.max(0, t - 0.6), -0.01 - 0.05 * t);
+    const rows = [
+      /* [length scale, width, z offset, material, length curve] */
+      [1.0, 0.07, 0.0, featherMat2, (t) => 0.14 + 1.12 * Math.pow(t, 0.85)],
+      [0.62, 0.075, -0.012, featherMat, (t) => 0.22 + 0.85 * t],
+      [0.36, 0.07, -0.024, featherMat, (t) => 0.4 + 0.55 * t],
+      [0.18, 0.06, -0.034, featherMat, () => 0.8]
+    ];
+    rows.forEach(([scale, wid, dz, fm, curve], row) => {
+      const cnt = row === 3 ? Math.round(n * 0.8) : n;
+      for (let i = 0; i < cnt; i++) {
+        const t = i / (cnt - 1);
         const e = edge(t);
-        const len = scale * (0.35 + 0.95 * Math.pow(t, 0.8));
-        const f = new THREE.Mesh(featherGeo(len, wid * (1.2 + t * 0.5)), featherMat);
-        f.position.set(e.x, e.y - row * 0.03, e.z + dz);
-        f.rotation.set(0.05, side * 0.25, Math.PI + side * (0.05 + t * 0.22));
-        f.castShadow = true;
+        const len = scale * curve(t) * (0.94 + 0.12 * hn(i * 3.7 + row * 11));
+        const f = new THREE.Mesh(softFeather(len, wid * (1.1 + t * 0.4)), fm);
+        f.position.set(e.x, e.y - row * 0.012, e.z + dz);
+        f.rotation.set(0.04, side * 0.12, Math.PI + side * (0.5 * (1 - t) + t * 0.3 + row * 0.02)); /* inner feathers angle outward so the back shows */
+        f.castShadow = row < 2;
+        f.receiveShadow = true;
         g.add(f);
       }
     });
+    /* the wing's arm: a smooth covert band along the leading edge that hides the feather roots */
+    const pts = [];
+    for (let k = 0; k <= 24; k++) { const e = edge(k / 24); pts.push(new THREE.Vector3(e.x, e.y, e.z - 0.04)); }
+    const arm = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.03, 10, false), featherMat);
+    arm.scale.set(1, 1, 0.55);
+    arm.castShadow = true;
+    g.add(arm);
     sock.add(g);
     return g;
   }
-  makeWing(wingL, 1);
-  makeWing(wingR, -1);
+  const wingMeshL = makeWing(wingL, 1);
+  const wingMeshR = makeWing(wingR, -1);
 
-  /* ---------- Floating grimoire (new design: emerald leather, gold corners) ---------- */
+  /* ---------- Floating grimoire (v06: white leather and gold, five-leaf crest, no chain) ---------- */
   const book = new THREE.Group();
   book.name = "Book";
-  const coverMat = new THREE.MeshPhysicalMaterial({ color: 0x0e5a42, roughness: 0.45, sheen: 0.5, sheenColor: new THREE.Color(0x6ac8a0), clearcoat: 0.2 });
+  const coverMat = new THREE.MeshPhysicalMaterial({ color: 0xf2ede3, roughness: 0.42, sheen: 0.4, sheenColor: new THREE.Color(0xfff2d8), clearcoat: 0.25 });
   const pagesMat = mat(0xefe2c0, { roughness: 0.95 });
   mesh(new THREE.BoxGeometry(0.2, 0.27, 0.012), coverMat, book, 0, 0, 0.026);
   mesh(new THREE.BoxGeometry(0.2, 0.27, 0.012), coverMat, book, 0, 0, -0.026);
   mesh(new THREE.BoxGeometry(0.19, 0.258, 0.042), pagesMat, book, 0.004, 0, 0);
   mesh(new THREE.BoxGeometry(0.016, 0.27, 0.064), coverMat, book, -0.1, 0, 0);
-  [-0.09, -0.03, 0.03, 0.09].forEach((y) => mesh(new THREE.BoxGeometry(0.019, 0.008, 0.066), goldMat, book, -0.1, y, 0));
+  [-0.09, -0.03, 0.03, 0.09].forEach((y) => mesh(new THREE.BoxGeometry(0.019, 0.008, 0.066), trimMat, book, -0.1, y, 0));
   [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([sx, sy]) => {
-    const c = mesh(new THREE.BoxGeometry(0.04, 0.04, 0.068), goldMat, book, sx * 0.082, sy * 0.117, 0);
+    const c = mesh(new THREE.BoxGeometry(0.04, 0.04, 0.068), trimMat, book, sx * 0.082, sy * 0.117, 0);
     c.scale.set(1, 1, 1);
   });
-  const medal = mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.006, 40), goldMat, book, 0.005, 0, 0.033);
+  const medal = mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.006, 40), trimMat, book, 0.005, 0, 0.033);
   medal.rotation.x = Math.PI / 2;
+  [[0, 0.118, 0.17, 0.005], [0, -0.118, 0.17, 0.005], [0.083, 0, 0.005, 0.23], [-0.072, 0, 0.005, 0.23]].forEach(([x, y, w, h]) => {
+    mesh(new THREE.BoxGeometry(w, h, 0.002), trimMat, book, x, y, 0.033);
+    mesh(new THREE.BoxGeometry(w, h, 0.002), trimMat, book, x, y, -0.033);
+  });
   const glowMat = new THREE.MeshStandardMaterial({ color: 0xffe7a8, emissive: 0xffb84a, emissiveIntensity: 1.4, roughness: 0.4, side: THREE.DoubleSide });
   const bookCrest = crestGroup(glowMat, 0.038);
   bookCrest.position.set(0.005, 0, 0.037);
   book.add(bookCrest);
   const page = new THREE.Object3D(); page.name = "Page"; book.add(page);
-  const bookLight = new THREE.PointLight(0xffc56a, 0.5, 1.4, 2);
+  const bookLight = new THREE.PointLight(0xffd690, 0.3, 1.0, 2);
   bookLight.position.set(0, 0, 0.15);
   book.add(bookLight);
   /* gold aura: a soft additive glow and a ring of drifting sparks */
@@ -486,8 +547,10 @@ function buildStandIn() {
   const bookAura = new THREE.Sprite(new THREE.SpriteMaterial({ map: auraTex, color: 0xffcf7a, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
   bookAura.scale.set(0.55, 0.55, 1);
   book.add(bookAura);
+  bookAura.visible = false; /* v06: no aura on the avatar */
   const sparks = makeSparks(LITE ? 24 : 48, 0.22);
   book.add(sparks);
+  sparks.visible = false;
   const bookHolder = new THREE.Group();
   bookHolder.name = "BookFloat";
   bookHolder.position.set(0.52, 1.12, 0.12);
@@ -500,13 +563,23 @@ function buildStandIn() {
   bodyAura.scale.set(1.5, 2.3, 1);
   bodyAura.position.set(0, 1.0, -0.2);
   root.add(bodyAura);
+  bodyAura.visible = false;
 
-  root.userData.parts = { halo, armor, crest, crestMat, book, bookHolder, page, wingL, wingR, bookLight, glowMat, bookAura, bodyAura, sparks, seamMat, legParts, featherMat };
+  /* Crystal prism staff (glyph upgrade, off by default): StaffSocket under HandR per the shared skeleton standard */
+  const staffSock = bone("StaffSocket", handR, 0, -0.06, 0.02);
+  const staff = new THREE.Group(); staff.name = "Staff"; staff.visible = false;
+  mesh(new THREE.CylinderGeometry(0.011, 0.013, 1.5, 12), trimMat, staff, 0, 0.2, 0);
+  const prismMat = new THREE.MeshPhysicalMaterial({ color: 0xf4f8ff, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.72, iridescence: 1, iridescenceIOR: 1.6, clearcoat: 1, emissive: 0x9ab8ff, emissiveIntensity: 0.25 });
+  const prism = mesh(new THREE.OctahedronGeometry(0.06, 0), prismMat, staff, 0, 1.0, 0);
+  prism.scale.set(0.8, 1.6, 0.8);
+  mesh(new THREE.TorusGeometry(0.035, 0.005, 6, 24), trimMat, staff, 0, 0.93, 0).rotation.x = Math.PI / 2;
+  staffSock.add(staff);
+  root.userData.parts = { halo, armor, crest, crestMat, book, bookHolder, page, wingL, wingR, wingMeshL, wingMeshR, bookLight, glowMat, bookAura, bodyAura, sparks, seamMat, legParts, featherMat, coverMat, staff, prism, seamBase: 1.8 };
   /* Glyph hook: every piece carries a meaning drawn from Sage's written intel (Jacob, 2026-11-22).
      Meanings are mapped by a separate sheet run and are NOT invented here; a later "glyph meanings"
      panel fills GLYPH_MEANINGS[key] and reads these part keys. */
   glyphParts = { armor, pauldrons: [upperArmL, upperArmR], bracers: [lowerArmL, lowerArmR], legArmor: legParts,
-    halo, horns: head, crest, grimoire: book, wings: [wingL, wingR], colors: { goldMat, pearlMat, suitMat, seamMat } };
+    halo, horns: head, crest, grimoire: book, wings: [wingL, wingR], staff, colors: { plateMat, trimMat, suitMat, seamMat } };
   return root;
 }
 
@@ -541,6 +614,28 @@ function makeSparks(count, radius) {
   return p;
 }
 
+/* Webverse glyph upgrades (playtest picks). Procedural Sage only; a GLB ignores what it lacks. */
+const SEAM_TIERS = { proven: 3.0, claimed: 1.8, reported: 1.0, unknown: 0.45 };
+function applyUpgrade(root, key, val) {
+  const parts = (root && root.userData.parts) || {};
+  if (key === "seams" && SEAM_TIERS[val] != null) {
+    parts.seamBase = SEAM_TIERS[val];
+    if (parts.seamMat) parts.seamMat.emissive.setHex(val === "reported" ? 0xfff4e0 : 0xffc870);
+  } else if (key === "staff" && parts.staff) {
+    parts.staff.visible = val === "prism";
+  } else if (key === "grimoire" && parts.coverMat) {
+    parts.coverMat.color.setHex(val === "emerald" ? 0x0e5a42 : 0xf2ede3);
+    parts.coverMat.sheenColor.setHex(val === "emerald" ? 0x6ac8a0 : 0xfff2d8);
+  } else if (key === "halo" && parts.halo) {
+    parts.halo.scale.setScalar(val === "wide" ? 1.25 : 1);
+    parts.halo.material.emissiveIntensity = val === "wide" ? 3.0 : 2.2;
+  } else if (key === "wings" && parts.wingMeshL) {
+    const fold = val === "folded";
+    [[parts.wingMeshL, 1], [parts.wingMeshR, -1]].forEach(([w, sd]) => { w.rotation.y = sd * (fold ? 1.2 : 0.42); w.scale.x = fold ? 0.7 : 1; });
+  } else return false;
+  return true;
+}
+
 /* Talking to Sage still unlocks five looks; on v04 they brighten what she already wears. */
 function applyAttachments(root, unlocked) {
   const parts = root.userData.parts || {};
@@ -551,9 +646,8 @@ function applyAttachments(root, unlocked) {
   if (parts.wingL) parts.wingL.visible = true;
   if (parts.wingR) parts.wingR.visible = true;
   if (parts.featherMat) parts.featherMat.emissive.setHex(unlocked >= 2 ? 0x3a3020 : 0x000000);
-  if (parts.armor && parts.armor.userData.mat) parts.armor.userData.mat.color.setHex(unlocked >= 3 ? 0xd9a656 : 0xc8954a);
-  if (parts.seamMat) parts.seamMat.emissiveIntensity = unlocked >= 3 ? 2.6 : 1.8;
-  if (parts.bodyAura) parts.bodyAura.material.opacity = unlocked >= 4 ? 0.28 : 0.16;
+  if (parts.armor && parts.armor.userData.mat) parts.armor.userData.mat.sheen = unlocked >= 3 ? 0.6 : 0.25;
+  if (parts.bookLight) parts.bookLight.userData.boost = unlocked >= 4 ? 0.25 : 0;
   if (parts.crestMat) parts.crestMat.emissiveIntensity = unlocked >= 5 ? 2.2 : 0.6;
   const status = document.getElementById("layer-status");
   if (status) {
@@ -816,7 +910,7 @@ async function boot() {
     usingGLB = false;
     if (label) {
       label.hidden = false;
-      label.textContent = "Sage, v04 look (built in code)";
+      label.textContent = "Sage, v06 look (built in code)";
     }
   }
   scene.add(sage);
@@ -940,10 +1034,10 @@ async function boot() {
       }
       sp.needsUpdate = true;
     }
-    if (parts.bookLight) parts.bookLight.intensity = 0.35 + pulse * 0.3 + (name === "talk" ? 0.4 : 0);
-    if (parts.glowMat) parts.glowMat.emissiveIntensity = 1.1 + pulse * 0.9 + (name === "talk" ? 1 : 0);
+    if (parts.bookLight) parts.bookLight.intensity = 0.2 + pulse * 0.15 + (parts.bookLight.userData.boost || 0) + (name === "talk" ? 0.3 : 0);
+    if (parts.glowMat) parts.glowMat.emissiveIntensity = 0.9 + pulse * 0.5 + (name === "talk" ? 0.8 : 0);
     if (parts.bookAura) parts.bookAura.material.opacity = 0.4 + pulse * 0.25;
-    if (parts.seamMat) parts.seamMat.emissiveIntensity = (unlocked >= 3 ? 2.4 : 1.6) + pulse * 0.5;
+    if (parts.seamMat) parts.seamMat.emissiveIntensity = (parts.seamBase || 1.8) * (unlocked >= 3 ? 1.25 : 1) + pulse * 0.25 * (parts.seamBase || 1.8);
   }
 
   function setState(name) {
@@ -1025,6 +1119,7 @@ async function boot() {
   });
 
   let tWalkFixed = 0;
+  let manualYaw = null;
   if (flags.pose) {
     posed = true;
     if (flags.pose === "walk") {
@@ -1047,8 +1142,18 @@ async function boot() {
     state: () => state,
     usingGLB: () => usingGLB,
     layers: () => unlocked,
-    stop: () => { hidden = true; renderer.dispose(); yard.hidden = true; }
+    stop: () => { hidden = true; renderer.dispose(); yard.hidden = true; },
+    /* Webverse playtest controls (client-side only) */
+    pose: (name) => {
+      if (name === "walk") { dest = wanderTarget(); setState("walk"); nextAt = 99; return; }
+      if (name === "stride") { tWalkFixed = 0.22; }
+      dest = null; setState(name); nextAt = name === "idle_pages" ? 3 : 7;
+    },
+    setYaw: (r) => { manualYaw = (r == null || isNaN(r)) ? null : r; },
+    upgrade: (key, val) => applyUpgrade(sage, key, val),
+    glyphKeys: () => Object.keys(GLYPH_MEANINGS)
   };
+  window.dispatchEvent(new Event("ckw:sage3d-ready"));
 
   let tWalk = 0;
   const mp = motes.geometry.attributes.position, seeds = motes.userData.seed;
@@ -1085,6 +1190,8 @@ async function boot() {
         faceToward(dest.x, dest.z, dt, 2.4);
         tWalk += dt;
       }
+    } else if (manualYaw != null) {
+      yaw = lerp(yaw, manualYaw, Math.min(1, dt * 8)); sage.rotation.y = yaw;
     } else if (flags.yaw != null && posed) {
       yaw = parseFloat(flags.yaw) || 0; sage.rotation.y = yaw;
     } else if (state !== "walk" && !dest) {
