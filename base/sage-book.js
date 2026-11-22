@@ -14,7 +14,7 @@ const GAP = 10, EDGE = 8, DRAG_PX = 6;
 let pos = null, drag = null, suppressClick = false;
 
 function vw() { return document.documentElement.clientWidth || window.innerWidth; }
-function vh() { return window.innerHeight; }
+function vh() { return document.documentElement.clientHeight || window.innerHeight; }
 function size() { return { w: book.offsetWidth || 56, h: book.offsetHeight || 56 }; }
 function clampPos(p) {
   const s = size();

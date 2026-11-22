@@ -48,3 +48,16 @@
 /* while the scroll is open, the page behind it steps back so the scroll's text reads cleanly */
 body.sage-open main > :not(.sage) { opacity: .16; transition: opacity .2s ease; }
 @media (prefers-reduced-motion: reduce) { body.sage-open main > :not(.sage) { transition: none; } }
+.sage-scroll #sage-si-key { background: transparent; border: 0; border-bottom: 1px solid rgba(232,200,119,.75); border-radius: 0; color: #fff8e6; }
+/* standalone basics so the book works on pages without base.css (e.g. /sage/) */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; padding: 0; border: 0; }
+.sage-scroll .sage-log { display: flex; flex-direction: column; min-height: 120px; }
+.sage-scroll .msg { margin: 0; white-space: pre-wrap; }
+.sage-scroll .msg-sage { align-self: flex-start; }
+.sage-scroll .msg-you { align-self: flex-end; }
+.sage-scroll .sage-form { display: flex; }
+.sage-scroll .sage-form input { flex: 1; min-width: 0; font: inherit; }
+.sage-scroll .btn { border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; }
+.sage-scroll .si-badge { display: inline-block; margin-left: 6px; font-size: 11px; padding: 0 6px; border-radius: 4px; border: 1px solid #8f8a7c; color: #e6dfcb; vertical-align: middle; }
+.sage-scroll .si-badge.verified { border-color: #c9a44c; color: #0a0a0b; background: #c9a44c; font-weight: 700; }
+.sage-scroll :focus-visible { outline: 2px solid #ffd98a; outline-offset: 2px; }

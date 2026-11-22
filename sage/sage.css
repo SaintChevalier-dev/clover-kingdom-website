@@ -24,3 +24,9 @@ body { position: relative; }
 .seat-card ul { margin: 8px 0 0; padding-left: 18px; font-size: 15px; }
 a:focus-visible, summary:focus-visible { outline: 2px solid #c9a44c; outline-offset: 2px; }
 .sg-foot a { white-space: nowrap; }
+/* v4: no boxes; text sits on the page with a soft shadow */
+pre { background: transparent; border: 0; border-left: 2px solid rgba(232,200,119,.6); border-radius: 0; padding: 4px 0 4px 12px; text-shadow: 0 1px 2px #000; }
+pre:focus-visible { outline: 2px solid #e8c877; outline-offset: 2px; }
+.seat { background: transparent; }
+.sg p code, .sg li code { overflow-wrap: anywhere; word-break: break-word; }
+.sg { overflow-wrap: anywhere; }
