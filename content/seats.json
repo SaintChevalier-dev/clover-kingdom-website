@@ -10,6 +10,19 @@
     "sections.*.items.*": "public card lines or notes",
     "sections.*.links.*.label": "link text"
   },
+  "fieldLabels": {
+    "title": "page title",
+    "intro": "page intro",
+    "sections.*.heading": "name",
+    "sections.*.kicker": "tag",
+    "sections.*.paragraphs.0": "lane line",
+    "sections.*.paragraphs.1": "where it lives line",
+    "sections.*.items.*": "card line",
+    "notes:heading": "heading",
+    "notes:items.*": "note",
+    "sections.*.links.*.label": "link text",
+    "sections.*.links.*.href": "link address"
+  },
   "title": "The day-one seats",
   "intro": "Four archetypes hold the first seats in the Webverse. Each one has one lane. The lines below come only from the Kingdom's written seat records. An archetype is an SI: an AI seat with its own name and job.",
   "sections": [

@@ -8,6 +8,17 @@
     "sections.*.items.*.text": "rest of a list item",
     "sections.*.paragraphs.*": "paragraph under the list"
   },
+  "fieldLabels": {
+    "title": "page title",
+    "intro": "page intro",
+    "sections.*.heading": "heading",
+    "sections.*.paragraphs.*": "paragraph",
+    "sections.*.items.*": "item",
+    "sections.*.items.*.title": "item lead",
+    "sections.*.items.*.text": "item text",
+    "sections.*.links.*.label": "link text",
+    "sections.*.links.*.href": "link address"
+  },
   "title": "Tek Tribe party painting",
   "intro": "A Tek Tribe skill for anyone who runs Grok Bots. Pick your top three bots, paint them together as one party, and let the painting grow only as the party really gets better.",
   "sections": [

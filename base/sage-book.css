@@ -74,3 +74,9 @@ body.sage-open main > :not(.sage) { opacity: .16; transition: opacity .2s ease; 
 .sage-scroll .sage-edit-login { display: flex; gap: 8px; align-items: center; }
 .sage-scroll .sage-edit-login input { flex: 1 1 auto; background: transparent; border: 0; border-bottom: 1px solid rgba(232,200,119,.75); color: #fff8e6; padding: 6px 2px; }
 .sage-scroll .sage-edit-plan summary { cursor: pointer; color: #ffd98a; }
+.sage-scroll .sage-edit-label { display: block; font-weight: 700; color: #ffe3a0; }
+.sage-scroll .sage-edit-path { opacity: .6; font-weight: 400; font-size: 11px; }
+.sage-scroll .sage-edit-choices { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
+.sage-scroll .sage-edit-choice { text-align: left; background: transparent; color: #f6efdc; border: 1px solid rgba(232,200,119,.6); padding: 6px 10px; cursor: pointer; text-shadow: var(--ck-shadow); }
+.sage-scroll .sage-edit-choice .sage-edit-current { display: block; font-size: 12px; opacity: .85; }
+.sage-scroll .sage-edit-ask .btn-quiet { align-self: flex-start; background: transparent; color: #ffd98a; border: 0; text-decoration: underline; cursor: pointer; }

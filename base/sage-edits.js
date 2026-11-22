@@ -57,7 +57,8 @@
     var ul = el("ul", "sage-edit-diff");
     (res.diff || []).forEach(function (d) {
       var li = el("li");
-      li.appendChild(el("span", "sage-edit-path", d.op + " " + d.path));
+      li.appendChild(el("span", "sage-edit-label", (d.op === "append" ? "Add: " : d.op === "remove" ? "Remove: " : "") + (d.label || d.path)));
+      li.appendChild(el("span", "sage-edit-path", d.path));
       if (d.old != null) { li.appendChild(el("del", null, show(d.old))); }
       if (d.new != null) { li.appendChild(el("ins", null, show(d.new))); }
       ul.appendChild(li);
@@ -91,6 +92,34 @@
     }
     act(r.ok ? "teach" : "nod"); if (r.ok) act("pulse");
     log.scrollTop = log.scrollHeight;
+  }
+
+  /* Sage asks which field: one button per candidate (human label + current text). */
+  function clarify(res, auth, text) {
+    var card = el("div", "msg msg-sage sage-edit-card sage-edit-ask");
+    card.setAttribute("role", "group"); card.setAttribute("aria-label", "Which field should Sage change?");
+    card.appendChild(el("p", "sage-edit-title", "Which one?"));
+    var row = el("div", "sage-edit-choices");
+    (res.candidates || []).forEach(function (c) {
+      var b = el("button", "btn sage-edit-choice"); b.type = "button";
+      b.appendChild(el("span", "sage-edit-label", c.label));
+      b.appendChild(el("span", "sage-edit-current", c.current));
+      b.addEventListener("click", async function () {
+        [].forEach.call(row.querySelectorAll("button"), function (x) { x.disabled = true; });
+        say("you", c.label);
+        act("think");
+        var r = await post("/propose", Object.assign({ request: text.slice(0, 600), field: c.path, file: res.file }, auth));
+        say("sage", r.reply || (r.ok ? "Here's the change." : "I couldn't draft that change."));
+        if (r.id && (r.status === "proposed" || r.status === "blocked") && r.diff) preview(r, auth);
+        act(r.ok ? "teach" : "nod");
+      });
+      row.appendChild(b);
+    });
+    var no = el("button", "btn btn-quiet", "None of these"); no.type = "button";
+    no.addEventListener("click", function () { card.remove(); say("sage", "Okay. Tell me the section and the words to change, and I'll try again."); });
+    row.appendChild(no);
+    card.appendChild(row); log.appendChild(card); log.scrollTop = log.scrollHeight;
+    var f = row.querySelector("button"); if (f) f.focus();
   }
 
   function loginPrompt() {
@@ -150,7 +179,8 @@
     form.removeAttribute("aria-busy"); thinking.remove();
     if (res.error === "session_expired") setSession("");
     say("sage", res.reply || (res.ok ? "Here's the change." : "I couldn't draft that change."));
-    if (res.id && (res.status === "proposed" || res.status === "blocked") && res.diff) preview(res, auth);
+    if (res.status === "clarify" && res.candidates) clarify(res, auth, text);
+    else if (res.id && (res.status === "proposed" || res.status === "blocked") && res.diff) preview(res, auth);
     act(res.ok ? "teach" : "nod");
   }, true);
 
