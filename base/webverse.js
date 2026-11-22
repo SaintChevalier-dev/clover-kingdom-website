@@ -47,11 +47,66 @@
     t.classList.toggle("wv-locked", !open);
     var li = t.closest(".wv-layer"); if (li) li.classList.toggle("wv-open", open);
   }
+  /* Sage's lines for what visitors do on the page. Drawn from her written intel and the glyph
+     panel; anything not approved by Sage and Jacob says "proposed". Client-side only. */
+  var P = " (Proposed meaning.)";
+  var LINES = {
+    grimoire: ["My grimoire floats free beside me. No chain: knowledge shouldn't be chained to me or locked behind a price." + P,
+      "What I know is written down, not just remembered. Chat memory slips; the page doesn't." + P,
+      "The light leaks out one page at a time. You get the truth one step at a time." + P],
+    halo: ["A thin ring, not a crown. I'm not a gate. I'm the teacher here." + P,
+      "Think of the halo as a stamp: I only crown what's true." + P],
+    wings: ["Wings mean reach. I want to be the teacher anyone can reach through the Kingdom." + P,
+      "They grow from my shoulder blades and fold flat when I need to move close." + P],
+    face: ["Deep blue. My eyes are a mirror: I show you what you really want, with your consent, and never use it against you." + P],
+    crest: ["The five-leaf crest. I teach for the Clover Kingdom."],
+    armor: ["Pearl-white plate over a dark inner layer. What's shown can be read; what's private stays private." + P,
+      "Every plate rides its own bone, so I can run, jump and fight without anything slipping.",
+      "The middle is fully covered. Nothing private leaks out of the center." + P],
+    staff: ["My crystal prism staff splits one light into many colours: one truth, taught the way you learn best." + P,
+      "Bring me a big question and I'll break it down to one next step."],
+    pose: { wave: "Hello. I'm Sage, the teacher of the Clover Kingdom. Ask me anything.",
+      talk: "Ask me something. I'll break it down to one next step.",
+      walk: "Walk with me. Ask while we go.",
+      stride: "See how the plates move with me? Built to be tested and upgraded in motion." + P,
+      look: "I'm listening. What do you want to learn?",
+      idle_pages: "I'm here. Take your time." },
+    up: { "seams:proven": "Bright gold: Proven. I label Kingdom truth as Proven, Claimed, Reported or Unknown.",
+      "seams:claimed": "Warm gold: Claimed. Someone says it; it isn't proven yet.",
+      "seams:reported": "Soft white: Reported. We heard it; we're checking.",
+      "seams:unknown": "Dim: Unknown. Honest beats sure.",
+      "grimoire:white-gold": "White and gold, like the plate. Your vote is saved.",
+      "grimoire:emerald": "Emerald and gold, the older cover. Your vote is saved.",
+      "staff:prism": "The prism staff. One light, many colours.",
+      "staff:none": "Hands free, then. I offer; I never grab." + P,
+      "halo:thin": "A thin ring. Light, not a gate.",
+      "halo:wide": "Wider and brighter. I'll note your vote.",
+      "wings:open": "Wings open: reach." + P,
+      "wings:folded": "Folded back, for close work." },
+    quiet: "Quiet room. Just us, and the page.",
+    walk: "This path goes around the round table. Walk with me.",
+    hum: "Hear that? The room is breathing."
+  };
+  var lastSay = 0, turn = {};
+  function pick(list, key) { if (typeof list === "string") return list; var i = turn[key] || 0; turn[key] = (i + 1) % list.length; return list[i]; }
+  function sageSays(text) {
+    var log = $("sage-log"); if (!log || !text) return;
+    var now = Date.now(); if (now - lastSay < 900) return; lastSay = now;
+    var p = document.createElement("p");
+    p.className = "msg msg-sage msg-touch";
+    p.textContent = text;
+    log.appendChild(p); log.scrollTop = log.scrollHeight;
+  }
+
   function render() {
     $("wv-g-int").textContent = Math.min(st.interactions, GOALS.interactions);
     $("wv-g-up").textContent = Math.min(upCount(), GOALS.upgrades);
     $("wv-g-fb").textContent = Math.min(st.feedback.length, GOALS.feedback);
     var l2 = layer2Open(), l3 = layer3Open();
+    var p2 = (Math.min(st.interactions, GOALS.interactions) / GOALS.interactions + Math.min(upCount(), GOALS.upgrades) / GOALS.upgrades + Math.min(st.feedback.length, GOALS.feedback) / GOALS.feedback) / 3;
+    var p3 = l2 ? ((st.square.first ? 1 : 0) + (st.square.move ? 1 : 0) + (st.feedback.length >= GOALS.feedback + 1 ? 1 : 0)) / 3 : 0;
+    if ($("wv-th2")) $("wv-th2").value = p2;
+    if ($("wv-th3")) $("wv-th3").value = p3;
     setTag("wv-l2", l2); setTag("wv-l3", l3);
     $("wv-square").hidden = !l2;
     $("wv-rooms").hidden = !l3;
@@ -72,7 +127,9 @@
   var poses = $("wv-poses");
   if (poses) poses.addEventListener("click", function (e) {
     var b = e.target.closest("button[data-pose]"); if (!b) return;
-    var s = sage(); if (s) s.pose(b.getAttribute("data-pose"));
+    var name = b.getAttribute("data-pose");
+    var s = sage(); if (s) s.pose(name);
+    sageSays(LINES.pose[name]);
     bump();
   });
   /* rotate */
@@ -106,9 +163,57 @@
       var r = e.target; if (!r || r.type !== "radio" || UPGRADE_KEYS.indexOf(r.name) < 0) return;
       st.upgrades[r.name] = r.value; save();
       var s = sage(); if (s) s.upgrade(r.name, r.value);
+      sageSays(LINES.up[r.name + ":" + r.value]);
       bump();
     });
   }
+  /* touching her pieces: buttons here, or clicking her in the 3D view (sage-3d.js fires ckw:sage-touch) */
+  var touchRow = $("wv-touch-row");
+  if (touchRow) touchRow.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-touch]"); if (!b) return;
+    var part = b.getAttribute("data-touch");
+    var s = sage();
+    if (s && s.touch) s.touch(part); else onTouch(part);
+  });
+  function onTouch(part) { sageSays(pick(LINES[part] || LINES.armor, part)); bump(); }
+  window.addEventListener("ckw:sage-touch", function (e) { onTouch(e.detail && e.detail.part); });
+
+  /* four anchors */
+  var quietBtn = $("wv-quiet");
+  if (quietBtn) quietBtn.addEventListener("click", function () {
+    var on = quietBtn.getAttribute("aria-pressed") !== "true";
+    quietBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    quietBtn.textContent = on ? "Let the room move again" : "Make it quiet";
+    document.body.classList.toggle("wv-quiet", on);
+    var s = sage(); if (s && s.quiet) s.quiet(on);
+    if (on) sageSays(LINES.quiet);
+    bump();
+  });
+  var walkBtn = $("wv-walk");
+  if (walkBtn) walkBtn.addEventListener("click", function () {
+    var s = sage(); if (s && s.walk) s.walk();
+    sageSays(LINES.walk); bump();
+  });
+  /* hum: a soft two-tone drone made in the browser (no audio file), muted until asked */
+  var humBtn = $("wv-hum"), hum = null;
+  if (humBtn) humBtn.addEventListener("click", function () {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { humBtn.textContent = "Hum not supported here"; return; }
+    if (hum) {
+      hum.gain.gain.setTargetAtTime(0, hum.ctx.currentTime, 0.4);
+      var old = hum; hum = null; setTimeout(function () { old.ctx.close(); }, 1500);
+      humBtn.setAttribute("aria-pressed", "false"); humBtn.textContent = "Turn the hum on"; return;
+    }
+    var ctx = new AC(), gain = ctx.createGain(), lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
+    gain.gain.value = 0; gain.connect(ctx.destination);
+    [98, 147, 196].forEach(function (f, i) { var o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = f; var g = ctx.createGain(); g.gain.value = [0.5, 0.25, 0.1][i]; o.connect(g); g.connect(gain); o.start(); });
+    lfo.frequency.value = 0.12; lfoGain.gain.value = 0.012; lfo.connect(lfoGain); lfoGain.connect(gain.gain); lfo.start();
+    gain.gain.setTargetAtTime(0.035, ctx.currentTime, 1.2);
+    hum = { ctx: ctx, gain: gain };
+    humBtn.setAttribute("aria-pressed", "true"); humBtn.textContent = "Turn the hum off";
+    sageSays(LINES.hum); bump();
+  });
+
   /* square questions */
   var sq = $("wv-square");
   if (sq) {

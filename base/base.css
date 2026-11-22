@@ -177,3 +177,15 @@ html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 syst
 .wv-st-proposed { background: #3a2f12; color: #f0d58a; }
 .wv-ref-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .wv-ref-row img { width: 100%; height: auto; border-radius: 8px; border: 1px solid #2a2a2e; background: #e8e6e2; }
+/* Webverse: Sage's touch replies, four anchors, threshold light, roadmap */
+.ckw-yard canvas { pointer-events: auto; }
+.wv-anchor-list, .wv-road { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; }
+.wv-anchor-list { list-style: none; padding-left: 0; }
+.wv-threshold { display: block; width: 100%; height: 6px; margin-top: 8px; }
+.wv-threshold::-webkit-meter-bar { background: #1c1c20; border: 0; border-radius: 3px; }
+.wv-threshold::-webkit-meter-optimum-value, .wv-threshold::-webkit-meter-suboptimum-value, .wv-threshold::-webkit-meter-even-less-good-value { background: linear-gradient(90deg, #6e5a2a, #ffd98a); border-radius: 3px; box-shadow: 0 0 8px #ffcf7a; }
+.wv-threshold::-moz-meter-bar { background: linear-gradient(90deg, #6e5a2a, #ffd98a); }
+.wv-layer.wv-open .wv-threshold { display: none; }
+.msg-sage.msg-touch { border-left: 2px solid #c9a44c; }
+body.wv-quiet .ckw-yard-label { opacity: 0.4; }
+.wv a { color: #e8c877; }
