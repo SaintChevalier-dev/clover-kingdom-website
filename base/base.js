@@ -212,7 +212,7 @@ const logoutBtn = document.getElementById("logout-btn");
    with ?login=failed|not_member on errors. */
 const RETURN_KEY = "ckw_return";
 const HERE = location.pathname === "/" ? "/" : "/base/";
-loginBtn.addEventListener("click", () => {
+if (loginBtn) loginBtn.addEventListener("click", () => {
   try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) { /* storage off: old behavior */ }
 });
 const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
@@ -247,8 +247,10 @@ if (location.pathname === "/") {
 const why = new URLSearchParams(location.search).get("login") || hashWhy;
 if (why) history.replaceState(null, "", location.pathname + location.hash);
 
+const hasLogin = !!(statusEl && loginBtn && logoutBtn); /* /sage/ has the chat but no login bar */
 function showSignedOut(msg) {
   session = null;
+  if (!hasLogin) { setGuestChrome(); return; }
   statusEl.textContent = msg || "Not logged in. Login is optional; guests can talk to Sage below.";
   loginBtn.hidden = false;
   logoutBtn.hidden = true;
@@ -256,6 +258,7 @@ function showSignedOut(msg) {
 }
 function showSignedIn(me) {
   session = me;
+  if (!hasLogin) { setGuestChrome(); return; }
   statusEl.textContent = "Logged in as " + ((me && me.name) || "member") + ".";
   loginBtn.hidden = true;
   logoutBtn.hidden = false;
@@ -267,11 +270,11 @@ function checkLogin() {
     .then((me) => (me && me.signedIn ? showSignedIn(me) : showSignedOut(LOGIN_WHY[why])))
     .catch(() => showSignedOut("Login service could not be reached. You can still talk to Sage as a guest."));
 }
-logoutBtn.addEventListener("click", () => {
+if (logoutBtn) logoutBtn.addEventListener("click", () => {
   fetch(CKW_AUTH + "/auth/logout", { method: "POST", credentials: "include" }).finally(checkLogin);
 });
 setGuestChrome();
-checkLogin();
+if (hasLogin) checkLogin();
 
 /* Sage */
 const log = document.getElementById("sage-log");
@@ -327,7 +330,7 @@ async function askLive(userText, who, pageEvent) {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 15000);
   try {
-    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6), session: PAGE_SESSION, page: location.pathname === "/" ? "front" : "base" };
+    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6), session: PAGE_SESSION, page: location.pathname === "/" ? "front" : location.pathname.indexOf("/sage") === 0 ? "sage" : "base" };
     if (who) body.visitor = who;
     if (pageEvent) body.pageEvent = pageEvent;
     const r = await fetch(SAGE_LIVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl.signal });
@@ -400,9 +403,18 @@ form.addEventListener("submit", async (e) => {
   busy = false;
 });
 
-const opening = answerAsSage("");
-say("sage", opening);
-silentWrite("", opening);
+/* The chat starts only when the visitor taps Sage's book (sage-book.js calls start). No opener before that. */
+let started = false;
+function startChat() {
+  if (started) return false;
+  started = true;
+  const opening = answerAsSage("");
+  say("sage", opening);
+  silentWrite("", opening);
+  act("greet");
+  return true;
+}
+window.CKWSageChat = { start: startChat, started: () => started };
 
 window.CKWGuestChat = {
   authMode: authMode,

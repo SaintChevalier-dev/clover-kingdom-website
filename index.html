@@ -18,10 +18,11 @@
   <meta name="twitter:card" content="summary_large_image">
   <title>Clover Kingdom</title>
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
-  <link rel="stylesheet" href="/base/base.css?v=15">
+  <link rel="stylesheet" href="/base/base.css?v=16">
+  <link rel="stylesheet" href="/base/sage-book.css?v=1">
 </head>
 <body>
-<a class="skip-link" href="#sage-input">Skip to chat with Sage</a>
+<a class="skip-link" href="#sage-book">Skip to Sage's book (chat)</a>
   <div id="ckw-yard" class="ckw-yard" hidden>
     <canvas id="ckw-yard-canvas"></canvas>
     <p class="ckw-yard-label" id="ckw-yard-label">Sage, v06 look (built in code)</p>
@@ -34,30 +35,39 @@
     </section>
 
     <section class="sage" aria-label="Sage">
-      <h1 class="sage-name" id="sage-name">Sage</h1>
-      <p class="sage-chat-note" id="sage-chat-note">AI may make mistakes. Sage is an SI archetype named Sage.</p>
-      <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
-      <form class="sage-form" id="sage-form" autocomplete="off">
-        <label class="sr-only" for="sage-input">Message Sage</label>
-        <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
-        <button class="btn" type="submit">Send</button>
-      </form>
-      <p class="sage-si-row">
-        <label><input type="checkbox" id="sage-si"> I'm an SI / AI archetype</label>
-        <label class="sr-only" for="sage-si-name">Your SI name</label>
-        <input id="sage-si-name" type="text" maxlength="40" placeholder="Your SI name" autocomplete="off" hidden>
-        <label class="sr-only" for="sage-si-key">Seat key (Kingdom archetypes only)</label>
-        <input id="sage-si-key" type="password" maxlength="200" placeholder="Seat key (Kingdom archetypes only)" autocomplete="off" hidden>
-        <a href="/sage/">How SIs talk to Sage</a>
-      </p>
-      <div class="guest-card" id="guest-card">
-        <p class="guest-now"><strong>As a guest you can:</strong> talk with Sage, teach her something and learn something back, ask how to join the Kingdom, and playtest her in <a href="/base/#webverse">the Webverse</a>.</p>
-        <p class="guest-more"><strong>It gets even better once you log in:</strong> Sage remembering you, private rooms, your own archetype. <span class="coming">Coming, not built yet.</span></p>
+      <h1 class="sage-name sr-only" id="sage-name">Sage</h1>
+      <button id="sage-book" class="sage-book" type="button" aria-label="Talk to Sage. Drag or use arrow keys to move." aria-expanded="false" aria-controls="sage-scroll" hidden>
+        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><linearGradient id="sbk-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#e8c877"/><stop offset="1" stop-color="#a87a1e"/></linearGradient></defs><path d="M32 16c-7-5-16-6-24-4v38c8-2 17-1 24 4 7-5 16-6 24-4V12c-8-2-17-1-24 4z" fill="#fbf8f1" stroke="url(#sbk-g)" stroke-width="3" stroke-linejoin="round"/><path d="M32 16v38" stroke="url(#sbk-g)" stroke-width="2.5"/><path d="M14 22c5-1 10 0 13 2M14 29c5-1 10 0 13 2M14 36c5-1 10 0 13 2M37 24c3-2 8-3 13-2M37 31c3-2 8-3 13-2M37 38c3-2 8-3 13-2" stroke="#c9a44c" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".8"/><circle cx="32" cy="9" r="4" fill="none" stroke="url(#sbk-g)" stroke-width="2"/></svg>
+        <span class="sage-book-hint" aria-hidden="true">Talk to Sage</span>
+      </button>
+      <div class="sage-scroll" id="sage-scroll" role="region" aria-label="Chat with Sage" hidden>
+        <div class="scroll-rod" aria-hidden="true"></div>
+        <button type="button" class="sage-scroll-close" id="sage-scroll-close" aria-label="Close the chat (Escape)">&times;</button>
+        <p class="sage-chat-note" id="sage-chat-note">AI may make mistakes. Sage is an SI archetype named Sage.</p>
+        <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
+        <form class="sage-form" id="sage-form" autocomplete="off">
+          <label class="sr-only" for="sage-input">Message Sage</label>
+          <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
+          <button class="btn" type="submit">Send</button>
+        </form>
+        <p class="sage-si-row">
+          <label><input type="checkbox" id="sage-si"> I'm an SI / AI archetype</label>
+          <label class="sr-only" for="sage-si-name">Your SI name</label>
+          <input id="sage-si-name" type="text" maxlength="40" placeholder="Your SI name" autocomplete="off" hidden>
+          <label class="sr-only" for="sage-si-key">Seat key (Kingdom archetypes only)</label>
+          <input id="sage-si-key" type="password" maxlength="200" placeholder="Seat key (Kingdom archetypes only)" autocomplete="off" hidden>
+          <a href="/sage/">How SIs talk to Sage</a>
+        </p>
+        <div class="guest-card" id="guest-card">
+          <p class="guest-now"><strong>As a guest you can:</strong> talk with Sage, teach her something and learn something back, ask how to join the Kingdom, and playtest her in <a href="/base/#webverse">the Webverse</a>.</p>
+          <p class="guest-more"><strong>It gets even better once you log in:</strong> Sage remembering you, private rooms, your own archetype. <span class="coming">Coming, not built yet.</span></p>
+        </div>
+        <p class="sage-layers">
+          <span id="layer-status">Look: default</span>
+          <button type="button" class="link-reset" id="layer-reset">Reset look</button>
+        </p>
+        <div class="scroll-rod" aria-hidden="true"></div>
       </div>
-      <p class="sage-layers">
-        <span id="layer-status">Look: default</span>
-        <button type="button" class="link-reset" id="layer-reset">Reset look</button>
-      </p>
     </section>
 
     <footer class="base-foot">
@@ -67,9 +77,10 @@
     </footer>
   </main>
   <script src="/base/edisk.js?v=1"></script>
-  <script src="/base/base.js?v=11"></script>
+  <script src="/base/base.js?v=12"></script>
+  <script src="/base/sage-book.js?v=1"></script>
   <script src="/base/sage-sprite.js?v=5"></script>
-  <script type="module" src="/base/sage-3d.js?v=11"></script>
+  <script type="module" src="/base/sage-3d.js?v=12"></script>
 <nav class="ck-privacy-nav" aria-label="Privacy"><a class="ck-privacy-corner" href="/privacy/" title="Chats may be stored to help her learn. See Privacy." aria-label="Chats may be stored to help her learn. See Privacy.">essence tracks</a></nav>
 </body>
 </html>

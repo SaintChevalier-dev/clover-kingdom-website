@@ -219,3 +219,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+/* v16: no panels. The page is clear; Sage and the courtyard show through. Text keeps a shadow to stay readable. */
+.sage { border: 0; background: transparent; padding: 0; z-index: 10; }
+.login, .base-foot, .wv, .login-status { text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95), 0 0 14px rgba(0,0,0,.7); }
+.login .btn { background: transparent; color: #ffd98a; border: 1px solid rgba(232,200,119,.85); }
+.wv { border: 0; background: transparent; padding: 0; }
+.wv-layer { border: 0; border-left: 2px solid rgba(232,200,119,.45); border-radius: 0; background: transparent; padding: 4px 0 4px 10px; }
+.wv-layer.wv-open { border-left-color: #c9a44c; }
+.wv-block { border-top: 1px solid rgba(232,200,119,.25); }
+.wv fieldset { border: 0; border-left: 2px solid rgba(232,200,119,.35); border-radius: 0; }
+.wv textarea { background: transparent; border: 0; border-bottom: 1px solid rgba(232,200,119,.75); border-radius: 0; }
+.wv-row .btn { background: transparent; color: #ffd98a; border: 1px solid rgba(232,200,119,.8); }
+.wv-tag, .wv-tag.wv-locked { background: transparent; border: 1px solid rgba(232,200,119,.5); }
+.wv-st-sourced, .wv-st-proposed { background: transparent; border: 1px solid currentColor; }
+.wv-note, .wv-small, .wv-goal, .login-status, .base-foot, .base-foot .edited { color: #ddd6c4; }
+.ckw-yard { background: #07070a; }
+.base { min-height: 100vh; min-height: 100dvh; }
+.base > .base-foot { margin-top: auto; }

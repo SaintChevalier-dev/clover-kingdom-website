@@ -762,12 +762,13 @@ function makeFlagstones(size) {
 function layoutYard(yard, camera, renderer) {
   const sageBox = document.querySelector(".sage");
   const main = document.querySelector("main.base");
-  const inline = window.innerWidth <= 900;
-  yard.classList.toggle("ckw-yard-inline", inline);
-  if (inline && sageBox && main) main.insertBefore(yard, sageBox);
-  else document.body.insertBefore(yard, document.body.firstChild);
+  /* v12: the page has no panels, so the courtyard is always full-screen behind it (phones too). */
+  const narrow = window.innerWidth <= 900;
+  const inline = false;
+  yard.classList.remove("ckw-yard-inline");
+  if (yard.parentNode !== document.body || document.body.firstChild !== yard) document.body.insertBefore(yard, document.body.firstChild);
   if (camera) {
-    if (inline) { camera.fov = 34; camera.position.set(0.2, 1.4, 4.4); camera.lookAt(-0.25, 0.95, 1.3); }
+    if (narrow) { camera.fov = 44; camera.position.set(0.2, 1.5, 5.6); camera.lookAt(0, 1.05, 0); }
     else { camera.fov = 38; camera.position.set(0.35, 1.85, 4.6); camera.lookAt(0, 0.95, 0); }
     camera.updateProjectionMatrix();
   }
@@ -779,7 +780,7 @@ function layoutYard(yard, camera, renderer) {
       camera.aspect = w / Math.max(1, h);
       /* Wide screens: the chat card sits in the middle, so slide the courtyard to the
          right of it (a view offset, not a camera move) and Sage stays visible. */
-      const card = !inline && sageBox ? sageBox.getBoundingClientRect() : null;
+      const card = null; /* v12: no centre card any more; Sage stays centred */
       if (card && w - card.right > 220) {
         const shift = Math.min(w * 0.36, (card.right + (w - card.right) / 2) - w / 2);
         camera.fov = 44;

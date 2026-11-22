@@ -1,0 +1,50 @@
+/* Sage's floating book + the scroll (chat). No panels: text sits on the scene with a shadow. */
+:root { --ck-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95), 0 0 14px rgba(0,0,0,.7); }
+.sage-book {
+  position: fixed; z-index: 30; left: auto; top: auto; width: 56px; height: 56px; padding: 0; margin: 0;
+  border: 0; background: transparent; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  color: #e8c877; filter: drop-shadow(0 2px 6px rgba(0,0,0,.85)) drop-shadow(0 0 10px rgba(232,200,119,.35));
+  -webkit-tap-highlight-color: transparent;
+}
+.sage-book[hidden] { display: none; }
+.sage-book svg { width: 56px; height: 56px; display: block; pointer-events: none; }
+.sage-book:hover { filter: drop-shadow(0 2px 6px rgba(0,0,0,.85)) drop-shadow(0 0 14px rgba(255,217,138,.7)); }
+.sage-book:focus-visible { outline: 2px solid #ffd98a; outline-offset: 4px; border-radius: 10px; }
+.sage-book-dragging { cursor: grabbing; }
+.sage-book-hint {
+  position: absolute; right: 64px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+  font: 600 13px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; color: #f3ead2; text-shadow: var(--ck-shadow); pointer-events: none;
+}
+.sage-book-used .sage-book-hint, .sage-open .sage-book-hint { display: none; }
+
+.sage-scroll {
+  position: fixed; z-index: 29; display: flex; flex-direction: column; gap: 8px; overflow: hidden;
+  background: transparent; border: 0; padding: 10px 4px; color: #f3ead2; text-shadow: var(--ck-shadow);
+}
+.sage-scroll[hidden] { display: none; }
+/* the scroll's two gold rods, top and bottom: no box between them */
+.scroll-rod { flex: 0 0 auto; height: 4px; border-radius: 2px; background: linear-gradient(90deg, rgba(201,164,76,0), #c9a44c 12%, #ffe3a0 50%, #c9a44c 88%, rgba(201,164,76,0)); box-shadow: 0 1px 4px rgba(0,0,0,.8); }
+.sage-scroll .sage-chat-note { margin: 0; font-size: 11px; color: #d9d2bf; opacity: .9; }
+.sage-scroll .sage-log { flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; margin: 0; gap: 8px; scrollbar-width: thin; scrollbar-color: #6e5a2a transparent; }
+.sage-scroll .msg { background: transparent !important; padding: 2px 2px; max-width: 92%; color: #f6efdc; text-shadow: var(--ck-shadow); line-height: 1.45; }
+.sage-scroll .msg-sage { border-left: 2px solid rgba(232,200,119,.8); padding-left: 8px; }
+.sage-scroll .msg-you { color: #ffe3a0; text-align: right; border-right: 2px solid rgba(255,227,160,.6); padding-right: 8px; }
+.sage-scroll .msg a, .sage-scroll a { color: #ffd98a; }
+.sage-scroll .sage-form { flex: 0 0 auto; gap: 6px; }
+.sage-scroll .sage-form input, .sage-scroll .sage-si-row input[type="text"], .sage-scroll .sage-si-row input[type="password"] {
+  background: transparent; border: 0; border-bottom: 1px solid rgba(232,200,119,.75); border-radius: 0; color: #fff8e6; text-shadow: var(--ck-shadow); padding: 8px 2px;
+}
+.sage-scroll input::placeholder { color: #d6cdb6; opacity: .85; }
+.sage-scroll .sage-form .btn { background: transparent; color: #ffd98a; border: 1px solid rgba(232,200,119,.8); text-shadow: var(--ck-shadow); padding: 6px 12px; }
+.sage-scroll .sage-si-row { margin: 0; font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.sage-scroll .guest-card { background: transparent; border: 0; padding: 0; margin: 0; font-size: 12px; color: #e6dfcb; }
+.sage-scroll .guest-card .coming { border: 0; padding: 0; }
+.sage-scroll .sage-layers { margin: 0; }
+.sage-scroll-close { position: absolute; top: 10px; right: 2px; background: transparent; border: 0; color: #ffd98a; font: 600 18px/1 system-ui, sans-serif; cursor: pointer; padding: 6px 8px; text-shadow: var(--ck-shadow); }
+.sage-scroll-close:focus-visible { outline: 2px solid #ffd98a; outline-offset: 1px; }
+.sage-scroll .sage-chat-note { padding-right: 28px; }
+.sage-scroll .si-badge { text-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .sage-book { transition: none; } }
+/* while the scroll is open, the page behind it steps back so the scroll's text reads cleanly */
+body.sage-open main > :not(.sage) { opacity: .16; transition: opacity .2s ease; }
+@media (prefers-reduced-motion: reduce) { body.sage-open main > :not(.sage) { transition: none; } }
