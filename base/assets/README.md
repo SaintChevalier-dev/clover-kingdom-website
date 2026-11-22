@@ -1,64 +1,10 @@
-# Sage assets for the base page
+<!--
+  Clover Kingdom
+  Copyright (c) 2026 Saint Chevalier / Clover Kingdom. All rights reserved.
+  Origin: https://github.com/SaintChevalier-dev/clover-kingdom-website
+  See SEED.md and LICENSE.
+-->
 
-## Sprite sheet (Tier A, 2D fallback)
+# Base-page assets
 
-Drop Painter's Sage sprite sheet here as `sage.png` if one is delivered.
-
-Expected file: a transparent PNG, 4 columns by 4 rows, each frame 256×352 pixels (sheet 1024×1408). Rows from the top: idle, walk, talk, wave. Character faces right.
-
-Until `sage.png` is present, the 2D fallback is the live Sage sprite v3 (armor, feathered wings, staff, articulated walk). That figure is a stand-in, not the final Painter sheet.
-
-Optional later: per-layer PNGs in `layers/` (halo.png, wings.png, armor.png, cape.png, crest.png).
-
-## 3D model contract: `sage/sage.glb` (shared skeleton)
-
-Drop the real Sage model in `sage/` as `sage/sage.glb` (path `/base/assets/sage/sage.glb`). Until that file is present, the page builds Sage in code on the same skeleton, in the locked v06 look, and labels it "Sage, v06 look (built in code)". Full drop-in steps: `docs/sage-3d-phase6.md`, section "Drop-in avatar slot".
-
-### Coordinates
-- Y-up, units in meters, character faces +Z at rest.
-- Root on the ground plane (y = 0). Eye height around 1.5–1.7 m.
-- Same camera, scale, and ground line as later residents so they can share a courtyard.
-
-### Shared humanoid skeleton (bone names, exact spelling)
-
-Hips
-  Spine
-    Chest
-      Neck
-        Head
-      ShoulderL → UpperArmL → LowerArmL → HandL
-      ShoulderR → UpperArmR → LowerArmR → HandR
-      HaloSocket
-      WingL
-      WingR
-      ArmorSocket
-      CapeSocket
-      CrestSocket
-  UpperLegL → LowerLegL → FootL
-  UpperLegR → LowerLegR → FootR
-
-Halos, wings, armor, cape and crest snap to those sockets (and later holy-knight gear can too). Dragon will need its own rig; Sage uses this humanoid one.
-
-### Animation clips (exact names)
-- `idle_pages` — idle, turning pages of a book
-- `walk` — stepping walk with foot plants
-- `talk` — talk loop while answering
-- `wave`
-- `look` — look around
-
-### Rights
-Sage's original face is approved in the v04 look (Jacob, 2026-11-22). She must not be modeled on a copyrighted or trademarked character or a real person, and `images/sage-face.jpg` is never used. Armor in any GLB follows `docs/archetype-armor-standard.md`.
-
-### Size budget (proposed, not decided)
-The residents pack leaves the budget to the site build. Proposed starting cap, open for Jacob and the site build to change:
-- Sage: at most about 12,000 triangles
-- Courtyard props in the GLB, if any: at most about 2,000 triangles
-- Textures: at most 1024×1024, prefer 512 where it still looks right
-- Packed `sage.glb`: at most about 1.5 MB
-A later courtyard of many residents may need a tighter cap.
-
-### 3D generator
-Confirm commercial-use terms of any 3D tool before generating a real model. That check is still open.
-
-### Turning the model on
-When `sage/sage.glb` is committed, also add `data-glb` to `<canvas id="ckw-yard-canvas">` in `base/index.html` and the root `index.html`. Without that attribute the page never requests the file, so no 404 appears in the console.
+Public image and model files for the base page may be added in this folder when they are ready.

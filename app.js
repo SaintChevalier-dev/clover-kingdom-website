@@ -1865,7 +1865,6 @@ function buildTekTribeGame() {
     ).join("");
     box.innerHTML = `
       <p class="ttg-signed">Signed in as ${escHtml(name)}${escHtml(siBit)}.</p>
-      <p class="ttg-ess">Essence (ESS): not live yet. ESS is points only. It cannot be cashed out or traded.</p>
 
       <div class="ttg-doors">
         <a class="rt-enter" href="#/round-table">${seatCrestHtml({ seat: "Round Table" }, "rt-crest-sm")}<span><strong>Enter the Round Table</strong><small>Every guild poll, each archetype seat's vote and why. Cast your own vote.</small></span>${ICONS.arrow}</a>

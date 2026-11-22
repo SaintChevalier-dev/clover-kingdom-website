@@ -1,5 +1,10 @@
-# Drop-in avatar slot
+<!--
+  Clover Kingdom
+  Copyright (c) 2026 Saint Chevalier / Clover Kingdom. All rights reserved.
+  Origin: https://github.com/SaintChevalier-dev/clover-kingdom-website
+  See SEED.md and LICENSE.
+-->
 
-Put the cleared, rigged Sage avatar here as `sage.glb`. Nothing is here yet on purpose: rights first, and paid credits need Jacob's yes on the exact price.
+# Sage model slot
 
-Steps: `docs/sage-3d-phase6.md`, section "Drop-in avatar slot".
+Place a cleared, original Sage model here as `sage.glb` when one is ready. This folder is empty on purpose.
