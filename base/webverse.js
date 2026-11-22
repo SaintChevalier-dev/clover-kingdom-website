@@ -1,11 +1,12 @@
 /* Webverse playtest for /base (Layer 1: Sage's chamber).
    Client-side only: everything lives in this browser's localStorage under one key.
-   Nothing is sent anywhere. Layers 2 and 3 are honest previews behind playtest goals;
+   Playtest data is never sent anywhere (chat messages go to live Sage only to get a reply).
+   Chat turns are counted by kind: human or SI (AI archetype). Layers 2 and 3 are honest previews behind playtest goals;
    there is no shared world or multiplayer yet. */
 (function () {
   "use strict";
   var KEY = "ckw.webverse.v1";
-  var GOALS = { interactions: 5, upgrades: 3, feedback: 1 };
+  var GOALS = { interactions: 5, upgrades: 3, feedback: 1, si: 3 };
   var UPGRADE_KEYS = ["seams", "grimoire", "staff", "halo", "wings"];
   var GLYPHS = [
     ["The whole avatar", "Every piece reads as a teacher's kit, not a warlord's. Sage is the teacher of the Clover Kingdom.", "sourced"],
@@ -32,6 +33,9 @@
   st.feedback = Array.isArray(st.feedback) ? st.feedback : [];
   st.square = st.square || {};
   st.started = st.started || new Date().toISOString();
+  st.chat = st.chat && typeof st.chat === "object" ? st.chat : {};
+  st.chat.human = st.chat.human || 0; st.chat.si = st.chat.si || 0; st.chat.live = st.chat.live || 0;
+  st.chat.siNames = Array.isArray(st.chat.siNames) ? st.chat.siNames : [];
   function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* storage full or blocked: playtest still works this visit */ } }
 
   function $(id) { return document.getElementById(id); }
@@ -108,6 +112,11 @@
     if ($("wv-th2")) $("wv-th2").value = p2;
     if ($("wv-th3")) $("wv-th3").value = p3;
     setTag("wv-l2", l2); setTag("wv-l3", l3);
+    if ($("wv-c-h")) $("wv-c-h").textContent = st.chat.human;
+    if ($("wv-c-si")) $("wv-c-si").textContent = st.chat.si;
+    if ($("wv-g-si")) $("wv-g-si").textContent = Math.min(st.chat.si, GOALS.si);
+    var siTag = $("wv-si-tag");
+    if (siTag) { var done = st.chat.si >= GOALS.si; siTag.textContent = done ? "met" : "open"; siTag.classList.toggle("wv-locked", !done); }
     $("wv-square").hidden = !l2;
     $("wv-rooms").hidden = !l3;
   }
@@ -147,6 +156,17 @@
   /* chat messages count as interactions */
   var form = $("sage-form");
   if (form) form.addEventListener("submit", function () { var i = $("sage-input"); if (i && i.value.trim()) bump(); });
+
+  /* chat turns by kind (base.js fires ckw:chat-turn after each reply) */
+  window.addEventListener("ckw:chat-turn", function (e) {
+    var d = e.detail || {};
+    if (d.kind === "si") {
+      st.chat.si += 1;
+      if (d.name && st.chat.siNames.indexOf(d.name) < 0) { st.chat.siNames.push(String(d.name).slice(0, 40)); if (st.chat.siNames.length > 20) st.chat.siNames.shift(); }
+    } else st.chat.human += 1;
+    if (d.live) st.chat.live += 1;
+    save(); render();
+  });
 
   /* upgrades */
   function applyAll() {
@@ -237,7 +257,7 @@
   });
   function notes() {
     return JSON.stringify({ webverse_playtest: "v1", page: location.pathname, started: st.started, exported: new Date().toISOString(),
-      interactions: st.interactions, upgrades: st.upgrades, square: st.square, feedback: st.feedback,
+      interactions: st.interactions, chat: st.chat, si_playtest_goal_met: st.chat.si >= GOALS.si, upgrades: st.upgrades, square: st.square, feedback: st.feedback,
       layers_open: [1].concat(layer2Open() ? [2] : [], layer3Open() ? [3] : []) }, null, 2);
   }
   $("wv-copy").addEventListener("click", function () {
@@ -250,7 +270,7 @@
   function fallback(txt) { fb.value = txt; fb.select(); fbStatus.textContent = "Your notes are in the box above. Copy them from there."; }
   $("wv-clear").addEventListener("click", function () {
     try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
-    st = { interactions: 0, upgrades: {}, feedback: [], square: {}, started: new Date().toISOString() };
+    st = { interactions: 0, upgrades: {}, feedback: [], square: {}, chat: { human: 0, si: 0, live: 0, siNames: [] }, started: new Date().toISOString() };
     Array.prototype.forEach.call(document.querySelectorAll(".wv input[type=radio]"), function (r) { r.checked = false; });
     fbStatus.textContent = "Cleared."; render();
   });
