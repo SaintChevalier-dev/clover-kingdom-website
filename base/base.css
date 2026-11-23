@@ -21,6 +21,34 @@ html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 syst
 .base-foot p { margin: 0 0 6px; }
 .base-foot .edited { font-size: 12px; color: #6f6b60; }
 
+/* Thin top bar (v18) */
+.ck-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 0 12px;
+  background: rgba(10,10,11,.85);
+  border-bottom: 1px solid rgba(201,164,76,.25);
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+.ck-topbar-item {
+  color: #e8d6a0;
+  text-decoration: none;
+  opacity: .8;
+}
+.ck-topbar-item:hover, .ck-topbar-item:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+}
+body { padding-top: 28px; }
 
 /* Guest chrome, layers, 3D courtyard (staged; does not change v3 figure paint). */
 .sage { position: relative; z-index: 2; }
