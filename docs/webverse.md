@@ -24,7 +24,7 @@ Quiet room, hum, threshold light and the walk. No existing written definition wa
 Chamber (live) → Kingdom square (next) → private archetype rooms (planned) → the real 3D Sage (in progress) → every archetype (planned), plus live Sage answers (planned). Status comes from [roadmap-status.md](roadmap-status.md); no dates.
 
 ## Look guide on the site
-`/look/` is an HTML copy of [ck-look-intel.md](ck-look-intel.md). Source of truth: Painter's notes on Paragon (painter folder, `CK_LOOK_INTEL_2026-11-22.md`).
+`/look/` is an HTML copy of [ck-look-intel.md](ck-look-intel.md). Source of truth: Painter's private look notes (`CK_LOOK_INTEL_2026-11-22.md`).
 
 ## Layer ladder (honest playtest gate)
 | Layer | What it is | How it opens |
@@ -34,7 +34,7 @@ Chamber (live) → Kingdom square (next) → private archetype rooms (planned) �
 | 3 Private rooms | Preview only: explains that rooms need a login and the Kingdom's safety rules first | Layer 2 open + both square questions answered + 1 more feedback note |
 
 ## Data and safety
-- Everything is stored in the visitor's own browser (`localStorage` key `ckw.webverse.v1`). Nothing is sent anywhere. No writes to Paragon, GitHub or any back end; that needs Jacob's yes on the safety bounds first.
+- Everything is stored in the visitor's own browser (`localStorage` key `ckw.webverse.v1`). Nothing is sent anywhere. No writes to the Kingdom's private notes, GitHub or any back end; that needs Jacob's yes on the safety bounds first.
 - Code: `base/webverse.js` (plain script), hooks in `base/sage-3d.js` (`window.__CKW_SAGE3D.pose`, `setYaw`, `upgrade`, and the `ckw:sage3d-ready` event).
 - Reference art: `base/assets/ref/` with `PROVENANCE.md` (source file and sha8 for each image).
 
