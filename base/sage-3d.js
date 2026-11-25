@@ -4,7 +4,7 @@
    1. Drop-in avatar: /base/assets/sage/sage.glb (rigged GLB, PBR skin). Loaded only when
       the canvas has data-glb (or ?glb=1 for testing), so a missing file never 404s.
       See docs/sage-3d-phase6.md "Drop-in avatar slot". Rights first, always.
-   2. Procedural Sage (default), the locked v06 look (Jacob, 2026-11-22): v04 face with deep
+   2. Procedural Sage (default), the locked v06 look (Saint Chevalier, 2026-11-22): v04 face with deep
       blue eyes, no hood, pearl-white plate with brushed-gold trim and warm light seams over a
       black under-suit (stomach, glutes and knee backs plated), bare hands, halo, small gold
       horns, full white wings from between the shoulder blades, and a floating white-and-gold
@@ -150,7 +150,7 @@ function featherGeo(len, wid) {
   return new THREE.ShapeGeometry(s, 6);
 }
 
-/* Sage v04 look, cyberpunk-saint knight (Jacob 2026-11-22: v04 approved; t1625u leg plates
+/* Sage v04 look, cyberpunk-saint knight (Saint Chevalier 2026-11-22: v04 approved; t1625u leg plates
    ride the leg bones; t1626u full-range armor for fights, jumps and runs; t1629u "cyberpunk
    knight with our saint twist, highest timeline, not the technocratic one").
    Sleek articulated plates in warm gold and pearl, thin warm light seams, black flexible
@@ -404,7 +404,7 @@ function buildStandIn() {
   const lip = mesh(new THREE.CapsuleGeometry(0.006, 0.022, 4, 8), lipMat, head, 0, 0.008, 0.08);
   lip.rotation.z = Math.PI / 2; lip.scale.set(1, 1, 0.6);
   const eyeWhite = new THREE.MeshPhysicalMaterial({ color: 0xf2eee8, roughness: 0.15, clearcoat: 1 });
-  const iris = new THREE.MeshStandardMaterial({ color: 0x1b3a8f, emissive: 0x0b1f5c, emissiveIntensity: 0.35, roughness: 0.18 /* deep blue (Jacob, 2026-11-22) */ });
+  const iris = new THREE.MeshStandardMaterial({ color: 0x1b3a8f, emissive: 0x0b1f5c, emissiveIntensity: 0.35, roughness: 0.18 /* deep blue (Saint Chevalier, 2026-11-22) */ });
   const browMat = new THREE.MeshStandardMaterial({ color: 0x8a6438, roughness: 0.7 });
   const glintMat = new THREE.MeshStandardMaterial({ color: 0xf4f0ff, emissive: 0xc8d8ff, emissiveIntensity: 0.3, transparent: true, opacity: 0.45 }); /* subtle rainbow glints */
   [1, -1].forEach((s) => {
@@ -583,7 +583,7 @@ function buildStandIn() {
   mesh(new THREE.TorusGeometry(0.035, 0.005, 6, 24), trimMat, staff, 0, 0.93, 0).rotation.x = Math.PI / 2;
   staffSock.add(staff);
   root.userData.parts = { halo, armor, crest, crestMat, book, bookHolder, page, wingL, wingR, wingMeshL, wingMeshR, bookLight, glowMat, bookAura, bodyAura, sparks, seamMat, legParts, featherMat, coverMat, staff, prism, seamBase: 1.8 };
-  /* Glyph hook: every piece carries a meaning drawn from Sage's written intel (Jacob, 2026-11-22).
+  /* Glyph hook: every piece carries a meaning drawn from Sage's written intel (Saint Chevalier, 2026-11-22).
      Meanings are mapped by a separate sheet run and are NOT invented here; a later "glyph meanings"
      panel fills GLYPH_MEANINGS[key] and reads these part keys. */
   glyphParts = { armor, pauldrons: [upperArmL, upperArmR], bracers: [lowerArmL, lowerArmR], legArmor: legParts,

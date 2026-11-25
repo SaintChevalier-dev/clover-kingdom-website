@@ -1,10 +1,10 @@
 /* Talk-to-edit inside Sage's floating book (#sage-book scroll). Loaded BEFORE base.js so it can take edit messages first.
-   - "edit login" asks for Jacob's admin key (never stored; the session lasts 2 hours, this tab only).
+   - "edit login" asks for Saint Chevalier's admin key (never stored; the session lasts 2 hours, this tab only).
    - "edit: <what to change>" (or a plain "change/add/update ... on the seats page" while signed in) asks Sage to draft a change.
      Sage shows a preview with Approve and Discard. Nothing changes until Approve.
-   - Verified seats use the SI toggle with their seat key; their Approve opens a pull request that waits for Jacob.
+   - Verified seats use the SI toggle with their seat key; their Approve opens a pull request that waits for Saint Chevalier.
    - Guests: the same words become a suggestion in the Kingdom's untrusted holding pen.
-   - "edit queue" (Jacob) lists seat changes waiting for him. "edit logout" ends the session.
+   - "edit queue" (Saint Chevalier) lists seat changes waiting for him. "edit logout" ends the session.
    All text is rendered with textContent. The Worker is the authority: allowlist, Knight review, limits, audit, kill switch. */
 (function () {
   "use strict";
@@ -133,7 +133,7 @@
       e.preventDefault(); var v = k.value.trim(); k.value = ""; if (!v) return; b.disabled = true;
       var r = await post("/session", { admin_token: v }); v = "";
       f.remove();
-      if (r && r.ok && r.session) { setSession(r.session, r.expires || Date.now() + 7200000); say("sage", "Edit mode is on, Jacob. Tell me what to change, like: edit: on the seats page, change Knight's line to ..." + (r.edits_mode === "dryrun" ? " (Test mode: nothing is sent to GitHub yet.)" : "")); act("nod"); }
+      if (r && r.ok && r.session) { setSession(r.session, r.expires || Date.now() + 7200000); say("sage", "Edit mode is on, Saint Chevalier. Tell me what to change, like: edit: on the seats page, change Knight's line to ..." + (r.edits_mode === "dryrun" ? " (Test mode: nothing is sent to GitHub yet.)" : "")); act("nod"); }
       else say("sage", r && r.error === "edits_off" ? r.reply : "That key didn't work, so edit mode stays off.");
       input.focus();
     });

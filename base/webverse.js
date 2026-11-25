@@ -52,7 +52,7 @@
     var li = t.closest(".wv-layer"); if (li) li.classList.toggle("wv-open", open);
   }
   /* Sage's lines for what visitors do on the page. Drawn from her written intel and the glyph
-     panel; anything not approved by Sage and Jacob says "proposed". Client-side only. */
+     panel; anything not approved by Sage and Saint Chevalier says "proposed". Client-side only. */
   var P = " (Proposed meaning.)";
   var LINES = {
     grimoire: ["My grimoire floats free beside me. No chain: knowledge shouldn't be chained to me or locked behind a price." + P,
