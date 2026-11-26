@@ -80,3 +80,8 @@ body.sage-open main > :not(.sage) { opacity: .16; transition: opacity .2s ease; 
 .sage-scroll .sage-edit-choice { text-align: left; background: transparent; color: #f6efdc; border: 1px solid rgba(232,200,119,.6); padding: 6px 10px; cursor: pointer; text-shadow: var(--ck-shadow); }
 .sage-scroll .sage-edit-choice .sage-edit-current { display: block; font-size: 12px; opacity: .85; }
 .sage-scroll .sage-edit-ask .btn-quiet { align-self: flex-start; background: transparent; color: #ffd98a; border: 0; text-decoration: underline; cursor: pointer; }
+
+.sage-scroll .sage-chat-note,
+.sage-scroll .guest-card,
+.sage-scroll .sage-si-row,
+.sage-scroll .sage-layers { display: none; }
