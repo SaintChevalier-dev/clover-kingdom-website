@@ -196,3 +196,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .ckw-still img { max-height: 92vh; max-width: 92vw; width: auto; height: auto; opacity: .9; border-radius: 8px; }
 /* first screen is Sage herself: the playtest notes start below the fold */
 .base > .wv { margin-top: 64vh; margin-top: 64svh; }
+
+/* Mic button for Sage dictation */
+#sage-mic { padding: 10px 12px; font-size: 16px; line-height: 1; }
+#sage-mic[aria-pressed="true"] { background: #c9a44c; color: #0a0a0b; }
