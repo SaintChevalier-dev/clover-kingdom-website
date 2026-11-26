@@ -2,7 +2,7 @@
    Login uses the live auth Worker (auth.cloverkingdom.net, Discord OAuth).
    Chat goes to live Sage (ck-sage-live Worker, Workers AI, public intel only) and falls back to the
    written (canned) answers below on any error, timeout, rest cap or kill switch.
-   Visitors who tick "I'm an SI / AI archetype" are sent as visitor {kind:"si"}.
+   Quiet scan only. Default visitor is human. No public SI checkbox.
    DASKE writes go through edisk.write() only and are never shown in the chat. */
 (function () {
 "use strict";
@@ -61,7 +61,7 @@ const NO_ANSWER = "I don't have an answer for that yet. Ask in the Discord.";
 const OPENERS = [
   "Teach me and I'll teach you. My name is Sage. And I hail from the Clover Kingdom."
 ];
-const GREETING = OPENERS[Math.floor(Math.random() * OPENERS.length)];
+const GREETING = OPENERS[0];
 const ABOUT =
   "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. Everyone is welcome. Build your own archetype. Level up your life. Find your people.";
 const JOIN_STEPS =
@@ -87,8 +87,6 @@ const KNOW = /\b(what do you know|what (can|do) you (see|know|remember about me)
 const SAVED = /\b((are|is|do|does|can|will).*(save|saved|store|stored|record|logged|keep|saving)|is this (saved|recorded|private)|are (chats|conversations) saved|privacy)\b/i;
 const THERAPY = /\b(therapist|therapy|counselor|counselling|counseling|are you (a )?(doctor|clinician))\b/i;
 const PRIVATE = /\b(vault|edisk|e-disk|tools?|gcki|pcki|round[\s-]?table|member hall|quests?|glyphs?|token|password|secret|api key|private path|inbox)\b/i;
-/* Joining questions get the real steps (same as the How to join section on the main site);
-   only sign-in / account questions get the login pointer. */
 const JOIN_HOW = /\b(join|joining|get in|become a member|sign up|sign-up|register|apply|applying|application)\b/i;
 const JOIN = /\b(member|members|login|log in|sign in|sign up|sign-up|join|account|register|become a member|how do i (get in|join))\b/i;
 const ABOUT_Q = /\b(what is (this|the clover kingdom|clover kingdom)|who are you|what are you|what is sage|about (you|this|the kingdom)|hello|hi|hey|what can you (do|tell)|help)\b/i;
@@ -96,7 +94,6 @@ const ABOUT_Q = /\b(what is (this|the clover kingdom|clover kingdom)|who are you
 const SID_KEY = "ckw-guest-sid";
 const BEEN_KEY = "ckw-guest-been";
 
-/* Fresh instance per visit: a new random id on every page load, kept only in memory (never stored). */
 const PAGE_SESSION = (function () {
   try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (_) {}
   return "v" + Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -137,7 +134,6 @@ function guestReply(text) {
     }
     return ABOUT;
   }
-  /* Public FAQ answers (price, ranks, deletion, reports...) are safe for guests too. */
   const ql = q.toLowerCase();
   for (const f of SAGE_FAQ) if (f.re.test(ql)) return f.a;
   return TALK;
@@ -145,7 +141,6 @@ function guestReply(text) {
 
 function pickSageResponse(question) {
   const q = question.toLowerCase();
-  /* Specific FAQ questions first, then keyword rules; the generic clover line is last. */
   for (const f of SAGE_FAQ) if (f.re.test(q)) return f.a;
   for (const rule of SAGE_RULES) if (rule.re.test(q)) return SAGE_RESPONSES[rule.say];
   return null;
@@ -198,25 +193,16 @@ function setGuestChrome() {
   if (card) card.hidden = !guest;
 }
 
-/* Login */
 const statusEl = document.getElementById("login-status");
 const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 
-/* Login return: the login service always lands on the main site's #/me page.
-   Before leaving, remember this page (one allowlisted path, 15 minutes); /app.js
-   (already on live, unchanged by this update) sends the visitor straight back here,
-   with ?login=failed|not_member on errors. */
 const RETURN_KEY = "ckw_return";
 const HERE = location.pathname === "/" ? "/" : "/base/";
 if (loginBtn) loginBtn.addEventListener("click", () => {
-  try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) { /* storage off: old behavior */ }
+  try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) {}
 });
 const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
-/* Front door (/): old deep links like /#/join live on /classic/ now. /#/me is the login
-   service coming back: if the sign-in started on /classic/ or /base/ (short marker, 15 min,
-   allowlisted paths only), send the member back there; otherwise stay here, read the
-   ?login= reason and clean the URL. */
 let hashWhy = null;
 const isMe = (h) => /^#\/me(\?|$)/.test(h);
 if (location.pathname === "/" && location.hash.startsWith("#/")) {
@@ -244,7 +230,7 @@ if (location.pathname === "/") {
 const why = new URLSearchParams(location.search).get("login") || hashWhy;
 if (why) history.replaceState(null, "", location.pathname + location.hash);
 
-const hasLogin = !!(statusEl && loginBtn && logoutBtn); /* /sage/ has the chat but no login bar */
+const hasLogin = !!(statusEl && loginBtn && logoutBtn);
 function showSignedOut(msg) {
   session = null;
   if (!hasLogin) { setGuestChrome(); return; }
@@ -273,7 +259,6 @@ if (logoutBtn) logoutBtn.addEventListener("click", () => {
 setGuestChrome();
 if (hasLogin) checkLogin();
 
-/* Sage */
 const log = document.getElementById("sage-log");
 const form = document.getElementById("sage-form");
 const input = document.getElementById("sage-input");
@@ -292,11 +277,27 @@ function say(who, text, link) {
   log.scrollTop = log.scrollHeight;
 }
 
-/* SI visitors: no public checkbox. Quiet scan only; default human. */
-const siBox = document.getElementById("sage-si");
-const siName = document.getElementById("sage-si-name");
-const siKeyEl = document.getElementById("sage-si-key");
-let siKeyMem = "";
-function siPref() {
-  return false;
+let started = false;
+function start() {
+  if (started) return;
+  started = true;
+  say("sage", GREETING);
+  silentWrite("", GREETING);
 }
+window.CKWSageChat = {
+  started: function () { return started; },
+  start: start,
+  say: say
+};
+
+if (form) form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = (input.value || "").trim();
+  if (!text) return;
+  input.value = "";
+  say("you", text);
+  const reply = answerAsSage(text);
+  say("sage", reply);
+  silentWrite(text, reply);
+});
+})();
