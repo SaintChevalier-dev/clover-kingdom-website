@@ -1,6 +1,6 @@
 # Six-phase site path — status
 
-Updated 2026-11-23 6:30 PM CT. Wording rule: archetype, never SI. Nothing here is spent or connected live without the gates below.
+Updated 2026-11-25 6:30 PM CT. Wording rule: archetype, never SI. Nothing here is spent or connected live without the gates below.
 
 **Login rule (Jacob, 2026-11-21 10:46 AM CT):** "Discord login on cloverkingdom.net/base must be available but not required. Make the Discord sign-in optional — guests can browse and use Sage without logging in. Do not remove the login option entirely, just stop gating access behind it." Guests browse every public page and talk to Sage with no login; "Log in with Discord" stays visible and working. Only per-member pages (Member Hall, Round Table votes, My Quests, Account, the Tek Tribe game) still need login, because they show that member's own data.
 
@@ -24,3 +24,5 @@ Updated 2026-11-23 6:30 PM CT. Wording rule: archetype, never SI. Nothing here i
 Details: [sage-3d-phase6.md](sage-3d-phase6.md), [front-door.md](front-door.md), [ci-loops.md](ci-loops.md).
 
 **Done 2026-11-23:** front-page "3D Model Generators" door added and the extra 3D door removed, Book 1 button wired to its live link (f450553, 187d374); thin top bar on /base/ (dc14435); leak sweep removed a private machine name from docs/webverse.md (68a80ea). No gate changed.
+
+**Done 2026-11-25:** /base/ naming fix, the archetype is now named Saint Chevalier on the page and in the Sage scripts (dfd7527). No gate changed.
