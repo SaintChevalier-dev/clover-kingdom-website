@@ -251,7 +251,8 @@ function showSignedIn(me) {
   if (!hasLogin) { setGuestChrome(); return; }
   if (statusEl) statusEl.textContent = "Logged in as " + ((me && me.name) || "member") + ".";
   loginBtn.hidden = true;
-  logoutBtn.hidden = false;
+  logoutBtn.hidden = true;
+  logoutBtn.dataset.signedin = "1";
   setGuestChrome();
 }
 function checkLogin() {
