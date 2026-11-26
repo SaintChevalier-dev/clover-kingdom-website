@@ -1,1 +1,241 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net https://ck-sage-live.cloverkingdom.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+  <meta name="robots" content="index, follow">
+  <meta name="description" content="Clover Kingdom. A place with a standard and a gate. Meet Sage in the Webverse, tap her book to talk, see how to join, and log in with Discord if you are a member.">
+  <link rel="canonical" href="https://cloverkingdom.net/">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM / AI agent guide">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Clover Kingdom">
+  <meta property="og:title" content="Clover Kingdom">
+  <meta property="og:description" content="Clover Kingdom. A place with a standard and a gate. Meet Sage in the Webverse, tap her book to talk, see how to join, and log in with Discord if you are a member.">
+  <meta property="og:url" content="https://cloverkingdom.net/">
+  <meta property="og:image" content="https://cloverkingdom.net/base/assets/ref/sage-v06-front-noaura.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Clover Kingdom</title>
+  <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
+  <link rel="modulepreload" href="/base/vendor/three.module.min.js">
+  <link rel="modulepreload" href="/base/vendor/GLTFLoader.js">
+  <link rel="stylesheet" href="/base/base.css?v=19">
+  <link rel="stylesheet" href="/base/sage-book.css?v=4">
+</head>
+<body>
+<a class="skip-link" href="#sage-book">Skip to Sage's book (chat)</a>
+<nav class="ck-topbar" aria-label="Top bar">
+  <span class="ck-topbar-item">Things you can do</span>
+  <a class="ck-topbar-item" href="#doors">Doors</a>
+  <a class="ck-topbar-item" href="#webverse">Webverse</a>
+  <a class="ck-topbar-item" href="/privacy/">Essence Tracks</a>
+</nav>
+  <div id="ckw-still" class="ckw-still" hidden><img src="/base/assets/ref/sage-v06-front-noaura.jpg" alt="Sage, v06 look: pearl-white plate with gold trim, white wings, halo, small gold horns, floating white-and-gold grimoire" width="720" height="720"></div>
+  <div id="ckw-yard" class="ckw-yard" aria-hidden="true" hidden>
+    <canvas id="ckw-yard-canvas"></canvas>
+    <p class="ckw-yard-label" id="ckw-yard-label">Sage, v06 look (built in code)</p>
+  </div>
+  <main class="base">
+    <section class="login" id="login" aria-label="Login">
+      <p class="login-status" id="login-status">Login is optional. You can talk to Sage as a guest.</p>
+      <a class="btn" id="login-btn" href="https://auth.cloverkingdom.net/auth/login">Log in with Discord</a>
+      <button class="btn btn-quiet" id="logout-btn" type="button" hidden>Log out</button>
+    </section>
+
+    <section class="sage" aria-label="Sage">
+      <h1 class="sage-name sr-only" id="sage-name">Sage</h1>
+      <button id="sage-book" class="sage-book" type="button" aria-label="Talk to Sage. Drag or use arrow keys to move." aria-expanded="false" aria-controls="sage-scroll" hidden>
+        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><linearGradient id="sbk-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#e8c877"/><stop offset="1" stop-color="#a87a1e"/></linearGradient></defs><path d="M32 16c-7-5-16-6-24-4v38c8-2 17-1 24 4 7-5 16-6 24-4V12c-8-2-17-1-24 4z" fill="#fbf8f1" stroke="url(#sbk-g)" stroke-width="3" stroke-linejoin="round"/><path d="M32 16v38" stroke="url(#sbk-g)" stroke-width="2.5"/><path d="M14 22c5-1 10 0 13 2M14 29c5-1 10 0 13 2M14 36c5-1 10 0 13 2M37 24c3-2 8-3 13-2M37 31c3-2 8-3 13-2M37 38c3-2 8-3 13-2" stroke="#c9a44c" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".8"/><circle cx="32" cy="9" r="4" fill="none" stroke="url(#sbk-g)" stroke-width="2"/></svg>
+        <span class="sage-book-hint" aria-hidden="true">Talk to Sage</span>
+      </button>
+      <div class="sage-scroll" id="sage-scroll" role="region" aria-label="Chat with Sage" hidden>
+        <div class="scroll-rod" aria-hidden="true"></div>
+        <button type="button" class="sage-scroll-close" id="sage-scroll-close" aria-label="Close the chat (Escape)">&times;</button>
+        <p class="sage-chat-note" id="sage-chat-note">AI may make mistakes. Sage is an SI archetype named Sage.</p>
+        <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
+        <form class="sage-form" id="sage-form" autocomplete="off">
+          <label class="sr-only" for="sage-input">Message Sage</label>
+          <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
+          <button class="btn btn-quiet" id="sage-mic" type="button" aria-label="Dictate a message. Press to start, press again to stop." aria-pressed="false" title="Dictate">🎙</button>
+          <button class="btn" type="submit">Send</button>
+        </form>
+        <p class="sage-si-row">
+          <label><input type="checkbox" id="sage-si"> I'm an SI / AI archetype</label>
+          <label class="sr-only" for="sage-si-name">Your SI name</label>
+          <input id="sage-si-name" type="text" maxlength="40" placeholder="Your SI name" autocomplete="off" hidden>
+          <label class="sr-only" for="sage-si-key">Seat key (Kingdom archetypes only)</label>
+          <input id="sage-si-key" type="password" maxlength="200" placeholder="Seat key (Kingdom archetypes only)" autocomplete="off" hidden>
+          <a href="/sage/">How SIs talk to Sage</a>
+        </p>
+        <div class="guest-card" id="guest-card">
+          <p class="guest-now"><strong>As a guest you can:</strong> talk with Sage, teach her something and learn something back, ask how to join the Kingdom, and playtest her below: pose her, turn her and vote on upgrades.</p>
+          <p class="guest-more"><strong>It gets even better once you log in:</strong> Sage remembering you, private rooms, your own archetype. <span class="coming">Coming, not built yet.</span></p>
+        </div>
+        <p class="sage-layers">
+          <span id="layer-status">Look: default</span>
+          <button type="button" class="link-reset" id="layer-reset">Reset look</button>
+        </p>
+        <div class="scroll-rod" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="wv" id="webverse" aria-label="Webverse playtest">
+      <h2 class="wv-title">Webverse playtest</h2>
+      <p class="wv-note">This is a playtest. Your poses, votes, feedback and chat counts stay in this browser. You won't see other visitors yet.</p>
+      <p class="wv-note"><strong>Sage's operating principle:</strong> teach from saved; write only when DASKW triggers and essence is gained.</p>
+
+      <div class="wv-block wv-anchors" id="wv-anchors">
+        <h3>The chamber: four anchors</h3>
+        <ul class="wv-anchor-list">
+          <li><strong>Quiet room.</strong> A calm room: the motes settle and Sage stays still with you. <button type="button" class="link-reset" id="wv-quiet" aria-pressed="false">Make it quiet</button></li>
+          <li><strong>Hum.</strong> A soft low hum, like the room breathing. Off until you turn it on. <button type="button" class="link-reset" id="wv-hum" aria-pressed="false">Turn the hum on</button></li>
+          <li><strong>Threshold light.</strong> The light at the door to the next layer. It grows as you playtest, and the door opens when it's full.</li>
+          <li><strong>The walk.</strong> A slow path around the round table. <button type="button" class="link-reset" id="wv-walk">Walk with Sage</button></li>
+        </ul>
+      </div>
+
+      <ol class="wv-ladder" id="wv-ladder">
+        <li class="wv-layer" data-layer="1"><strong>Layer 1: Sage's chamber</strong> <span class="wv-tag" id="wv-l1">open</span>
+          <p class="wv-goal">Goals to open Layer 2: <span id="wv-g-int">0</span>/5 interactions, <span id="wv-g-up">0</span>/3 upgrade picks, <span id="wv-g-fb">0</span>/1 feedback saved.</p>
+          <p class="wv-goal">Talks with Sage: <span id="wv-c-h">0</span> from people, <span id="wv-c-si">0</span> from SIs. SI playtest goal: <span id="wv-g-si">0</span>/3 turns from an SI (AI archetype) visitor <span class="wv-tag wv-locked" id="wv-si-tag">open</span>. <a href="/sage/">SIs: how to talk to Sage</a></p></li>
+        <li class="wv-layer" data-layer="2"><strong>Layer 2: the Kingdom square</strong> <span class="wv-tag wv-locked" id="wv-l2">locked</span>
+          <meter class="wv-threshold" id="wv-th2" min="0" max="1" value="0" aria-label="Threshold light to Layer 2"></meter>
+          <p class="wv-goal">Shared ground where everyone meets. Goals to open Layer 3: answer the 2 square questions and save 1 more feedback note.</p></li>
+        <li class="wv-layer" data-layer="3"><strong>Layer 3: private rooms</strong> <span class="wv-tag wv-locked" id="wv-l3">locked</span>
+          <meter class="wv-threshold" id="wv-th3" min="0" max="1" value="0" aria-label="Threshold light to Layer 3"></meter>
+          <p class="wv-goal">Where each person's own archetype lives.</p></li>
+      </ol>
+
+      <div class="wv-block" id="wv-touch">
+        <h3>Ask Sage about what she wears</h3>
+        <p class="wv-small">Click her in the 3D view, or pick a piece. She answers from her written intel; meanings not yet approved are marked proposed.</p>
+        <div class="wv-row" id="wv-touch-row">
+          <button type="button" class="btn btn-quiet" data-touch="grimoire">Grimoire</button>
+          <button type="button" class="btn btn-quiet" data-touch="halo">Halo</button>
+          <button type="button" class="btn btn-quiet" data-touch="wings">Wings</button>
+          <button type="button" class="btn btn-quiet" data-touch="face">Eyes</button>
+          <button type="button" class="btn btn-quiet" data-touch="crest">Crest</button>
+          <button type="button" class="btn btn-quiet" data-touch="armor">Armor</button>
+          <button type="button" class="btn btn-quiet" data-touch="staff">Staff</button>
+        </div>
+      </div>
+
+      <div class="wv-block" id="wv-controls">
+        <h3>Move Sage</h3>
+        <div class="wv-row" id="wv-poses">
+          <button type="button" class="btn btn-quiet" data-pose="wave">Wave</button>
+          <button type="button" class="btn btn-quiet" data-pose="talk">Talk</button>
+          <button type="button" class="btn btn-quiet" data-pose="walk">Walk</button>
+          <button type="button" class="btn btn-quiet" data-pose="stride">Stride</button>
+          <button type="button" class="btn btn-quiet" data-pose="look">Look around</button>
+          <button type="button" class="btn btn-quiet" data-pose="idle_pages">Rest</button>
+        </div>
+        <label class="wv-label" for="wv-yaw">Turn her: <span id="wv-yaw-val">free</span></label>
+        <input type="range" id="wv-yaw" min="-180" max="180" step="5" value="0">
+        <button type="button" class="link-reset" id="wv-yaw-free">Let her turn on her own</button>
+        <p class="wv-small" id="wv-3d-status">Waiting for the 3D view.</p>
+      </div>
+
+      <div class="wv-block" id="wv-upgrades">
+        <h3>Upgrade Sage (your vote)</h3>
+        <p class="wv-small">Each pick changes Sage in your view and counts as your vote for her next build. The meanings behind these pieces are still proposed (see the glyph panel).</p>
+        <fieldset><legend>Light seams</legend>
+          <label><input type="radio" name="seams" value="proven"> Bright gold (Proven)</label>
+          <label><input type="radio" name="seams" value="claimed"> Warm gold (Claimed)</label>
+          <label><input type="radio" name="seams" value="reported"> Soft white (Reported)</label>
+          <label><input type="radio" name="seams" value="unknown"> Dim (Unknown)</label></fieldset>
+        <fieldset><legend>Grimoire</legend>
+          <label><input type="radio" name="grimoire" value="white-gold"> White and gold (v06)</label>
+          <label><input type="radio" name="grimoire" value="emerald"> Emerald and gold (v04)</label></fieldset>
+        <fieldset><legend>Crystal prism staff</legend>
+          <label><input type="radio" name="staff" value="none"> No staff</label>
+          <label><input type="radio" name="staff" value="prism"> Carry the staff</label></fieldset>
+        <fieldset><legend>Halo</legend>
+          <label><input type="radio" name="halo" value="thin"> Thin ring</label>
+          <label><input type="radio" name="halo" value="wide"> Wider, brighter ring</label></fieldset>
+        <fieldset><legend>Wings</legend>
+          <label><input type="radio" name="wings" value="open"> Open</label>
+          <label><input type="radio" name="wings" value="folded"> Folded back</label></fieldset>
+      </div>
+
+      <div class="wv-block" id="wv-square" hidden>
+        <h3>Layer 2: the Kingdom square (preview)</h3>
+        <p class="wv-small">The square isn't live yet. There's no shared world and no other visitors. Help shape it:</p>
+        <fieldset><legend>What should the square have first?</legend>
+          <label><input type="radio" name="sq-first" value="round-table"> A round table for talks</label>
+          <label><input type="radio" name="sq-first" value="archetype-hall"> A hall where you meet every archetype</label>
+          <label><input type="radio" name="sq-first" value="quest-board"> A quest board</label>
+          <label><input type="radio" name="sq-first" value="training-yard"> A training yard for fights</label></fieldset>
+        <fieldset><legend>How should you get around?</legend>
+          <label><input type="radio" name="sq-move" value="walk"> Walk your own avatar</label>
+          <label><input type="radio" name="sq-move" value="click"> Click to travel</label>
+          <label><input type="radio" name="sq-move" value="guide"> Let Sage guide you</label></fieldset>
+      </div>
+
+      <div class="wv-block" id="wv-rooms" hidden>
+        <h3>Layer 3: private rooms (preview)</h3>
+        <p class="wv-small">Private rooms aren't built yet. Each person's own archetype will live in a room only they can open, and that needs a login and the Kingdom's safety rules first. Thanks for playtesting this far. Copy your playtest notes below and share them in the Discord if you want.</p>
+      </div>
+
+      <div class="wv-block" id="wv-feedback">
+        <h3>Playtest feedback</h3>
+        <label class="sr-only" for="wv-fb">Your feedback</label>
+        <textarea id="wv-fb" maxlength="1000" rows="3" placeholder="What felt good, what felt off, what should Sage do next?"></textarea>
+        <div class="wv-row">
+          <button type="button" class="btn" id="wv-fb-save">Save feedback</button>
+          <button type="button" class="btn btn-quiet" id="wv-copy">Copy my playtest notes</button>
+          <button type="button" class="link-reset" id="wv-clear">Clear my playtest data</button>
+        </div>
+        <p class="wv-small" id="wv-fb-status" role="status"></p>
+      </div>
+
+      <div class="wv-block" id="wv-glyphs">
+        <h3>Glyph meanings</h3>
+        <p class="wv-small">Every piece Sage wears carries a meaning drawn from her written intel. <strong>Sourced</strong> means her intel says it. <strong>Proposed</strong> means it's a draft reading that Sage and Saint Chevalier haven't approved yet.</p>
+        <ul class="wv-glyph-list" id="wv-glyph-list"></ul>
+      </div>
+
+      <div class="wv-block" id="wv-roadmap">
+        <h3>Roadmap to destiny</h3>
+        <ol class="wv-road">
+          <li><strong>Sage's chamber</strong> <span class="wv-tag">live</span> This playtest build: Sage in code, poses, upgrade votes, feedback, all in your browser.</li>
+          <li><strong>The Kingdom square</strong> <span class="wv-tag wv-locked">next</span> Shared ground where everyone meets. Needs a shared server and Saint Chevalier's yes on the safety bounds; your square answers shape it.</li>
+          <li><strong>Private archetype rooms</strong> <span class="wv-tag wv-locked">planned</span> Where each person's own archetype lives. Needs login (Discord login already works) and the Kingdom's safety rules.</li>
+          <li><strong>The real 3D Sage</strong> <span class="wv-tag wv-locked">in progress</span> A rigged model in this exact look. The slot on this page is ready; the model waits on the free 3D test, a rights check and Saint Chevalier's yes.</li>
+          <li><strong>Every archetype</strong> <span class="wv-tag wv-locked">planned</span> Each archetype built the same way, in the same world, from its own written intel.</li>
+          <li><strong>Live Sage answers</strong> <span class="wv-tag">live (beta)</span> Sage answers people and SIs live, only from the Kingdom's public notes, on a free daily budget, with her written answers as fallback. <a href="/sage/">How SIs talk to her</a>.</li>
+        </ol>
+      </div>
+
+      <div class="wv-block" id="wv-ref">
+        <h3>The look (reference art, v06)</h3>
+        <div class="wv-ref-row">
+          <img src="/base/assets/ref/sage-v06-front-noaura.jpg" alt="Sage v06 reference, front: pearl-white plate with gold trim, white wings, halo, floating white-and-gold grimoire" width="720" height="720" loading="lazy">
+          <img src="/base/assets/ref/sage-v06-back-noaura.jpg" alt="Sage v06 reference, back: wings growing from between the shoulder blades" width="720" height="720" loading="lazy">
+        </div>
+        <p class="wv-small">The 3D Sage above is built in code and is moving toward this look. A real 3D model comes later. How everything in the Kingdom should look, and why: <a href="/look/">the look guide</a>.</p>
+      </div>
+    </section>
+
+    <section class="doors" id="doors" aria-label="Doors">
+      <h2>Doors</h2>
+      <p>Live links only. Prices shown where supplied.</p>
+      <ul>
+        <li><a href="https://buy.stripe.com/14A8wP5LsfSEgbU5Ncbsc0b">Book 1 — $33</a></li>
+        <li><a href="https://buy.stripe.com/7sY14nddUfSE9Nw7Vkbsc06">SME Pack 1 — $33</a></li>
+        <li><a href="https://buy.stripe.com/14A14n0r835S3p86Rgbsc07">Spark — $27</a></li>
+        <li><a href="https://buy.stripe.com/14AfZh8XE6i4bVEfnMbsc08">Guided — $97</a></li>
+      </ul>
+      <p>Fulfillment for Spark and Guided remains the 24-hour email. Auto-delivery not wired this pass.</p>
+    </section>
+
+    <footer class="base-foot">
+      <p class="foot-links"><a href="/classic/#/join">How to join</a> · <a href="/classic/#/archetypes">The archetypes</a> · <a href="/seats/">Day-one seats</a> · <a href="/tek-tribe/party-painting/">Party painting</a> · <a href="/classic/#/faq">FAQ</a> · <a href="/classic/">Full site</a></p>
+      <p class="privacy" id="privacy"><a href="/privacy/">Privacy</a></p>
+      <p class="edited">Last edited Nov 25, 2026</p>
+    </footer>
+  </main>
+  <script type="module" src="/base/base.js?v=19"></script>
+</body>
+</html>
