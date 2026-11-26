@@ -20,8 +20,8 @@
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
   <link rel="modulepreload" href="/base/vendor/three.module.min.js">
   <link rel="modulepreload" href="/base/vendor/GLTFLoader.js">
-  <link rel="stylesheet" href="/base/base.css?v=19">
-  <link rel="stylesheet" href="/base/sage-book.css?v=4">
+  <link rel="stylesheet" href="/base/base.css?v=20">
+  <link rel="stylesheet" href="/base/sage-book.css?v=5">
 </head>
 <body>
 <a class="skip-link" href="#sage-book">Skip to Sage's book (chat)</a>
@@ -55,6 +55,8 @@
         <p class="sage-chat-note" id="sage-chat-note">AI may make mistakes. Sage is an SI archetype named Sage.</p>
         <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
         <form class="sage-form" id="sage-form" autocomplete="off">
+          <button class="btn btn-quiet" id="sage-plus" type="button" aria-label="Add a file or picture" title="Add file or picture">+</button>
+          <input id="sage-file" type="file" accept="image/*,.pdf,.txt,.md" hidden>
           <label class="sr-only" for="sage-input">Message Sage</label>
           <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
           <button class="btn btn-quiet" id="sage-mic" type="button" aria-label="Dictate a message. Press to start, press again to stop." aria-pressed="false" title="Dictate">🎙</button>
@@ -236,6 +238,6 @@
       <p class="edited">Last edited Nov 25, 2026</p>
     </footer>
   </main>
-  <script type="module" src="/base/base.js?v=19"></script>
+  <script type="module" src="/base/base.js?v=20"></script>
 </body>
 </html>
