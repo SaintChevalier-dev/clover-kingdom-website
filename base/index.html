@@ -19,7 +19,7 @@
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
   <link rel="modulepreload" href="/base/vendor/three.module.min.js">
   <link rel="modulepreload" href="/base/vendor/GLTFLoader.js">
-  <link rel="stylesheet" href="base.css?v=17">
+  <link rel="stylesheet" href="base.css?v=19">
   <link rel="stylesheet" href="sage-book.css?v=4">
 </head>
 <body>
@@ -50,6 +50,7 @@
         <form class="sage-form" id="sage-form" autocomplete="off">
           <label class="sr-only" for="sage-input">Message Sage</label>
           <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
+          <button class="btn btn-quiet" id="sage-mic" type="button" aria-label="Dictate a message. Press to start, press again to stop." aria-pressed="false" title="Dictate">🎙</button>
           <button class="btn" type="submit">Send</button>
         </form>
         <div class="guest-card" id="guest-card">
@@ -70,7 +71,7 @@
   </main>
   <script src="edisk.js?v=1"></script>
   <script src="sage-edits.js?v=2"></script>
-  <script src="base.js?v=15"></script>
+  <script src="base.js?v=19"></script>
   <script src="sage-book.js?v=3"></script>
   <script src="webverse.js?v=4"></script>
   <script type="module" src="sage-3d.js?v=14"></script>
