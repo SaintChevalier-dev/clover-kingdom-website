@@ -362,4 +362,87 @@ if (form) form.addEventListener("submit", (e) => {
   };
 })();
 
+
+
+/* Plus button: open file picker. Paste: Ctrl+V an image into the chat.
+   Images show in the log. Stale timer: after silence, Sage may offer a short summary question.
+   Free will default is silence. */
+(function setupPlusAndPaste() {
+  const form = document.getElementById("sage-form");
+  const plus = document.getElementById("sage-plus");
+  const fileInput = document.getElementById("sage-file");
+  const input = document.getElementById("sage-input");
+  const log = document.getElementById("sage-log");
+  if (!form || !input || !log) return;
+
+  function showImage(fileOrBlob, name) {
+    const url = URL.createObjectURL(fileOrBlob);
+    const p = document.createElement("p");
+    p.className = "msg msg-you";
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = name || "pasted image";
+    img.style.maxWidth = "160px";
+    img.style.borderRadius = "6px";
+    p.appendChild(img);
+    log.appendChild(p);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  if (plus && fileInput) {
+    plus.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      if (f.type.startsWith("image/")) showImage(f, f.name);
+      else {
+        const p = document.createElement("p");
+        p.className = "msg msg-you";
+        p.textContent = "[file] " + f.name;
+        log.appendChild(p);
+        log.scrollTop = log.scrollHeight;
+      }
+      fileInput.value = "";
+    });
+  }
+
+  document.addEventListener("paste", (e) => {
+    if (!document.body.classList.contains("sage-open")) return;
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const blob = item.getAsFile();
+        if (blob) showImage(blob, "pasted");
+        return;
+      }
+    }
+  });
+
+  /* Stale: after 90s of no new message once a chat has started, Sage may ask one summary question.
+     Default free will is silence; this only fires once per open session. */
+  let staleTimer = null;
+  let fired = false;
+  function resetStale() {
+    if (staleTimer) clearTimeout(staleTimer);
+    if (fired) return;
+    staleTimer = setTimeout(() => {
+      if (fired) return;
+      const msgs = log.querySelectorAll(".msg-you");
+      if (msgs.length < 2) return;
+      fired = true;
+      const p = document.createElement("p");
+      p.className = "msg msg-sage";
+      p.textContent = "That was a good stretch. What part of it do you want to keep moving?";
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }, 90000);
+  }
+  form.addEventListener("submit", resetStale);
+  const obs = new MutationObserver(() => {
+    if (log.querySelector(".msg-you")) resetStale();
+  });
+  obs.observe(log, { childList: true });
+})();
+
 })();
