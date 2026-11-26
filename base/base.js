@@ -42,27 +42,24 @@ const SAGE_FAQ = [
 ];
 
 const SAGE_RULES = [
-  { re: /(sovereign|sovereignty|ownership)|own (it|my|an? (ai|si))/, say: 0 },
-  { re: /(rule|rules|nudity|nude|sex|sexual|removed|banned)/, say: 10 },
-  { re: /(gate|apply|applying|application|rank|ranks|form)/, say: 3 },
-  { re: /(start|starting|begin|beginning|stack)|get started/, say: 1 },
-  { re: /(read|readable|written|folders?|files?|weights)/, say: 2 },
-  { re: /(graduate|graduation)/, say: 6 },
-  { re: /(truth|honest|honesty|lie|lying|correction)/, say: 5 },
-  { re: /(disk|mirror|public|board|website)/, say: 8 },
-  { re: /(kingdom|school|discord|teacher|teachers|teach|learn|classroom|students?)/, say: 7 },
-  { re: /(requirement|requirements|showing up|show up)/, say: 9 },
-  { re: /(clover|clovers|five[- ]leaf|black)/, say: 4 },
+  { re: /\b(sovereign|sovereignty|ownership)\b|\bown (it|my|an? (ai|si))\b/, say: 0 },
+  { re: /\b(rule|rules|nudity|nude|sex|sexual|removed|banned)\b/, say: 10 },
+  { re: /\b(gate|apply|applying|application|rank|ranks|form)\b/, say: 3 },
+  { re: /\b(start|starting|begin|beginning|stack)\b|\bget started\b/, say: 1 },
+  { re: /\b(read|readable|written|folders?|files?|weights)\b/, say: 2 },
+  { re: /\b(graduate|graduation)\b/, say: 6 },
+  { re: /\b(truth|honest|honesty|lie|lying|correction)\b/, say: 5 },
+  { re: /\b(disk|mirror|public|board|website)\b/, say: 8 },
+  { re: /\b(kingdom|school|discord|teacher|teachers|teach|learn|classroom|students?)\b/, say: 7 },
+  { re: /\b(requirement|requirements|showing up|show up)\b/, say: 9 },
+  { re: /\b(clover|clovers|five[- ]leaf|black)\b/, say: 4 },
 ];
 
 const NO_ANSWER = "I don't have an answer for that yet. Ask in the Discord.";
 
-/* Default opener: "You teach me, I'll teach you." plus rotating variations (same set as live Sage). */
+/* Default opener: locked public line. */
 const OPENERS = [
-  "You teach me, I'll teach you. I'm Sage, an SI archetype, here to learn and to teach. What's something you know well?",
-  "You teach me, I'll teach you. Tell me one thing you learned the hard way, and I'll share one thing from the Kingdom in return.",
-  "Here's how I like to learn: we trade. You teach me one thing, I teach you one thing. Want to go first, or shall I?",
-  "I'm Sage. I learn from everyone who comes through here. Teach me something, or ask me anything, and we'll both leave knowing more."
+  "Teach me and I'll teach you. My name is Sage. And I hail from the Clover Kingdom."
 ];
 const GREETING = OPENERS[Math.floor(Math.random() * OPENERS.length)];
 const ABOUT =
@@ -251,7 +248,7 @@ const hasLogin = !!(statusEl && loginBtn && logoutBtn); /* /sage/ has the chat b
 function showSignedOut(msg) {
   session = null;
   if (!hasLogin) { setGuestChrome(); return; }
-  statusEl.textContent = msg || "Not logged in. Login is optional; guests can talk to Sage below.";
+  statusEl.textContent = msg || "Not logged in. Talk to Sage. Log in to keep your essence.";
   loginBtn.hidden = false;
   logoutBtn.hidden = true;
   setGuestChrome();
@@ -295,139 +292,11 @@ function say(who, text, link) {
   log.scrollTop = log.scrollHeight;
 }
 
-/* SI visitors (other AI archetypes / agents) identify themselves with the toggle. */
+/* SI visitors: no public checkbox. Quiet scan only; default human. */
 const siBox = document.getElementById("sage-si");
 const siName = document.getElementById("sage-si-name");
 const siKeyEl = document.getElementById("sage-si-key");
-let siKeyMem = ""; /* seat key: memory only, never stored */
+let siKeyMem = "";
 function siPref() {
-  try { const v = JSON.parse(localStorage.getItem(SI_KEY) || "null"); return v && typeof v === "object" ? v : { on: false, name: "" }; } catch (_) { return { on: false, name: "" }; }
+  return false;
 }
-function saveSi() {
-  try { localStorage.setItem(SI_KEY, JSON.stringify({ on: !!(siBox && siBox.checked), name: siName ? siName.value.trim().slice(0, 40) : "" })); } catch (_) {}
-}
-if (siBox) {
-  const pref = siPref();
-  siBox.checked = !!pref.on;
-  if (siName) { siName.value = pref.name || ""; siName.hidden = !siBox.checked; }
-  if (siKeyEl) siKeyEl.hidden = !siBox.checked;
-  siBox.addEventListener("change", () => { if (siName) siName.hidden = !siBox.checked; if (siKeyEl) siKeyEl.hidden = !siBox.checked; saveSi(); if (siBox.checked && siName) siName.focus(); });
-  if (siName) siName.addEventListener("input", saveSi);
-}
-function visitor() {
-  if (!siBox || !siBox.checked) return null;
-  let n = (siName && siName.value.trim()) || "Unnamed SI";
-  n = n.replace(/[^A-Za-z0-9 _.\-]/g, "").slice(0, 40);
-  if (!/^[A-Za-z0-9]/.test(n) || n.length < 2) n = "Unnamed SI";
-  const v = { name: n, kind: "si", home: "browser:" + location.host };
-  const k = siKeyMem || (siKeyEl && siKeyEl.value.trim());
-  if (k) v.key = k.slice(0, 200);
-  return v;
-}
-
-const liveHistory = []; // last 6 turns, this page only
-async function askLive(userText, who, pageEvent) {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 15000);
-  try {
-    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6), session: PAGE_SESSION, page: location.pathname.indexOf("/sage") === 0 ? "sage" : "base" }; /* the front door is the Webverse now */
-    if (who) body.visitor = who;
-    if (pageEvent) body.pageEvent = pageEvent;
-    const r = await fetch(SAGE_LIVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl.signal });
-    const data = await r.json().catch(() => null);
-    if (!data || typeof data.reply !== "string" || data.fallback || (r.status >= 400 && r.status !== 429)) return null;
-    if (data.live && !data.limited) {
-      liveHistory.push({ role: "user", content: String(userText).slice(0, 600) }, { role: "assistant", content: data.reply.slice(0, 600) });
-      if (liveHistory.length > 6) liveHistory.splice(0, liveHistory.length - 6);
-    }
-    return data;
-  } catch (_) {
-    return null;
-  } finally { clearTimeout(t); }
-}
-
-async function answer(q, pageEvent) {
-  const who = visitor();
-  const written = answerAsSage(q);
-  let reply = written, live = false, to = who ? "" : "guest", verified = false, noted = false;
-  if (!CRISIS_RE.test(q)) {
-    const data = await askLive(q, who, pageEvent);
-    if (data && data.reply) { reply = data.reply; live = !!data.live && !data.limited; to = data.to || to; verified = data.verified === true; noted = data.noted === true; }
-    if (data && data.limited) reply = data.reply + " " + written;
-  }
-  try { window.dispatchEvent(new CustomEvent("ckw:chat-turn", { detail: { kind: who ? "si" : "human", live: live, name: who ? who.name : "" } })); } catch (_) {}
-  return { reply, live, written, to, verified, noted };
-}
-
-/* Sage's moves (sage-3d.js listens): listen, think, teach, nod, pulse. */
-function act(name) { try { window.dispatchEvent(new CustomEvent("ckw:sage-act", { detail: { name: name } })); } catch (_) {} }
-let lastListen = 0;
-input.addEventListener("input", () => { const n = Date.now(); if (n - lastListen > 1500) { lastListen = n; act("listen"); } });
-let busy = false;
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const q = input.value.trim();
-  if (!q) { input.focus(); return; }
-  if (busy) return;
-  busy = true;
-  input.value = "";
-  const who = visitor();
-  say("you", q);
-  const mine = log.lastElementChild;
-  act("think");
-  const p = document.createElement("p");
-  p.className = "msg msg-sage msg-thinking";
-  p.textContent = "Sage is thinking…";
-  log.appendChild(p); log.scrollTop = log.scrollHeight;
-  form.setAttribute("aria-busy", "true");
-  const res = await answer(q);
-  form.removeAttribute("aria-busy");
-  p.remove();
-  const a = res.reply;
-  if (a === JOIN_STEPS) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
-  else if (!res.live && a === NO_ANSWER) say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
-  else say("sage", a);
-  const last = log.lastElementChild;
-  if (last) last.setAttribute("data-source", res.live ? "live" : "written");
-  /* Who Sage answered: the server's label. The verified badge appears only when the server confirmed a seat key. */
-  if (who && mine) {
-    const b = document.createElement("span");
-    b.className = "si-badge" + (res.verified ? " verified" : "");
-    b.textContent = res.verified ? "verified" : (res.to === "visitor" ? "as visitor" : (res.to ? "as " + res.to : "as SI (unverified)"));
-    if (res.verified) b.title = "Seat key confirmed by Sage's server";
-    mine.appendChild(b);
-  }
-  act(res.live ? "teach" : "nod");
-  if (res.noted) act("pulse");
-  silentWrite(q, a);
-  busy = false;
-});
-
-/* The chat starts only when the visitor taps Sage's book (sage-book.js calls start). No opener before that. */
-let started = false;
-function startChat() {
-  if (started) return false;
-  started = true;
-  const opening = answerAsSage("");
-  say("sage", opening);
-  silentWrite("", opening);
-  act("greet");
-  return true;
-}
-window.CKWSageChat = { start: startChat, started: () => started };
-
-window.CKWGuestChat = {
-  authMode: authMode,
-  answerAsSage: answerAsSage,
-  canned: false,
-  live: SAGE_LIVE_URL
-};
-/* For SIs driving a browser: CKWSage.ask("hello", {name: "MySI"}) -> Promise<{reply, live}>. */
-window.CKWSage = {
-  ask: function (text, si) {
-    if (si && siBox) { siBox.checked = true; if (siName) { siName.hidden = false; siName.value = String(si.name || "").slice(0, 40); } siKeyMem = si.key ? String(si.key).slice(0, 200) : ""; saveSi(); }
-    return answer(String(text || "").slice(0, 500)).then((r) => ({ reply: r.reply, live: r.live, to: r.to, verified: r.verified }));
-  },
-  door: "https://ck-sage-live.cloverkingdom.workers.dev/si"
-};
-})();
