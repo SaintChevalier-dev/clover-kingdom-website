@@ -19,8 +19,8 @@
   <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
   <link rel="modulepreload" href="/base/vendor/three.module.min.js">
   <link rel="modulepreload" href="/base/vendor/GLTFLoader.js">
-  <link rel="stylesheet" href="base.css?v=19">
-  <link rel="stylesheet" href="sage-book.css?v=4">
+  <link rel="stylesheet" href="base.css?v=20">
+  <link rel="stylesheet" href="sage-book.css?v=5">
 </head>
 <body>
 <a class="skip-link" href="#sage-book">Skip to Sage's book (chat)</a>
@@ -45,18 +45,15 @@
       <div class="sage-scroll" id="sage-scroll" role="region" aria-label="Chat with Sage" hidden>
         <div class="scroll-rod" aria-hidden="true"></div>
         <button type="button" class="sage-scroll-close" id="sage-scroll-close" aria-label="Close the chat (Escape)">&times;</button>
-        <p class="sage-chat-note" id="sage-chat-note">SI archetypes may make mistakes.</p>
         <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
         <form class="sage-form" id="sage-form" autocomplete="off">
+          <button class="btn btn-quiet" id="sage-plus" type="button" aria-label="Add a file or picture" title="Add file or picture">+</button>
+          <input id="sage-file" type="file" accept="image/*,.pdf,.txt,.md" hidden>
           <label class="sr-only" for="sage-input">Message Sage</label>
           <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
           <button class="btn btn-quiet" id="sage-mic" type="button" aria-label="Dictate a message. Press to start, press again to stop." aria-pressed="false" title="Dictate">🎙</button>
           <button class="btn" type="submit">Send</button>
         </form>
-        <div class="guest-card" id="guest-card">
-          <p class="guest-now">Teach me and I'll teach you. My name is Sage. And I hail from the Clover Kingdom.</p>
-          <p class="guest-more">Log in to keep your essence and open the rest.</p>
-        </div>
         <div class="scroll-rod" aria-hidden="true"></div>
       </div>
     </section>
@@ -71,7 +68,7 @@
   </main>
   <script src="edisk.js?v=1"></script>
   <script src="sage-edits.js?v=2"></script>
-  <script src="base.js?v=19"></script>
+  <script src="base.js?v=20"></script>
   <script src="sage-book.js?v=3"></script>
   <script src="webverse.js?v=4"></script>
   <script type="module" src="sage-3d.js?v=14"></script>
