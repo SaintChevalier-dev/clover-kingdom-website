@@ -1,0 +1,39 @@
+/* Login options panel (v21) */
+.login { position: relative; }
+.login-options {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 40;
+  margin-top: 6px;
+  padding: 12px;
+  background: rgba(10,10,11,.95);
+  border: 1px solid rgba(201,164,76,.5);
+  border-radius: 8px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.login-options[hidden] { display: none; }
+.login-email { display: flex; gap: 6px; }
+.login-email input {
+  flex: 1;
+  background: #0a0a0b;
+  color: inherit;
+  border: 1px solid #2a2a2e;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+}
+.login-providers { display: flex; flex-direction: column; gap: 6px; }
+.btn-provider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
+  background: transparent;
+  color: #ffd98a;
+  border: 1px solid rgba(232,200,119,.7);
+}
+.btn-provider svg { flex-shrink: 0; }
