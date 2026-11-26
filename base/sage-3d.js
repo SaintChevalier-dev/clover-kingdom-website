@@ -912,15 +912,12 @@ async function boot() {
     usingGLB = true;
     mixer = new THREE.AnimationMixer(gltf.scene);
     (gltf.animations || []).forEach((c) => { clips[c.name] = c; });
-    if (label) { label.hidden = false; label.textContent = "Sage avatar preview"; }
+    if (label) label.hidden = true;
   } catch (e) {
     if (usingGLB === false && sage) sage = null;
     sage = buildStandIn();
     usingGLB = false;
-    if (label) {
-      label.hidden = false;
-      label.textContent = "Sage, v06 look (built in code)";
-    }
+    if (label) label.hidden = true;
   }
   scene.add(sage);
   const parts = sage.userData.parts || {};
