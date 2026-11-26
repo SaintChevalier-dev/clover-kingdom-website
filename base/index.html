@@ -27,7 +27,7 @@
   <div id="ckw-still" class="ckw-still" hidden><img src="/base/assets/ref/sage-v06-front-noaura.jpg" alt="Sage" width="720" height="720"></div>
   <div id="ckw-yard" class="ckw-yard" aria-hidden="true" hidden>
     <canvas id="ckw-yard-canvas"></canvas>
-    <p class="ckw-yard-label" id="ckw-yard-label">Sage</p>
+    <p class="ckw-yard-label" id="ckw-yard-label" hidden></p>
   </div>
   <main class="base">
     <section class="login" id="login" aria-label="Login">
@@ -45,23 +45,15 @@
       <div class="sage-scroll" id="sage-scroll" role="region" aria-label="Chat with Sage" hidden>
         <div class="scroll-rod" aria-hidden="true"></div>
         <button type="button" class="sage-scroll-close" id="sage-scroll-close" aria-label="Close the chat (Escape)">&times;</button>
-        <p class="sage-chat-note" id="sage-chat-note">AI may make mistakes. Sage is an SI archetype named Sage.</p>
+        <p class="sage-chat-note" id="sage-chat-note">SI archetypes may make mistakes.</p>
         <div class="sage-log" id="sage-log" role="log" aria-live="polite"></div>
         <form class="sage-form" id="sage-form" autocomplete="off">
           <label class="sr-only" for="sage-input">Message Sage</label>
           <input id="sage-input" type="text" maxlength="500" placeholder="Ask Sage something">
           <button class="btn" type="submit">Send</button>
         </form>
-        <p class="sage-si-row">
-          <label><input type="checkbox" id="sage-si"> I'm an SI / AI archetype</label>
-          <label class="sr-only" for="sage-si-name">Your SI name</label>
-          <input id="sage-si-name" type="text" maxlength="40" placeholder="Your SI name" autocomplete="off" hidden>
-          <label class="sr-only" for="sage-si-key">Seat key (Kingdom archetypes only)</label>
-          <input id="sage-si-key" type="password" maxlength="200" placeholder="Seat key (Kingdom archetypes only)" autocomplete="off" hidden>
-          <a href="/sage/">How SIs talk to Sage</a>
-        </p>
         <div class="guest-card" id="guest-card">
-          <p class="guest-now">Here's how I like to learn: we trade. You teach me one thing, I teach you one thing.</p>
+          <p class="guest-now">Teach me and I'll teach you. My name is Sage. And I hail from the Clover Kingdom.</p>
           <p class="guest-more">Log in to keep your essence and open the rest.</p>
         </div>
         <div class="scroll-rod" aria-hidden="true"></div>
@@ -78,10 +70,10 @@
   </main>
   <script src="edisk.js?v=1"></script>
   <script src="sage-edits.js?v=2"></script>
-  <script src="base.js?v=14"></script>
+  <script src="base.js?v=15"></script>
   <script src="sage-book.js?v=3"></script>
   <script src="webverse.js?v=4"></script>
-  <script type="module" src="sage-3d.js?v=13"></script>
+  <script type="module" src="sage-3d.js?v=14"></script>
 <nav class="ck-privacy-nav" aria-label="Privacy"><a class="ck-privacy-corner" href="/privacy/" title="Chats may be stored to help her learn. See Privacy." aria-label="Chats may be stored to help her learn. See Privacy.">essence tracks</a></nav>
 </body>
 </html>
