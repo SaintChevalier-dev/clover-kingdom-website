@@ -300,4 +300,66 @@ if (form) form.addEventListener("submit", (e) => {
   say("sage", reply);
   silentWrite(text, reply);
 });
+
+/* Microphone button: press once to start dictation, press again to stop.
+   Transcript lands in the input field. User reviews and presses Send.
+   No audio is stored. Uses the browser Web Speech API only. */
+(function setupMic() {
+  const mic = document.getElementById("sage-mic");
+  const input = document.getElementById("sage-input");
+  if (!mic || !input) return;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    mic.hidden = true;
+    mic.setAttribute("aria-hidden", "true");
+    return;
+  }
+  const rec = new SpeechRecognition();
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.lang = "en-US";
+  let listening = false;
+  let finalText = "";
+
+  function setListening(on) {
+    listening = on;
+    mic.setAttribute("aria-pressed", on ? "true" : "false");
+    mic.textContent = on ? "⏹" : "🎙";
+    mic.title = on ? "Stop dictation" : "Dictate";
+  }
+
+  mic.addEventListener("click", () => {
+    if (listening) {
+      try { rec.stop(); } catch (_) {}
+      return;
+    }
+    finalText = input.value || "";
+    try {
+      rec.start();
+      setListening(true);
+    } catch (_) {
+      setListening(false);
+    }
+  });
+
+  rec.onresult = (e) => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalText += (finalText && !finalText.endsWith(" ") ? " " : "") + t;
+      else interim += t;
+    }
+    input.value = (finalText + (interim ? " " + interim : "")).trim();
+  };
+
+  rec.onend = () => {
+    setListening(false);
+    input.focus();
+  };
+
+  rec.onerror = () => {
+    setListening(false);
+  };
+})();
+
 })();
