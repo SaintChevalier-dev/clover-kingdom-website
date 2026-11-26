@@ -200,3 +200,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 /* Mic button for Sage dictation */
 #sage-mic { padding: 10px 12px; font-size: 16px; line-height: 1; }
 #sage-mic[aria-pressed="true"] { background: #c9a44c; color: #0a0a0b; }
+
+/* Chat bar only: hide the note and guest card inside the open scroll */
+.sage-scroll .sage-chat-note,
+.sage-scroll .guest-card,
+.sage-scroll .sage-si-row,
+.sage-scroll .sage-layers { display: none; }
+#sage-plus { padding: 10px 14px; font-size: 18px; line-height: 1; }
