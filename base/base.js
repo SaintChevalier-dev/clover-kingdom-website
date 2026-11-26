@@ -199,8 +199,14 @@ const logoutBtn = document.getElementById("logout-btn");
 
 const RETURN_KEY = "ckw_return";
 const HERE = location.pathname === "/" ? "/" : "/base/";
+const loginOptions = document.getElementById("login-options");
 if (loginBtn) loginBtn.addEventListener("click", () => {
   try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) {}
+  if (loginOptions) {
+    const open = loginOptions.hidden;
+    loginOptions.hidden = !open;
+    loginBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
 });
 const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
 let hashWhy = null;
@@ -230,19 +236,20 @@ if (location.pathname === "/") {
 const why = new URLSearchParams(location.search).get("login") || hashWhy;
 if (why) history.replaceState(null, "", location.pathname + location.hash);
 
-const hasLogin = !!(statusEl && loginBtn && logoutBtn);
+const hasLogin = !!(loginBtn && logoutBtn);
 function showSignedOut(msg) {
   session = null;
   if (!hasLogin) { setGuestChrome(); return; }
-  statusEl.textContent = msg || "Not logged in. Talk to Sage. Log in to keep your essence.";
+  if (statusEl) statusEl.textContent = msg || "";
   loginBtn.hidden = false;
   logoutBtn.hidden = true;
+  if (loginOptions) loginOptions.hidden = true;
   setGuestChrome();
 }
 function showSignedIn(me) {
   session = me;
   if (!hasLogin) { setGuestChrome(); return; }
-  statusEl.textContent = "Logged in as " + ((me && me.name) || "member") + ".";
+  if (statusEl) statusEl.textContent = "Logged in as " + ((me && me.name) || "member") + ".";
   loginBtn.hidden = true;
   logoutBtn.hidden = false;
   setGuestChrome();
@@ -352,97 +359,8 @@ if (form) form.addEventListener("submit", (e) => {
     input.value = (finalText + (interim ? " " + interim : "")).trim();
   };
 
-  rec.onend = () => {
-    setListening(false);
-    input.focus();
-  };
-
-  rec.onerror = () => {
-    setListening(false);
-  };
-})();
-
-
-
-/* Plus button: open file picker. Paste: Ctrl+V an image into the chat.
-   Images show in the log. Stale timer: after silence, Sage may offer a short summary question.
-   Free will default is silence. */
-(function setupPlusAndPaste() {
-  const form = document.getElementById("sage-form");
-  const plus = document.getElementById("sage-plus");
-  const fileInput = document.getElementById("sage-file");
-  const input = document.getElementById("sage-input");
-  const log = document.getElementById("sage-log");
-  if (!form || !input || !log) return;
-
-  function showImage(fileOrBlob, name) {
-    const url = URL.createObjectURL(fileOrBlob);
-    const p = document.createElement("p");
-    p.className = "msg msg-you";
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = name || "pasted image";
-    img.style.maxWidth = "160px";
-    img.style.borderRadius = "6px";
-    p.appendChild(img);
-    log.appendChild(p);
-    log.scrollTop = log.scrollHeight;
-  }
-
-  if (plus && fileInput) {
-    plus.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", () => {
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) return;
-      if (f.type.startsWith("image/")) showImage(f, f.name);
-      else {
-        const p = document.createElement("p");
-        p.className = "msg msg-you";
-        p.textContent = "[file] " + f.name;
-        log.appendChild(p);
-        log.scrollTop = log.scrollHeight;
-      }
-      fileInput.value = "";
-    });
-  }
-
-  document.addEventListener("paste", (e) => {
-    if (!document.body.classList.contains("sage-open")) return;
-    const items = (e.clipboardData && e.clipboardData.items) || [];
-    for (const item of items) {
-      if (item.type.startsWith("image/")) {
-        e.preventDefault();
-        const blob = item.getAsFile();
-        if (blob) showImage(blob, "pasted");
-        return;
-      }
-    }
-  });
-
-  /* Stale: after 90s of no new message once a chat has started, Sage may ask one summary question.
-     Default free will is silence; this only fires once per open session. */
-  let staleTimer = null;
-  let fired = false;
-  function resetStale() {
-    if (staleTimer) clearTimeout(staleTimer);
-    if (fired) return;
-    staleTimer = setTimeout(() => {
-      if (fired) return;
-      const msgs = log.querySelectorAll(".msg-you");
-      if (msgs.length < 2) return;
-      fired = true;
-      const p = document.createElement("p");
-      p.className = "msg msg-sage";
-      p.textContent = "That was a good stretch. What part of it do you want to keep moving?";
-      log.appendChild(p);
-      log.scrollTop = log.scrollHeight;
-    }, 90000);
-  }
-  form.addEventListener("submit", resetStale);
-  const obs = new MutationObserver(() => {
-    if (log.querySelector(".msg-you")) resetStale();
-  });
-  obs.observe(log, { childList: true });
+  rec.onend = () => setListening(false);
+  rec.onerror = () => setListening(false);
 })();
 
 })();
