@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net https://ck-sage-live.cloverkingdom.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self' https://auth.cloverkingdom.net; frame-src 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net https://ck-sage-live.cloverkingdom.workers.dev https://ck-sage-library.cloverkingdom.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self' https://auth.cloverkingdom.net; frame-src 'none'; upgrade-insecure-requests">
   <meta name="robots" content="index, follow">
   <meta name="description" content="Clover Kingdom. A place with a standard and a gate. Meet Sage in the Webverse, tap the clover glyph to talk, see how to join, and log in with Discord if you are a member.">
   <link rel="canonical" href="https://cloverkingdom.net/">
@@ -23,6 +23,9 @@
   <link rel="stylesheet" href="/base/base.css?v=20">
   <link rel="stylesheet" href="/base/login-options.css?v=23">
   <link rel="stylesheet" href="/base/sage-book.css?v=5">
+  <link rel="stylesheet" href="/base/sage-library.css?v=2">
+  <meta name="ck-sage-library-api" content="https://ck-sage-library.cloverkingdom.workers.dev">
+  <meta name="ck-sage-pass-url" content="https://auth.cloverkingdom.net/api/sage-pass">
 </head>
 <body>
 <a class="skip-link" href="#sage-book">Skip to Sage (chat)</a>
@@ -118,5 +121,6 @@
   <script src="/base/sage-book.js?v=6" defer></script>
   <script type="module" src="/base/sage-3d.js?v=20"></script>
   <script src="/base/essence-drop.js?v=21" defer></script>
+  <script src="/base/sage-library.js?v=2" defer></script>
 </body>
 </html>

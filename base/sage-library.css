@@ -1,0 +1,23 @@
+/* Sage's Library section inside the chat scroll (#sage-scroll). */
+.sage-scroll .sl-panel { margin: 6px 0 4px; padding: 6px 8px; border: 1px solid rgba(232,200,119,.45); border-radius: 8px; background: rgba(10,9,7,.55); color: #f1ead2; font-size: 13px; line-height: 1.45; flex: 0 0 auto; }
+.sage-scroll .sl-panel > summary { cursor: pointer; color: #ffd98a; font-weight: 700; }
+.sage-scroll .sl-note, .sage-scroll .sl-small { font-size: 12px; color: #d9d2bf; margin: 4px 0; }
+.sage-scroll .sl-ask, .sage-scroll .sl-pform { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.sage-scroll .sl-pform[hidden], .sage-scroll .sl-flags[hidden] { display: none; }
+.sage-scroll .sl-ask input { flex: 1 1 160px; }
+.sage-scroll .sl-panel input, .sage-scroll .sl-panel textarea { width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1px solid #6d5f37; background: #0b0a08; color: #f1ead2; font: inherit; }
+.sage-scroll .sl-ask input { width: auto; }
+.sage-scroll .sl-btn { padding: 6px 10px; border-radius: 6px; border: 1px solid #c9a94e; background: #2a2412; color: #f3e6b8; cursor: pointer; font-weight: 600; }
+.sage-scroll .sl-answer { margin: 6px 0; padding: 6px 8px; border-left: 3px solid #c9a94e; background: rgba(201,169,78,.08); }
+.sage-scroll .sl-none { border-left-color: #8a8a8a; }
+.sage-scroll .sl-cites { margin: 2px 0 6px 16px; padding: 0; font-size: 12px; }
+.sage-scroll .sl-src { display: block; color: #a99f80; word-break: break-all; }
+.sage-scroll .sl-propose summary { cursor: pointer; color: #f3d98a; margin-top: 4px; }
+.sage-scroll .sl-status { font-weight: 700; margin: 6px 0 2px; }
+.sage-scroll .sl-written, .sage-scroll .sl-queued { color: #9fd59a; }
+.sage-scroll .sl-rejected, .sage-scroll .sl-refused, .sage-scroll .sl-error { color: #f0a08a; }
+.sage-scroll .sl-flagged { color: #f3d98a; }
+.sage-scroll .sl-reason { margin: 2px 0; font-size: 12px; color: #e4dcc0; }
+.sage-scroll .sl-flag { border: 1px dashed #c9a94e; border-radius: 8px; padding: 6px; margin: 6px 0; }
+.sage-scroll .sl-flag-title { margin: 0; font-weight: 700; }
+.sage-scroll .sl-small-btn { margin: 4px 6px 0 0; padding: 4px 8px; }
