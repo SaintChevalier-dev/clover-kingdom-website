@@ -249,7 +249,7 @@ function showSignedOut(msg) {
 function showSignedIn(me) {
   session = me;
   if (!hasLogin) { setGuestChrome(); return; }
-  if (statusEl) statusEl.textContent = "Logged in as " + ((me && me.name) || "member") + ".";
+  if (statusEl) statusEl.textContent = "";
   loginBtn.hidden = true;
   logoutBtn.hidden = true;
   logoutBtn.dataset.signedin = "1";
