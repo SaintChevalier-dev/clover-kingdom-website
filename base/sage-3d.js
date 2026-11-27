@@ -1195,8 +1195,21 @@ async function boot() {
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     const hit = ray.intersectObject(sage, true).find((h) => h.object.visible && !(h.object.isSprite) && !(h.object.isPoints));
+    if (dragged) { dragged = false; return; } /* a drag turns her; it isn't a tap */
     if (hit) reactTo(partOf(hit.object));
   });
+  /* drag (mouse, pen or touch, sideways) on the 3D view turns Sage; a short tap still touches her */
+  let dragFrom = null, dragged = false;
+  canvas.style.touchAction = "pan-y";
+  canvas.addEventListener("pointerdown", (e) => { if (e.button !== undefined && e.button > 0) return; dragFrom = { x: e.clientX, yaw: manualYaw != null ? manualYaw : yaw }; dragged = false; });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!dragFrom) return;
+    const dx = e.clientX - dragFrom.x;
+    if (!dragged && Math.abs(dx) < 6) return;
+    dragged = true; manualYaw = dragFrom.yaw + dx * 0.01;
+  });
+  const endDrag = () => { dragFrom = null; };
+  window.addEventListener("pointerup", endDrag); window.addEventListener("pointercancel", endDrag);
   if (flags.pose) {
     posed = true;
     if (flags.pose === "walk") {
@@ -1230,6 +1243,7 @@ async function boot() {
       dest = null; setState(name); nextAt = name === "idle_pages" ? 3 : 7;
     },
     setYaw: (r) => { manualYaw = (r == null || isNaN(r)) ? null : r; },
+    yaw: () => yaw,
     upgrade: (key, val) => applyUpgrade(sage, key, val),
     /* touch a part (also fired by clicking her in the 3D view): she reacts, the page says why */
     touch: (part) => reactTo(part),
@@ -1247,8 +1261,7 @@ async function boot() {
   const mp = motes.geometry.attributes.position, seeds = motes.userData.seed;
   function tick() {
     requestAnimationFrame(tick);
-    /* paused while the tab is hidden or Sage's chat scroll is open (focus mode hides the 3D scene) */
-    if (hidden || document.body.classList.contains("sage-open")) return;
+    if (hidden) return; /* paused only while the tab is hidden; the 3D world keeps running while Sage's chat is open */
     const now = performance.now();
     /* reduced motion: the scene holds still, so redraw ~8 times a second for pose/turn controls only */
     if (reduce.matches && now - lastT < 120) return;
