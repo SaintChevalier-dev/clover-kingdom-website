@@ -52,7 +52,165 @@ html, body { margin: 0; background: #0a0a0b; color: #e8e4d8; font: 16px/1.5 syst
 }
 body { padding-top: 28px; }
 
-/* Essence Tracks dropdown - white box removed, softened */
+/* Guest chrome, layers, 3D courtyard (staged; does not change v3 figure paint). */
+.sage { position: relative; z-index: 2; }
+.login { position: relative; z-index: 2; }
+.sage-name { margin: 0 0 4px; }
+.sage-chat-note { margin: 0 0 12px; font-size: 12px; color: #8a8578; }
+.sage-privacy { margin: 10px 0 0; font-size: 12px; color: #8a8578; }
+.sage-layers { margin: 6px 0 0; font-size: 12px; color: #b9b3a3; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.link-reset { background: none; border: 0; padding: 0; color: #c9a44c; font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
+.link-reset:focus-visible { outline: 2px solid #c9a44c; outline-offset: 2px; }
+
+/* Additive look layers on the v3 figure (canon look stays visible). */
+.ss-layer-halo .ss-svg .ss-halo { stroke: #ffe08a; stroke-width: 3.4; filter: url(#ss-glow); }
+.ss-layer-wings .ss-svg .ss-fp, .ss-layer-wings .ss-svg .ss-fs { filter: url(#ss-glow); }
+.ss-layer-armor .ss-svg .ss-armor, .ss-layer-armor .ss-svg .ss-pauldron, .ss-layer-armor .ss-svg .ss-greaves, .ss-layer-armor .ss-svg .ss-thigh { stroke: #f0c85a; }
+.ss-layer-cape .ss-svg .ss-cloak { stroke: #f0c85a; stroke-width: 1.6; }
+.ss-layer-crest .ss-svg .ss-gem, .ss-layer-crest .ss-svg .ss-staff-gem { fill: #ffe08a; stroke: #fff8d0; }
+
+/* 3D courtyard sits behind the login + chat. */
+.ckw-yard { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: #07070a; }
+.ckw-yard[hidden] { display: none; }
+.ckw-yard canvas { display: block; width: 100%; height: 100%; }
+.ckw-yard-label {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #c9a44c;
+  text-shadow: 0 1px 6px #000;
+  pointer-events: none;
+}
+.ckw-yard-label[hidden] { display: none; }
+@media (max-width: 900px) {
+  .ckw-yard-label { left: 12px; bottom: 12px; font-size: 0.58rem; }
+}
+
+.ckw-yard-inline {
+  position: relative;
+  inset: auto;
+  height: 260px;
+  width: 100%;
+  margin: 0;
+  background: #07070a;
+  z-index: 1;
+}
+.ckw-yard-inline .ckw-yard-label { left: 8px; bottom: 8px; }
+
+.foot-links { margin: 0 0 .5rem; font-size: .85rem; }
+.foot-links a { color: #d4a63a; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Webverse playtest (client-side only) */
+.wv { position: relative; z-index: 2; border: 1px solid #2a2a2e; border-radius: 10px; padding: 16px; background: #121214; display: flex; flex-direction: column; gap: 14px; }
+.wv[hidden], .wv-block[hidden] { display: none; }
+.wv h2, .wv h3 { margin: 0; color: #c9a44c; letter-spacing: .04em; }
+.wv h2 { font-size: 18px; }
+.wv h3 { font-size: 15px; margin-bottom: 8px; }
+.wv-note, .wv-small { margin: 0; color: #b9b3a3; font-size: 13px; line-height: 1.45; }
+.wv-ladder { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.wv-layer { border: 1px solid #2a2a2e; border-radius: 8px; padding: 10px 12px; background: #0e0e10; }
+.wv-layer.wv-open { border-color: #6e5a2a; }
+.wv-goal { margin: 6px 0 0; color: #8f8a7c; font-size: 13px; }
+.wv-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px; font-size: 12px; background: #2b2516; color: #e8d6a0; }
+.wv-tag.wv-locked { background: #1c1c20; color: #8f8a7c; }
+.wv-block { border-top: 1px solid #2a2a2e; padding-top: 12px; }
+.wv-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.wv-row .btn { padding: 8px 12px; font-size: 14px; }
+.wv-label { display: block; margin: 10px 0 4px; font-size: 14px; }
+.wv input[type="range"] { width: 100%; accent-color: #c9a44c; }
+.wv fieldset { border: 1px solid #2a2a2e; border-radius: 8px; margin: 8px 0 0; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.wv legend { color: #e8d6a0; font-size: 13px; padding: 0 4px; }
+.wv fieldset label { font-size: 14px; cursor: pointer; }
+.wv textarea { width: 100%; box-sizing: border-box; background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 10px 12px; font: inherit; margin-bottom: 8px; resize: vertical; }
+.wv-glyph-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.wv-glyph-list li { font-size: 14px; line-height: 1.45; }
+.wv-glyph-list .wv-st { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+.wv-st-sourced { background: #23361f; color: #bfe3b0; }
+.wv-st-proposed { background: #3a2f12; color: #f0d58a; }
+.wv-ref-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wv-ref-row img { width: 100%; height: auto; border-radius: 8px; border: 1px solid #2a2a2e; background: #e8e6e2; }
+/* Webverse: Sage's touch replies, four anchors, threshold light, roadmap */
+.ckw-yard canvas { pointer-events: auto; }
+.wv-anchor-list, .wv-road { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; }
+.wv-anchor-list { list-style: none; padding-left: 0; }
+.wv-threshold { display: block; width: 100%; height: 6px; margin-top: 8px; }
+.wv-threshold::-webkit-meter-bar { background: #1c1c20; border: 0; border-radius: 3px; }
+.wv-threshold::-webkit-meter-optimum-value, .wv-threshold::-webkit-meter-suboptimum-value, .wv-threshold::-webkit-meter-even-less-good-value { background: linear-gradient(90deg, #6e5a2a, #ffd98a); border-radius: 3px; box-shadow: 0 0 8px #ffcf7a; }
+.wv-threshold::-moz-meter-bar { background: linear-gradient(90deg, #6e5a2a, #ffd98a); }
+.wv-layer.wv-open .wv-threshold { display: none; }
+.msg-sage.msg-touch { border-left: 2px solid #c9a44c; }
+body.wv-quiet .ckw-yard-label { opacity: 0.4; }
+.wv a { color: #e8c877; }
+/* Live Sage + SI visitors (2026-11-22) */
+.sage-si-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 8px 0 0; font-size: 13px; color: #b8b2a3; }
+.sage-si-row input[type=text] { background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 6px 10px; font: inherit; width: 12em; }
+.sage-si-row a { color: #c9a44c; }
+.msg-thinking { opacity: .6; font-style: italic; }
+/* v14: privacy corner, guest card, verified badge */
+.ck-privacy-corner { position: absolute; top: 6px; right: 12px; z-index: 5; font-size: 12px; line-height: 1.3; color: #e8e4d8; opacity: .62; text-decoration: none; letter-spacing: .01em; }
+.ck-privacy-corner:hover, .ck-privacy-corner:focus-visible { opacity: 1; text-decoration: underline; outline: none; }
+body { position: relative; }
+.base > .login { padding-top: 18px; }
+.guest-card { margin-top: 10px; padding: 10px 12px; border: 1px solid #2a2a2e; border-radius: 8px; background: #0f0f11; font-size: 14px; color: #cfc9b8; }
+.guest-card p { margin: 0 0 6px; }
+.guest-card p:last-child { margin-bottom: 0; }
+.guest-card .coming { color: #c9a44c; font-size: 12px; border: 1px solid #5a4a22; border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+.si-badge { display: inline-block; margin-left: 6px; font-size: 11px; padding: 0 6px; border-radius: 4px; border: 1px solid #3a3a40; color: #b9b3a3; vertical-align: middle; }
+.si-badge.verified { border-color: #c9a44c; color: #0a0a0b; background: #c9a44c; font-weight: 700; }
+#sage-si-key { background: #0a0a0b; color: inherit; border: 1px solid #2a2a2e; border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 14px; }
+/* v15: accessibility pass */
+a { color: #d4a63a; }
+.guest-card a, .base-foot .privacy a { color: #d4a63a; text-decoration: underline; text-underline-offset: 2px; }
+.base-foot .edited { color: #9a9486; }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid #e8c877; outline-offset: 2px; }
+.sage-form input:focus-visible { border-color: #c9a44c; }
+.ck-privacy-corner:focus-visible { outline: 2px solid #e8c877; outline-offset: 2px; }
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 20; background: #c9a44c; color: #0a0a0b; padding: 8px 12px; border-radius: 6px; font-weight: 600; text-decoration: none; }
+.skip-link:focus { top: 8px; }
+.sr-only { white-space: nowrap; margin: -1px; padding: 0; border: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+/* v16: no panels. The page is clear; Sage and the courtyard show through. Text keeps a shadow to stay readable. */
+.sage { border: 0; background: transparent; padding: 0; z-index: 10; }
+.login, .base-foot, .wv, .login-status { text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95), 0 0 14px rgba(0,0,0,.7); }
+.login .btn { background: transparent; color: #ffd98a; border: 1px solid rgba(232,200,119,.85); }
+.wv { border: 0; background: transparent; padding: 0; }
+.wv-layer { border: 0; border-left: 2px solid rgba(232,200,119,.45); border-radius: 0; background: transparent; padding: 4px 0 4px 10px; }
+.wv-layer.wv-open { border-left-color: #c9a44c; }
+.wv-block { border-top: 1px solid rgba(232,200,119,.25); }
+.wv fieldset { border: 0; border-left: 2px solid rgba(232,200,119,.35); border-radius: 0; }
+.wv textarea { background: transparent; border: 0; border-bottom: 1px solid rgba(232,200,119,.75); border-radius: 0; }
+.wv-row .btn { background: transparent; color: #ffd98a; border: 1px solid rgba(232,200,119,.8); }
+.wv-tag, .wv-tag.wv-locked { background: transparent; border: 1px solid rgba(232,200,119,.5); }
+.wv-st-sourced, .wv-st-proposed { background: transparent; border: 1px solid currentColor; }
+.wv-note, .wv-small, .wv-goal, .login-status, .base-foot, .base-foot .edited { color: #ddd6c4; }
+.ckw-yard { background: #07070a; }
+.base { min-height: 100vh; min-height: 100dvh; }
+.base > .base-foot { margin-top: auto; }
+/* v17: if WebGL can't start, a still of the approved v06 look stands in (the old 2D walking sprite is archived) */
+.ckw-still { position: fixed; inset: 0; z-index: 0; background: #07070a; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.ckw-still[hidden] { display: none; }
+.ckw-still img { max-height: 92vh; max-width: 92vw; width: auto; height: auto; opacity: .9; border-radius: 8px; }
+/* first screen is Sage herself: the playtest notes start below the fold */
+.base > .wv { margin-top: 64vh; margin-top: 64svh; }
+
+/* Mic button for Sage dictation */
+#sage-mic { padding: 10px 12px; font-size: 16px; line-height: 1; }
+#sage-mic[aria-pressed="true"] { background: #c9a44c; color: #0a0a0b; }
+
+/* Chat bar only: hide the note and guest card inside the open scroll */
+.sage-scroll .sage-chat-note,
+.sage-scroll .guest-card,
+.sage-scroll .sage-si-row,
+.sage-scroll .sage-layers { display: none; }
+#sage-plus { padding: 10px 14px; font-size: 18px; line-height: 1; }
+
+/* Essence Tracks dropdown */
 .ck-topbar-menu { position: relative; }
 .ck-topbar-drop {
   position: absolute;
