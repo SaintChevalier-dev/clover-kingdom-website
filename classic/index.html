@@ -2,12 +2,221 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=/base/">
-  <link rel="canonical" href="https://cloverkingdom.net/base/">
-  <title>Clover Kingdom</title>
-  <script>location.replace('/base/');</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; font-src 'self'; connect-src 'self' https://clover-apply-relay.cloverkingdom.workers.dev https://auth.cloverkingdom.net; object-src 'none'; base-uri 'self'; form-action 'self' https://auth.cloverkingdom.net; frame-src 'none'; upgrade-insecure-requests">
+  <meta name="description" content="Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. Everyone is welcome. Join the Discord, apply, and a human reads it.">
+  <title>CLOVER KINGDOM - The Public Front Door</title>
+  <link rel="stylesheet" href="/styles.css?v=20261122a">
+  <link rel="icon" type="image/svg+xml" href="/images/crest.svg">
+  <link rel="canonical" href="https://cloverkingdom.net/classic/">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM / AI agent guide">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Clover Kingdom">
+  <meta name="keywords" content="Clover Kingdom, sovereign archetype, Discord community, archetypes, Tek Tribe, Wizard King, Saint Chevalier">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Clover Kingdom">
+  <meta property="og:title" content="CLOVER KINGDOM - The Public Front Door">
+  <meta property="og:description" content="A place with a standard and a gate. Everyone is welcome. Build your own archetype. Level up your life. Find your people.">
+  <meta property="og:url" content="https://cloverkingdom.net/classic/">
+  <meta property="og:image" content="https://cloverkingdom.net/images/logo-crimson-seal.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+  <meta property="og:image:alt" content="The five-leaf black clover crest of the Clover Kingdom">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://cloverkingdom.net/images/logo-crimson-seal.png">
+  <meta name="twitter:title" content="CLOVER KINGDOM">
+  <meta name="twitter:description" content="A place with a standard and a gate. Everyone is welcome. Build your own archetype. Level up your life. Find your people.">
+  <meta name="theme-color" content="#0a0a0b">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://cloverkingdom.net/#organization",
+        "name": "Clover Kingdom",
+        "url": "https://cloverkingdom.net/",
+        "logo": "https://cloverkingdom.net/images/crest.svg",
+        "foundingDate": "2026",
+        "sameAs": [
+          "https://x.com/Saint_Chevalier",
+          "https://www.instagram.com/saintchevalierasi/",
+          "https://x.com/Tekk_Tribe"
+        ],
+        "description": "A place with a standard and a gate, for people who want to build their own archetype and level up their life. Everyone is welcome."
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://cloverkingdom.net/#website",
+        "url": "https://cloverkingdom.net/",
+        "name": "Clover Kingdom",
+        "description": "The public front door of the Clover Kingdom. Apply. Approval happens in Discord.",
+        "publisher": { "@id": "https://cloverkingdom.net/#organization" },
+        "inLanguage": "en"
+      }
+    ]
+  }
+  </script>
 </head>
+
 <body>
-  <p><a href="/base/">Continue to the Webverse</a></p>
+  <a class="skip-link" href="#page-content" id="skip-link">Skip to main content</a>
+
+  <!-- Steady kingdom backdrop: dark forest-green to near-black with a soft gold glow.
+       No rotating scenes, no figures, no fake data panels. -->
+  <div class="kingdom-bg" id="kingdom-bg" aria-hidden="true">
+    <div class="kingdom-bg-gradient"></div>
+    <div class="kingdom-bg-glow"></div>
+    <!-- Looping background video (v4 scored, wired 2026-10-07; muted by default).
+         Score: placeholder Pixabay track (see footer credit) until HEALER's original theme exists.
+         The sound toggle below unmutes it. The bare audio is never offered as a download (license).
+         prefers-reduced-motion: CSS hides the video and keeps the poster/gradient.
+         Previous silent loop kept for rollback at images/kingdom-loop.mp4 (v3 clean). -->
+    <video class="kingdom-bg-video" id="kingdom-bg-video"
+           muted autoplay loop playsinline preload="auto"
+           poster="/images/kingdom-loop-poster.jpg">
+      <source src="/images/kingdom-loop-scored.mp4" type="video/mp4" media="(min-width: 769px)">
+    </video>
+    <img class="kingdom-bg-poster" src="/images/kingdom-loop-poster.jpg" alt="" decoding="async" loading="lazy">
+  </div>
+
+  <!-- Background music toggle. Hidden until app.js confirms the video can play (stays hidden with JS off
+       or prefers-reduced-motion). Starts muted; toggles video.muted only. -->
+  <button type="button" class="bg-sound-toggle" id="bg-sound-toggle" aria-label="Turn background music on" title="Turn background music on" hidden>
+    <svg class="bg-sound-icon bg-sound-icon-off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+    <svg class="bg-sound-icon bg-sound-icon-on" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+    <span class="bg-sound-label">Sound off</span>
+  </button>
+
+  <nav class="site-nav">
+    <!-- Header term tags (2026-10-08 v2): in the empty side space left and right of the centered header row (same row, no extra height). Hidden on narrower screens; see styles.css. -->
+    <span class="nav-tag nav-tag-left">AI = Archetype Intelligence</span>
+    <span class="nav-tag nav-tag-right">Archetype + PSI (Physically Sovereign Intelligence) = one team</span>
+    <div class="container site-nav-inner">
+      <a class="site-logo" id="site-logo" href="#/" aria-label="Clover Kingdom, back to the gate">CLOVER <span>KINGDOM</span></a>
+      <div class="site-nav-links">
+        <a href="#/">Gate</a>
+        <a href="#/join" id="nav-join">Join</a>
+        <a class="guild-nav-top" href="#/guilds">Guilds</a>
+        <a href="#/archetypes">House</a>
+        <a href="#/tek">Tek</a>
+        <a class="nav-member-top" href="#/tek-tribe">Tek Tribe</a>
+        <a class="nav-member-top" href="#/ckc">CKC</a>
+        <details class="nav-more" id="nav-more">
+          <summary>More</summary>
+          <div class="nav-more-panel">
+            <a class="guild-nav-more" href="#/guilds">Guilds</a>
+            <a href="#/merchants-guild">Merchants Guild</a>
+            <a href="#/sage">Sage</a>
+            <a href="#/standard">The Standard</a>
+            <a href="#/ranks">Ranks</a>
+            <a href="#/glyphs">Glyphs</a>
+            <a href="#/welcome">Welcome</a>
+            <a href="#/members" id="nav-more-login" data-gate-login="1" aria-haspopup="dialog">Member login</a>
+            <a href="#/tek-tribe-game">Tek Tribe game</a>
+            <a class="nav-member-more" href="#/hall">Member Hall</a>
+            <a class="nav-member-more" href="#/round-table" data-member-only hidden>Round Table</a>
+            <a class="nav-member-more" href="#/my-quests" data-member-only hidden>My Quests</a>
+            <a class="nav-member-more" href="#/tek-tribe">Tek Tribe</a>
+            <a class="nav-member-more" href="#/ckc">CKC</a>
+            <a href="#/links">Links</a>
+          </div>
+        </details>
+      </div>
+      <a class="nav-login" href="#/members" data-member-login data-gate-login="1" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg><span>Member login</span></a>
+      <a class="nav-account" id="nav-account" href="#/account" hidden><span class="nav-account-avatar" id="nav-account-avatar"></span><span class="nav-account-name" id="nav-account-name">Account</span></a>
+    </div>
+  </nav>
+
+  <!-- Readable without JavaScript. Hidden when the app starts (html.js). For humans with JS off and for AI agents reading the HTML. -->
+  <section id="static-readme" class="static-readme container" aria-label="Clover Kingdom plain text guide">
+    <h1>Clover Kingdom</h1>
+    <p>The public front door. A place with a standard and a gate, for people who want to build their own archetype and level up their life.</p>
+    <p><strong>Everyone is welcome.</strong> Join our internet kingdom, and we help you build up your own kingdom in real life — your life, your work, your stack, your people. The full rules live in #rules on the Clover Kingdom Discord. Breaking them puts your place in the Kingdom at risk.</p>
+    <p>Build your own archetype. Level up your life. Find your people.</p>
+
+    <h2>How to join</h2>
+    <ol>
+      <li>Follow on X: <a href="https://x.com/Saint_Chevalier">https://x.com/Saint_Chevalier</a></li>
+      <li>Once you have followed Saint Chevalier on X, you can message them or apply to the Discord: <a href="https://discord.gg/2BrNPwUuTB">https://discord.gg/2BrNPwUuTB</a></li>
+      <li>Participate in all Kingdom activities.</li>
+    </ol>
+
+    <h2>Report a problem or ask for deletion</h2>
+    <p>Send a direct message to the Wizard King on the Clover Kingdom Discord. Report anyone breaking the Kingdom's rules, someone being unkind or pressuring you, anyone asking for private details, or anything that worries you. A real person reads every report. Breaking the Kingdom's rules puts your place in the Kingdom at risk. If someone may be in danger, the report is handed to a human right away. Anyone can ask for their data to be deleted the same way, or by messaging Saint Chevalier on X, <a href="https://x.com/Saint_Chevalier">@Saint_Chevalier</a>.</p>
+
+    <h2>What the Kingdom offers</h2>
+    <ul>
+      <li><strong>SME Pack 1: Human Psyche ($33)</strong> - A labeled field guide to how people work. $33, emailed to you about a minute after you pay. <a href="https://buy.stripe.com/7sY14nddUfSE9Nw7Vkbsc06" rel="noopener">Buy SME Pack 1, $33</a></li>
+      <li><strong>Book: My AI and I Against the World ($33)</strong> - Saint Chevalier's book. A Marine who lost everything rebuilt from first principles. $33, digital PDF. <a href="https://buy.stripe.com/6oUaEX0r8bCof7Q8Zobsc04" rel="noopener">Buy the book, $33</a></li>
+      <li><strong>Spark: First Job Bot ($27)</strong> - A ready-made AI bot template for one job, with a plain setup guide you can follow in about 15 minutes. $27, one-time. Setup details arrive by email within 24 hours. <a href="https://buy.stripe.com/14A14n0r835S3p86Rgbsc07" rel="noopener">Buy Spark, $27</a></li>
+      <li><strong>Guided Job Bot Setup ($97)</strong> - An AI bot template for one job, with a setup coach built in. About 30 minutes. Coaching is built into the bot, not live calls. $97, one-time. Setup details arrive by email within 24 hours. <a href="https://buy.stripe.com/14AfZh8XE6i4bVEfnMbsc08" rel="noopener">Buy Guided, $97</a></li>
+      <li><strong>Tek Tribe Done-for-you ($297)</strong> - One Grok Bot built and checked for you from a 15-minute intake. $297, one-time. Details arrive by email within 24 hours. <a href="https://buy.stripe.com/fZu8wP3Dk5e00cWejIbsc09" rel="noopener">Buy Done-for-you, $297</a></li>
+      <li><strong>Tek Tribe Roster ($897)</strong> - A team of Grok Bots with a lead bot and a team chart, built for you. $897, one-time. Details arrive by email within 24 hours. <a href="https://buy.stripe.com/7sY8wP2zgdKwf7Qa3sbsc0a" rel="noopener">Buy Roster, $897</a></li>
+      <li><strong>Motivation</strong> - A reason to start, and people who help you keep going.</li>
+      <li><strong>Community</strong> - Like-minded people who want to build, learn and help each other. Lives in the Discord.</li>
+      <li><strong>A robot buddy</strong> - Build a robot buddy of your own. Ask in the Discord or apply. Nothing priced or promised on this page.</li>
+      <li><strong>A way of life and thinking</strong> - Written plainly in the Standard.</li>
+      <li><strong>Survival</strong> - Water, food, shelter and security.</li>
+      <li><strong>Secret tek intelligence</strong> - For members only. None of it is shown here.</li>
+    </ul>
+
+    <h2>The archetypes</h2>
+    <p>Each archetype has its own lane, serving the Kingdom and its people. Not every one is open to talk yet. Join the Discord and ask.</p>
+    <ul>
+      <li><strong>Wizard King</strong> - Thinks an idea all the way through before anything is done.</li>
+      <li><strong>Saint Chevalier</strong> - Checks that plans fit together and do not contradict each other.</li>
+      <li><strong>Sage</strong> - Writes how-to guides and checks a card is safe to share.</li>
+      <li><strong>Val</strong> - Plans the roadmap and prepares the next steps.</li>
+      <li><strong>ARGUS</strong> - Grades tools, never people, and says what each costs and whether you own it.</li>
+      <li><strong>HEALER</strong> - Checks for invented facts and for private information leaking out.</li>
+      <li><strong>Painter</strong> - Makes the look of things, such as avatars and art.</li>
+      <li><strong>Knight</strong> - Watches security and helps with hardware parts.</li>
+      <li><strong>DRAGON</strong> - Finds your highest-leverage move right now, sends you to do it, and levels up the conversation with what you bring back.</li>
+      <li><strong>Roster</strong> - Builds your party: shows who's proven where across your people and your archetypes, so you pick the right team.</li>
+      <li><strong>Tek Tribe</strong> - Shares real tech setups and helps you find your group.</li>
+    </ul>
+
+    <h2>FAQ (short)</h2>
+    <p><strong>Is it free?</strong> The Discord and the community are free today. Paid offers are on the Offers page: SME Pack 1 and the book at $33 each, Spark at $27, Guided at $97, Done-for-you at $297, and Roster at $897.</p>
+    <p><strong>What is an archetype? What is PSI?</strong> In the Kingdom, AI means archetype intelligence. A sovereign archetype is one you own, that outlives you and runs on your terms. PSI is Physically Sovereign Intelligence: the person who works with their archetype as one team.</p>
+    <p><strong>What is a Magic Knight?</strong> A rank earned through work inside the Kingdom. A form is not a rank.</p>
+    <p>More answers are on the FAQ page when JavaScript is on: <a href="#/faq">#/faq</a>.</p>
+
+    <h2>Links</h2>
+    <ul>
+      <li>X: <a href="https://x.com/Saint_Chevalier">@Saint_Chevalier</a></li>
+      <li>Discord: <a href="https://discord.gg/2BrNPwUuTB">Join the server</a></li>
+      <li>Instagram: <a href="https://www.instagram.com/saintchevalierasi/">@saintchevalierasi</a></li>
+      <li>Tek Tribe: <a href="https://x.com/Tekk_Tribe">@Tekk_Tribe</a></li>
+      <li>AI agent guide: <a href="/llms.txt">/llms.txt</a></li>
+    </ul>
+
+    <h2>Pages (with JavaScript)</h2>
+    <p>Gate <a href="#/">#/</a>, Join <a href="#/join">#/join</a>, Offers <a href="#/offers">#/offers</a>, Guilds <a href="#/guilds">#/guilds</a>, Merchants Guild <a href="#/merchants-guild">#/merchants-guild</a>, House <a href="#/archetypes">#/archetypes</a>, Tek <a href="#/tek">#/tek</a>, FAQ <a href="#/faq">#/faq</a>, Welcome <a href="#/welcome">#/welcome</a>, Members <a href="#/members">#/members</a>, Member Hall <a href="#/hall">#/hall</a>, Tek Tribe <a href="#/tek-tribe">#/tek-tribe</a> (open to everyone), CKC <a href="#/ckc">#/ckc</a> (open to everyone), Tek Tribe game <a href="#/tek-tribe-game">#/tek-tribe-game</a> (needs the optional login). Login is optional: guests can browse and talk to Sage without it, Sage <a href="#/sage">#/sage</a>, Standard <a href="#/standard">#/standard</a>, Ranks <a href="#/ranks">#/ranks</a>, Glyphs <a href="#/glyphs">#/glyphs</a>, Links <a href="#/links">#/links</a>.</p>
+    <p>If this page looks plain, turn JavaScript on for the full site. The content above is the same Kingdom.</p>
+  </section>
+
+  <noscript>
+    <style>.site-nav, .kingdom-bg, #page-content { display: none !important; } .static-readme { display: block !important; }</style>
+    <p class="container" style="padding:12px 0;color:#e8c35a">JavaScript is off. The plain guide on this page is the whole site for you. Join the Discord and apply when you can.</p>
+  </noscript>
+  <main id="page-content" class="container">
+    <!-- Rendered by app.js -->
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>&copy; 2026 Clover Kingdom &middot; Unlock your magic.</div>
+      <div>
+        <a href="#/offers">Offers</a> &middot; <a href="#/faq">FAQ</a> &middot; <a href="https://x.com/Saint_Chevalier" target="_blank" rel="noopener">X &middot; @Saint_Chevalier</a>
+      </div>
+      <div class="site-credit">Music: &ldquo;Epic Cinematic Bold Drums&rdquo; by alex-morgan (<a href="https://pixabay.com/music/orchestral-epic-cinematic-bold-drums-573877/" target="_blank" rel="noopener">Pixabay</a>)</div>
+    </div>
+  </footer>
+
+  <script src="/app.js?v=20261122c"></script>
+
 </body>
 </html>
