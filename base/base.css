@@ -246,3 +246,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 }
 /* respect [hidden] on top-bar dropdown items (Log out stays hidden for guests) */
 .ck-topbar-drop-item[hidden] { display: none !important; }
+
+/* Touch: bigger invisible hit areas for small links and the top-bar button (no layout or look change). */
+@media (pointer: coarse) {
+  .ck-topbar-item, .foot-links a, .base-foot .privacy a { position: relative; }
+  .ck-topbar-item::after, .foot-links a::after, .base-foot .privacy a::after { content: ""; position: absolute; inset: -12px -8px; }
+}
