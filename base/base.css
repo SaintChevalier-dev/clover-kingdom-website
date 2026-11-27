@@ -244,3 +244,5 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   opacity: 1;
   background: rgba(201,164,76,.12);
 }
+/* respect [hidden] on top-bar dropdown items (Log out stays hidden for guests) */
+.ck-topbar-drop-item[hidden] { display: none !important; }

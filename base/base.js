@@ -305,8 +305,11 @@ function say(who, text, link) {
     a.href = link.href; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = link.label;
     p.appendChild(a);
   }
+  /* infinite scroll: every message is kept for the session (never trimmed). Follow the newest message only
+     when the reader is already near the bottom, or when it's their own message; never yank them while reading up. */
+  const near = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
   log.appendChild(p);
-  log.scrollTop = log.scrollHeight;
+  if (near || who === "you") log.scrollTop = log.scrollHeight;
 }
 
 let started = false;

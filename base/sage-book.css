@@ -95,3 +95,10 @@ body.sage-open #sage-scroll {
 .sage-scroll .guest-card,
 .sage-scroll .sage-si-row,
 .sage-scroll .sage-layers { display: none; }
+/* infinite chat log: keeps every message, scrolls by wheel / trackpad / touch / PageUp-PageDown, input row stays pinned */
+.sage-scroll .sage-log { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; scroll-behavior: auto; }
+.sage-scroll .sage-log:focus-visible { outline: 1px solid rgba(232,200,119,.6); outline-offset: 2px; }
+body.sage-open #sage-scroll { height: calc(100vh - 80px); height: calc(100dvh - 80px); }
+body.sage-open #sage-scroll .sage-log { flex: 1 1 auto; min-height: 120px; max-height: none; }
+body.sage-open #sage-scroll .sage-form, body.sage-open #sage-scroll .sl-panel { flex: 0 0 auto; }
+body.sage-open #sage-scroll .sl-panel[open] { max-height: 45%; overflow-y: auto; overscroll-behavior: contain; }
