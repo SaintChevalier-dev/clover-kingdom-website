@@ -18,8 +18,11 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._status = r.status; return j; }); })
       .catch(function () { return { _status: 0, error: "Sage's library didn't answer. Try again in a moment." }; });
   }
+  // Public mode never depends on login: the pass is asked for ONLY when base.js has already shown a signed-in
+  // session (logout button marked data-signedin), and only for the member-only Propose / flagged tools.
+  function signedIn() { var b = document.getElementById("logout-btn"); return !!(b && b.dataset.signedin === "1"); }
   function getPass() {
-    if (!PASS_URL) return Promise.resolve(null);
+    if (!PASS_URL || !signedIn()) { pass = null; me = null; return Promise.resolve(null); }
     return fetch(PASS_URL, { credentials: "include" }).then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) { if (j && j.pass) { pass = j.pass; me = { name: j.name, owner: !!j.owner }; } else { pass = null; me = null; } return me; })
       .catch(function () { pass = null; me = null; return null; });
@@ -65,11 +68,12 @@
       if (m && m.owner) loadFlags(); else flagWrap.hidden = true;
     });
   }
-  panel.addEventListener("toggle", function () { if (panel.open && !loaded) { loaded = true; refreshMember(); } if (panel.open) setTimeout(function () { askI.focus(); }, 0); });
+  propWrap.addEventListener("toggle", function () { if (propWrap.open && !loaded) { loaded = true; refreshMember(); } });
+  panel.addEventListener("toggle", function () { if (panel.open) { setTimeout(function () { askI.focus(); }, 0); if (signedIn() && !loaded) { loaded = true; refreshMember(); } } });
   function open() {
     if (scroll.hidden && glyph && !glyph.hidden) glyph.click();
     if (scroll.hidden) { scroll.hidden = false; }
-    panel.open = true; if (!loaded) { loaded = true; refreshMember(); }
+    panel.open = true;
   }
   function shut() { panel.open = false; }
   window.addEventListener("ckw:sage-touch", function () { open(); });
