@@ -102,3 +102,5 @@ body.sage-open #sage-scroll { height: calc(100vh - 80px); height: calc(100dvh - 
 body.sage-open #sage-scroll .sage-log { flex: 1 1 auto; min-height: 120px; max-height: none; }
 body.sage-open #sage-scroll .sage-form, body.sage-open #sage-scroll .sl-panel { flex: 0 0 auto; }
 body.sage-open #sage-scroll .sl-panel[open] { max-height: 45%; overflow-y: auto; overscroll-behavior: contain; }
+/* keep the close X clear of the conversation's top line */
+body.sage-open #sage-scroll .sage-log, .sage-scroll .sage-log { margin-top: 30px; }
