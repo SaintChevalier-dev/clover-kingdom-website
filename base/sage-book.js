@@ -36,6 +36,7 @@ function apply() {
 /* Put the scroll beside the book: right if it fits, else left; if neither, above or below. */
 function place() {
   if (scroll.hidden) return;
+  if (document.body.classList.contains("sage-open")) { scroll.removeAttribute("style"); scroll.setAttribute("data-side", "center"); return; } /* focus mode: CSS centers it */
   const W = vw(), H = vh(), b = book.getBoundingClientRect();
   const sw = Math.min(360, W - 2 * EDGE);
   scroll.style.width = sw + "px";
@@ -121,6 +122,8 @@ book.addEventListener("keydown", (e) => {
 });
 scroll.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); close(true); } });
 if (closeBtn) closeBtn.addEventListener("click", () => close(true));
+/* focus mode: the rest of the page is hidden while the scroll is open, so Esc closes from anywhere */
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.defaultPrevented && !scroll.hidden) { e.preventDefault(); close(true); } });
 
 /* re-place when the scroll grows (new messages) or the window changes */
 if (window.ResizeObserver) new ResizeObserver(() => place()).observe(scroll);

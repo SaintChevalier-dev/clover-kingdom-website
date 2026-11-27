@@ -1247,7 +1247,8 @@ async function boot() {
   const mp = motes.geometry.attributes.position, seeds = motes.userData.seed;
   function tick() {
     requestAnimationFrame(tick);
-    if (hidden) return;
+    /* paused while the tab is hidden or Sage's chat scroll is open (focus mode hides the 3D scene) */
+    if (hidden || document.body.classList.contains("sage-open")) return;
     const now = performance.now();
     /* reduced motion: the scene holds still, so redraw ~8 times a second for pose/turn controls only */
     if (reduce.matches && now - lastT < 120) return;

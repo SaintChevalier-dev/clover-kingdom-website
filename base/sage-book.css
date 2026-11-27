@@ -46,8 +46,18 @@
 .sage-scroll .si-badge { text-shadow: none; }
 @media (prefers-reduced-motion: reduce) { .sage-book { transition: none; } }
 /* while the scroll is open, the page behind it steps back so the scroll's text reads cleanly */
-body.sage-open main > :not(.sage) { opacity: .16; transition: opacity .2s ease; }
-@media (prefers-reduced-motion: reduce) { body.sage-open main > :not(.sage) { transition: none; } }
+/* Focus mode (Jacob's rule): while Sage's chat scroll is open, everything else is fully gone (not dimmed),
+   except the top bar with Essence Tracks, which never goes away. Close with X or Esc restores the page. */
+body.sage-open > :not(.ck-topbar):not(main):not(script) { visibility: hidden !important; }
+body.sage-open main { visibility: hidden; }
+body.sage-open #sage-scroll { visibility: visible; }
+body.sage-open #sage-book { visibility: hidden; }
+body.sage-open .ck-topbar { visibility: visible; }
+body.sage-open #sage-scroll {
+  left: 50%; top: calc(50% + 22px); transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 80px); max-height: calc(100dvh - 80px);
+}
+
 .sage-scroll #sage-si-key { background: transparent; border: 0; border-bottom: 1px solid rgba(232,200,119,.75); border-radius: 0; color: #fff8e6; }
 /* standalone basics so the book works on pages without base.css (e.g. /sage/) */
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; padding: 0; border: 0; }
