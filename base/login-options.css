@@ -1,4 +1,4 @@
-/* Login options panel (v21) */
+/* Login options panel (v22) */
 .login { position: relative; }
 .login-options {
   position: absolute;
@@ -37,3 +37,11 @@
   border: 1px solid rgba(232,200,119,.7);
 }
 .btn-provider svg { flex-shrink: 0; }
+
+.login-soon {
+  margin: 0;
+  padding: 8px 10px;
+  color: #c8c4b8;
+  border: 1px dashed rgba(232,200,119,.4);
+  border-radius: 6px;
+}

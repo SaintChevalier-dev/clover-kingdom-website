@@ -65,9 +65,9 @@ const GREETING = OPENERS[0];
 const ABOUT =
   "The Clover Kingdom is a place with a standard and a gate, for people who want to build their own archetype and level up their life. Everyone is welcome. Build your own archetype. Level up your life. Find your people.";
 const JOIN_STEPS =
-  "Joining takes three steps. 1. Follow Saint Chevalier on X, @Saint_Chevalier. 2. Then message him there, or apply to the Clover Kingdom Discord. 3. Take part in Kingdom activities, and read #rules when you get in. The Discord is free. If you are already a member, use Log in with Discord above.";
+  "Joining takes three steps. 1. Follow Saint Chevalier on X, @Saint_Chevalier. 2. Then message him there, or apply to the Clover Kingdom Discord. 3. Take part in Kingdom activities, and read #rules when you get in. The Discord is free. If you are already a member, use Log in above.";
 const MEMBER_LOGIN =
-  "If you already have an account, or you want to sign in, use Log in with Discord above. I can't promise anything further from here.";
+  "If you already have an account, or you want to sign in, use Log in above. I can't promise anything further from here.";
 const UNKNOWN = "I don't know who you are. I treat every visitor here as a guest.";
 const REFUSE = "I can't help with that here. Members can log in if they already have an account.";
 const TALK =
@@ -164,7 +164,7 @@ function daskeSummary(userText, reply) {
   if (KNOW.test(q) || SAVED.test(q)) return "Guest asked what Sage knows or whether chats are saved. Sage answered honestly at the guest level.";
   if (PRIVATE.test(q)) return "Guest asked about a member-only or private topic. Sage declined and pointed to login.";
   if (JOIN_HOW.test(q)) return "Guest asked how to join. Sage gave the three public join steps.";
-  if (JOIN.test(q)) return "Guest asked about signing in. Sage pointed to Log in with Discord, with no promises.";
+  if (JOIN.test(q)) return "Guest asked about signing in. Sage pointed to Log in, with no promises.";
   if (ABOUT_Q.test(q)) return "Guest asked about Sage or the Clover Kingdom. Sage answered with public wording.";
   return "Guest and Sage talked something through at the public guest level.";
 }
@@ -199,8 +199,25 @@ const logoutBtn = document.getElementById("logout-btn");
 
 const RETURN_KEY = "ckw_return";
 const HERE = location.pathname === "/" ? "/" : "/base/";
+if (location.pathname === "/" && location.hash === "#doors") {
+  history.replaceState(null, "", "/");
+  window.scrollTo(0, 0);
+}
+window.addEventListener("pageshow", () => {
+  if (location.pathname === "/" && location.hash === "#doors") {
+    history.replaceState(null, "", "/");
+    window.scrollTo(0, 0);
+  }
+});
+
 const loginOptions = document.getElementById("login-options");
-if (loginBtn) loginBtn.addEventListener("click", () => {
+function closeLoginOptions() {
+  if (!loginOptions) return;
+  loginOptions.hidden = true;
+  if (loginBtn) loginBtn.setAttribute("aria-expanded", "false");
+}
+if (loginBtn) loginBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
   try { localStorage.setItem(RETURN_KEY, JSON.stringify({ path: HERE, t: Date.now() })); } catch (_) {}
   if (loginOptions) {
     const open = loginOptions.hidden;
@@ -208,6 +225,13 @@ if (loginBtn) loginBtn.addEventListener("click", () => {
     loginBtn.setAttribute("aria-expanded", open ? "true" : "false");
   }
 });
+if (loginOptions) {
+  loginOptions.addEventListener("click", (e) => { e.stopPropagation(); });
+  document.addEventListener("click", closeLoginOptions);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeLoginOptions();
+  });
+}
 const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
 let hashWhy = null;
 const isMe = (h) => /^#\/me(\?|$)/.test(h);

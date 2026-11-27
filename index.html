@@ -21,12 +21,12 @@
   <link rel="modulepreload" href="/base/vendor/three.module.min.js">
   <link rel="modulepreload" href="/base/vendor/GLTFLoader.js">
   <link rel="stylesheet" href="/base/base.css?v=20">
+  <link rel="stylesheet" href="/base/login-options.css?v=22">
   <link rel="stylesheet" href="/base/sage-book.css?v=5">
 </head>
 <body>
 <a class="skip-link" href="#sage-book">Skip to Sage's book (chat)</a>
 <nav class="ck-topbar" aria-label="Top bar">
-  <a class="ck-topbar-item" href="#doors">Doors</a>
   <div class="ck-topbar-menu" id="essence-menu">
     <button class="ck-topbar-item" id="essence-tracks-btn" type="button" aria-expanded="false" aria-controls="essence-drop">Essence Tracks</button>
     <div class="ck-topbar-drop" id="essence-drop" hidden>
@@ -43,7 +43,14 @@
   <main class="base">
     <section class="login" id="login" aria-label="Login">
       <p class="login-status" id="login-status">Login is optional. You can talk to Sage as a guest.</p>
-      <a class="btn" id="login-btn" href="https://auth.cloverkingdom.net/auth/login">Log in with Discord</a>
+      <button class="btn" id="login-btn" type="button" aria-expanded="false" aria-controls="login-options">Log in</button>
+      <div class="login-options" id="login-options" hidden>
+        <p class="login-soon">Email — coming soon</p>
+        <div class="login-providers">
+          <a class="btn btn-provider" id="login-github" href="https://auth.cloverkingdom.net/auth/github">GitHub</a>
+          <a class="btn btn-provider" id="login-discord" href="https://auth.cloverkingdom.net/auth/login">Discord</a>
+        </div>
+      </div>
     </section>
 
     <section class="sage" aria-label="Sage">
@@ -85,7 +92,7 @@
       </div>
     </section>
 
-    <section class="doors" id="doors" aria-label="Doors">
+    <section class="doors" aria-label="Offers">
       <h2>Doors</h2>
       <p>Live links only. Prices shown where supplied.</p>
       <ul>
@@ -103,7 +110,7 @@
       <p class="edited">Last edited Nov 27, 2026</p>
     </footer>
   </main>
-  <script type="module" src="/base/base.js?v=20"></script>
+  <script type="module" src="/base/base.js?v=22"></script>
   <script type="module" src="/base/sage-3d.js?v=20"></script>
   <script src="/base/essence-drop.js?v=21" defer></script>
 </body>
