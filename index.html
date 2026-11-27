@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net https://ck-sage-live.cloverkingdom.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://cdn.discordapp.com; connect-src 'self' https://auth.cloverkingdom.net https://ck-sage-live.cloverkingdom.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self' https://auth.cloverkingdom.net; frame-src 'none'; upgrade-insecure-requests">
   <meta name="robots" content="index, follow">
   <meta name="description" content="Clover Kingdom. A place with a standard and a gate. Meet Sage in the Webverse, tap her book to talk, see how to join, and log in with Discord if you are a member.">
   <link rel="canonical" href="https://cloverkingdom.net/">
@@ -21,7 +21,7 @@
   <link rel="modulepreload" href="/base/vendor/three.module.min.js">
   <link rel="modulepreload" href="/base/vendor/GLTFLoader.js">
   <link rel="stylesheet" href="/base/base.css?v=20">
-  <link rel="stylesheet" href="/base/login-options.css?v=22">
+  <link rel="stylesheet" href="/base/login-options.css?v=23">
   <link rel="stylesheet" href="/base/sage-book.css?v=5">
 </head>
 <body>
@@ -45,7 +45,11 @@
       <p class="login-status" id="login-status">Login is optional. You can talk to Sage as a guest.</p>
       <button class="btn" id="login-btn" type="button" aria-expanded="false" aria-controls="login-options">Log in</button>
       <div class="login-options" id="login-options" hidden>
-        <p class="login-soon">Email — coming soon</p>
+        <form class="login-email" id="login-email-form" action="https://auth.cloverkingdom.net/auth/email" method="post">
+          <label class="sr-only" for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" placeholder="Email" required autocomplete="email">
+          <button class="btn" type="submit">Continue</button>
+        </form>
         <div class="login-providers">
           <a class="btn btn-provider" id="login-github" href="https://auth.cloverkingdom.net/auth/github">GitHub</a>
           <a class="btn btn-provider" id="login-discord" href="https://auth.cloverkingdom.net/auth/login">Discord</a>
@@ -110,7 +114,7 @@
       <p class="edited">Last edited Nov 27, 2026</p>
     </footer>
   </main>
-  <script type="module" src="/base/base.js?v=22"></script>
+  <script type="module" src="/base/base.js?v=23"></script>
   <script type="module" src="/base/sage-3d.js?v=20"></script>
   <script src="/base/essence-drop.js?v=21" defer></script>
 </body>

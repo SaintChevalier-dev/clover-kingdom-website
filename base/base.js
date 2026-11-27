@@ -232,7 +232,7 @@ if (loginOptions) {
     if (e.key === "Escape") closeLoginOptions();
   });
 }
-const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in." };
+const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in.", email_sent: "Check your email for a login link. It works once and expires in 15 minutes.", ok: "" };
 let hashWhy = null;
 const isMe = (h) => /^#\/me(\?|$)/.test(h);
 if (location.pathname === "/" && location.hash.startsWith("#/")) {
