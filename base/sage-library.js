@@ -65,7 +65,11 @@
     return getPass().then(function (m) {
       pf.hidden = !m;
       propNote.textContent = m ? "Signed in as " + m.name + ". The Knight checks every entry: it needs a source, can't repeat or contradict the library, and secrets are removed." : "Log in (top of the page) to propose an entry.";
-      if (m && m.owner) loadFlags(); else flagWrap.hidden = true;
+      flagWrap.hidden = true;
+      if (!m) return;
+      // the library keeps the owner list (Jacob's Discord, email and GitHub logins), so ask it rather than trusting the login flag alone
+      if (m.owner) { loadFlags(); return; }
+      api("/library/whoami").then(function (w) { if (w && w.owner) { m.owner = true; loadFlags(); } }).catch(function () {});
     });
   }
   propWrap.addEventListener("toggle", function () { if (propWrap.open && !loaded) { loaded = true; refreshMember(); } });
