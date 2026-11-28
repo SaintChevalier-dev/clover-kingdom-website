@@ -1203,7 +1203,7 @@ async function boot() {
   const IX_CLIPS = { sitDown: "Sit_Down", sitIdle: "Sit_Idle", sitTalk: "Sit_Talk", standUp: "Stand_Up", lean: "Table_Lean" };
   /* Meshy clips (Stand_to_Sit_Transition_M, Chair_Sit_Idle_F, Sitting_Answering_Questions, Sit_to_Stand_Transition_F), re-rooted in Blender so the seated hips sit
      0.41 m behind the root and the seat contact is at 0.45 m. Hips offset after Stand_Up vs Idle (blender metres): STAND_END_SHIFT moves the root so there is no pop. */
-  const STAND_END_SHIFT = { x: 0.065, z: -0.083 };
+  const STAND_END_SHIFT = { x: 0, z: 0 }; /* the Stand_Up clip now ends exactly in the Idle stance (it steps into it), so no root shift is needed */
   const ixLocked = () => !!ix && (ix.phase === "sitting" || ix.phase === "seated" || ix.phase === "standing" || ix.phase === "leaning");
   function worldPoint(ent, pt) {
     const v = new THREE.Vector3(pt.local[0], pt.local[1] || 0, pt.local[2]);
@@ -1261,7 +1261,17 @@ async function boot() {
     onArrive = () => { if (!ix) return; ix.phase = "turn"; ix.t = 0; dest = null; route = []; state = "interact"; playClip("idle_pages", true); };
     return true;
   }
+  /* scoot-in: once seated she slides the chair (and herself) SCOOT_D metres toward the table so she sits closer to it, and slides back out before standing */
+  const SCOOT_D = 0.2, SCOOT_T = 0.75;
+  function setScoot(v) {
+    if (!ix || ix.kind !== "seat" || !ix.sc) return;
+    const o = v * SCOOT_D, ent = ix.ent.object, sc = ix.sc;
+    ent.position.x = sc.cx + sc.dx * o; ent.position.z = sc.cz + sc.dz * o;
+    sage.position.x = sc.sx + sc.dx * o; sage.position.z = sc.sz + sc.dz * o;
+    ix.scoot = v;
+  }
   function endInteraction() {
+    if (ix && ix.scoot) setScoot(0);
     if (ix && ix.ent) ix.ent.busy = false;
     ix = null; onArrive = null; dest = null; route = [];
     state = "idle_pages"; playClip("idle_pages", true); nextAt = 3 + Math.random() * 4;
@@ -1278,16 +1288,22 @@ async function boot() {
       sage.position.x = lerp(sage.position.x, ix.A.x, Math.min(1, dt * 6)); sage.position.z = lerp(sage.position.z, ix.A.z, Math.min(1, dt * 6));
       if (Math.abs(d) < 0.04 && ix.t > 0.25) {
         ix.phase = ix.kind === "seat" ? "sitting" : "leaning"; ix.t = 0;
+        if (ix.kind === "seat") { /* the chair's centre towards the table centre, for the scoot-in */
+          const co = ix.ent.object, tb = propObj.table, dx = tb.position.x - co.position.x, dz = tb.position.z - co.position.z, dl = Math.hypot(dx, dz) || 1;
+          ix.sc = { cx: co.position.x, cz: co.position.z, sx: sage.position.x, sz: sage.position.z, dx: dx / dl, dz: dz / dl }; ix.scoot = 0;
+        }
         playClip(ix.kind === "seat" ? IX_CLIPS.sitDown : IX_CLIPS.lean, false);
         ix.dur = clipLen(ix.kind === "seat" ? IX_CLIPS.sitDown : IX_CLIPS.lean);
       }
     } else if (ix.phase === "sitting") {
       if (ix.t >= ix.dur - 0.05) { ix.phase = "seated"; ix.t = 0; ix.hold = 8 + Math.random() * 8; playClip(IX_CLIPS.sitIdle, true); }
     } else if (ix.phase === "seated") {
-      if (busy || ix.talk) ix.t = Math.min(ix.t, ix.hold - 0.2); /* stay seated while a chat reply is in progress */
+      if (busy || ix.talk) ix.t = Math.min(ix.t, ix.hold - SCOOT_T - 0.2); /* stay seated (and scooted in) while a chat reply is in progress */
       const want = ix.talk && clips[IX_CLIPS.sitTalk] ? IX_CLIPS.sitTalk : IX_CLIPS.sitIdle;
       if (currentClip !== want) playClip(want, true);
-      if (ix.t >= ix.hold) { ix.phase = "standing"; ix.t = 0; playClip(IX_CLIPS.standUp, false); ix.dur = clipLen(IX_CLIPS.standUp); }
+      const goOut = ix.t >= ix.hold - SCOOT_T, tgt = (!goOut && ix.t >= 0.5) ? 1 : 0, cur = ix.scoot || 0;
+      if (cur !== tgt) { const st = dt / SCOOT_T; setScoot(Math.abs(tgt - cur) <= st ? tgt : cur + Math.sign(tgt - cur) * st); }
+      if (ix.t >= ix.hold && (ix.scoot || 0) === 0) { ix.phase = "standing"; ix.t = 0; playClip(IX_CLIPS.standUp, false); ix.dur = clipLen(IX_CLIPS.standUp); }
     } else if (ix.phase === "standing" || ix.phase === "leaning") {
       if (ix.t >= ix.dur - 0.05) {
         if (ix.phase === "standing") { /* keep her hips where the clip ended: the Idle stance sits a few cm differently */
@@ -1355,27 +1371,38 @@ async function boot() {
 
   /* Wing tuck: while she walks to, sits on or leans at a prop, each wing root is rolled in 14 degrees, pitched back 4 and shrunk to 70%, so the wings stay
      compact (about +-0.65 m instead of +-1.0 m) and clear of the chair posts and the table edge. Rigid roots Bone_038 / Bone_042 sit under Spine2. */
-  const WING = { theta: 14 * Math.PI / 180, phi: 4 * Math.PI / 180, scale: 0.7 };
-  let wingRoots = null, tuck = 0, tuckPhi = WING.phi;
+  const WING = { theta: 14 * Math.PI / 180, phi: 4 * Math.PI / 180, scale: 0.7, k: 0.85, thetaLean: 0.5 };
+  let wingRoots = null, tuck = 0, tuckPhi = WING.phi, leanS = 0, leanBones = null;
+  { let h = null, hd = null; sage.traverse((o) => { if (!o.isBone) return; if (/^mixamorig:?hips$/i.test(o.name)) h = o; else if (/^mixamorig:?head$/i.test(o.name)) hd = o; }); if (h && hd) leanBones = { h, hd }; }
+  const _lv = new THREE.Vector3(), _lh = new THREE.Vector3();
   { const L = sage.getObjectByName("Bone_038"), R = sage.getObjectByName("Bone_042");
     if (L && R && L.parent && R.parent) wingRoots = { L, R, qL: L.quaternion.clone(), qR: R.quaternion.clone() }; }
   const _tq = [new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion()];
   const _ax = new THREE.Vector3(1, 0, 0), _az = new THREE.Vector3(0, 0, -1);
   function applyWingTuck(dt) {
     if (!wingRoots) return;
-    const target = ix ? 1 : 0;
+    const target = RIG ? D.tuckT : (ix ? 1 : 0);
     tuck += (target - tuck) * Math.min(1, dt * 2.6); if (Math.abs(target - tuck) < 0.002) tuck = target;
     const w = tuck * tuck * (3 - 2 * tuck);
-    /* leaning over the table pitches the spine 45 degrees, which flicks the wings up and shows their pale underside, so pitch them back down against the lean */
-    const phiT = ix && ix.phase === "leaning" ? -34 * Math.PI / 180 : WING.phi;
-    tuckPhi += (phiT - tuckPhi) * Math.min(1, dt * 2.6);
     sage.getWorldQuaternion(_tq[3]).invert();
+    /* the torso pitches forward in Sit_Down / Stand_Up and the table lean, which flicks the wings up and shows their pale underside: measure the
+       hips-to-head lean in her own frame and pitch the wing roots back against it, so the wings stay tucked through every transition */
+    let lean = 0;
+    if (w > 0 && leanBones) {
+      leanBones.h.updateWorldMatrix(true, false); leanBones.hd.updateWorldMatrix(true, false);
+      _lv.setFromMatrixPosition(leanBones.hd.matrixWorld).sub(_lh.setFromMatrixPosition(leanBones.h.matrixWorld)).applyQuaternion(_tq[3]);
+      lean = Math.max(0, Math.atan2(_lv.z, _lv.y));
+    }
+    leanS += (lean - leanS) * Math.min(1, dt * 14);
+    const phiT = WING.phi - WING.k * leanS;
+    tuckPhi += (phiT - tuckPhi) * Math.min(1, dt * 14);
+    const theta = WING.theta + WING.thetaLean * Math.max(0, leanS - 0.17); /* a deep lean rolls the wings in further, so they stay narrow in the phone frame */
     for (const [bone, rest, sg] of [[wingRoots.L, wingRoots.qL, 1], [wingRoots.R, wingRoots.qR, -1]]) {
       bone.quaternion.copy(rest); bone.scale.setScalar(1 - (1 - WING.scale) * w);
       if (w <= 0) continue;
       bone.parent.updateWorldMatrix(true, false);
       bone.parent.getWorldQuaternion(_tq[0]).premultiply(_tq[3]);                       /* parent, relative to the wrapper */
-      _tq[1].setFromAxisAngle(_ax, tuckPhi * w).multiply(_tq[2].setFromAxisAngle(_az, sg * WING.theta * w)); /* pitch back after rolling in */
+      _tq[1].setFromAxisAngle(_ax, tuckPhi * w).multiply(_tq[2].setFromAxisAngle(_az, sg * theta * w)); /* pitch back after rolling in */
       _tq[2].copy(_tq[0]).invert().multiply(_tq[1]).multiply(_tq[0]);                  /* same rotation, in the parent's frame */
       bone.quaternion.premultiply(_tq[2]);
       bone.updateMatrixWorld(true);
@@ -1395,6 +1422,7 @@ async function boot() {
   function backToIdle() { busy = false; if (ix) { ix.talk = false; return; } /* mid-interaction: a late chat timer must not drop her out of it */ setState(reduce.matches ? "pause" : "idle_pages"); nextAt = 3; }
   window.addEventListener("ckw:sage-act", (e) => {
     const name = e && e.detail && e.detail.name;
+    if (RIG) { if (!reduce.matches || name === "pulse") directorAct(name); return; }
     if (reduce.matches) return; /* reduced motion: no moves and no halo flash */
     if (name === "pulse") { haloPulse = 1; return; }
     if (name === "listen") { if (busy) return; moveFor("listen", 2.6, () => { if (!busy) backToIdle(); }); }
@@ -1453,6 +1481,7 @@ async function boot() {
     ray.setFromCamera(ndc, camera);
     const hit = ray.intersectObject(sage, true).find((h) => h.object.visible && !(h.object.isSprite) && !(h.object.isPoints));
     if (dragged) { dragged = false; return; } /* a drag turns her; it isn't a tap */
+    if (RIG) { if (hit) { noteActive(); let o = hit.object; while (o && o !== sage) { if (o === bookNode) { window.dispatchEvent(new CustomEvent("ckw:sage-book-tap")); break; } o = o.parent; } } return; }
     if (hit) reactTo(partOf(hit.object));
   });
   /* drag (mouse, pen or touch, sideways) on the 3D view turns Sage; a short tap still touches her */
@@ -1495,6 +1524,20 @@ async function boot() {
     lite: () => LITE,
     clip: () => currentClip,
     wingTuck: () => tuck,
+    lean: () => leanS,
+    feet: () => { const r = []; sage.updateMatrixWorld(true); sage.traverse((o) => { if (o.isBone && /^mixamorig:?(left|right)foot$/i.test(o.name)) { const v = new THREE.Vector3().setFromMatrixPosition(o.matrixWorld); r.push([+v.x.toFixed(3), +v.y.toFixed(3), +v.z.toFixed(3)]); } }); return r; },
+    wingSpan: () => { /* debug: wing bone extents in her own frame (x sideways, y up, z forward), metres */
+      const out = { L: [9, -9, 9, -9, 9, -9], R: [9, -9, 9, -9, 9, -9] }, v = new THREE.Vector3(), inv = new THREE.Matrix4();
+      sage.updateMatrixWorld(true); inv.copy(sage.matrixWorld).invert();
+      sage.traverse((o) => { if (!o.isBone) return; const m = /^Bone_0*(\d+)$/.exec(o.name); if (!m) return; const n = +m[1];
+        if (!((n >= 35 && n <= 42) || (n >= 83 && n <= 94))) return; v.setFromMatrixPosition(o.matrixWorld).applyMatrix4(inv);
+        const side = v.x > 0 ? "L" : "R", a = out[side]; a[0] = Math.min(a[0], v.x); a[1] = Math.max(a[1], v.x); a[2] = Math.min(a[2], v.y); a[3] = Math.max(a[3], v.y); a[4] = Math.min(a[4], v.z); a[5] = Math.max(a[5], v.z); });
+      return out; },
+    scoot: () => (RIG ? D.scootV : (ix && ix.scoot) || 0),
+    rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
+    rigDo: (n) => { if (n === "sit") D.forceSit = true; else if (n === "stand") { D.wantStand = true; D.forceStand = true; } else if (n === "write") D.forceWrite = true; },
+    bookNode: () => bookNode,
+    cam: (x, y, z, lx, ly, lz) => { camera.clearViewOffset(); camera.position.set(x, y, z); camera.lookAt(lx, ly, lz); camera.fov = 32; camera.updateProjectionMatrix(); }, /* review shots only */
     interactables: () => [...interactables.values()].map((e) => ({ id: e.id, kind: e.kind, busy: e.busy, points: e.points.map((q) => ({ name: q.name, blocked: !!q.blocked })) })),
     register,
     use: (id, pointName) => useById(id, pointName),
@@ -1534,6 +1577,137 @@ async function boot() {
   const clipsReady = usingGLB && Object.keys(clips).length > 0;
   const modelScale = (sage.userData && sage.userData.modelScale) || 1;
   const mp = motes.geometry.attributes.position, seeds = motes.userData.seed;
+  /* ================= Rig director: no walking, no wandering =================
+     Three states, all in place at the chair's stand point beside the round table, with the grimoire floating (never held):
+       seated    Sit_Idle at the table, absorbed in the floating book (Sit_Talk while a reply is spoken from the chair)
+       standing  Stand_Wait: calm, attentive, facing the visitor (Talk_with_Hands_Open while replying)
+       writing   a long reply: she turns to the table, leans in (Table_Lean) and the book comes down to write in
+     Visitor activity (mouse, touch, key) -> stands up and attends; 25 s of quiet with the chat closed -> back to the book. */
+  const RIG_NEED = ["Stand_Wait", "Sit_Idle", "Sit_Down", "Stand_Up", "Sit_Talk", "Table_Lean", "Talk_with_Hands_Open"];
+  const RIG = clipsReady && RIG_NEED.every((n) => clips[n]);
+  const D = { mode: "boot", t: 0, clock: 0, tuckT: 0.5, talk: false, talkUntil: 0, wantStand: false, A: null, ch: null, tb: null, scootV: 0, scootDir: null, chairBase: null,
+    busyClock: 0, lastActive: 0, leaving: false, writeP: null, bookMode: "float", auto: flags.nofree !== "1" && !reduce.matches, forceSit: false, forceWrite: false, bootT: 0 };
+  const IDLE_SIT_S = 25, WRITE_AFTER_S = 2.2, LEAN_HOLD = [1.25, 2.75], BOOK_SCALE = 0.8;
+  const chatOpen = () => { const el = document.getElementById("sage-book"); return !!el && el.getAttribute("aria-expanded") === "true"; };
+  const bookNode = RIG ? sage.getObjectByName("SageBook") : null;
+  if (bookNode) { bookNode.removeFromParent(); sage.add(bookNode); bookNode.scale.setScalar(BOOK_SCALE); bookNode.frustumCulled = false; bookNode.name = "SageBook"; bookNode.position.set(0.46, 1.22, 0.28); }
+  if (RIG && sage.userData) sage.userData.book = bookNode;
+  const BOOK_POSE = { /* in her own frame (x her left, y up, z forward) */
+    float: { p: [0.62, 1.26, 0.22], r: [Math.PI / 2 - 0.12, -0.5, 0.0] }, /* the book's cover normal is its local +Y (glTF), long edge along +Z */
+    read:  { p: [0.1, 1.04, 0.3], r: [-0.95, 0.0, 0.0] },
+    write: { p: [0.0, 0.83, 0.4], r: [0.0, 0.0, 0.0] }
+  };
+  const _bq = new THREE.Quaternion(), _be = new THREE.Euler(), _bv = new THREE.Vector3();
+  function updateBook(dt) {
+    if (!bookNode) return;
+    const bp = BOOK_POSE[D.bookMode] || BOOK_POSE.float, still = reduce.matches || D.bookMode === "write";
+    const bob = still ? 0 : Math.sin(tAll * 1.3), sway = still ? 0 : Math.sin(tAll * 0.7);
+    _bv.set(bp.p[0], bp.p[1] + bob * 0.02, bp.p[2]);
+    _be.set(bp.r[0] + (still ? 0 : Math.sin(tAll * 0.9) * 0.04), bp.r[1] + sway * 0.14, bp.r[2] + (still ? 0 : Math.sin(tAll * 1.1) * 0.03), "YXZ");
+    _bq.setFromEuler(_be);
+    const k = 1 - Math.exp(-dt * (D.bookMode === "write" ? 5 : 3));
+    bookNode.position.lerp(_bv, k); bookNode.quaternion.slerp(_bq, k);
+  }
+  const turnTo = (target, dt, rate) => {
+    let d = target - yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+    yaw += THREE.MathUtils.clamp(d, -rate * dt, rate * dt); sage.rotation.y = yaw; return Math.abs(d);
+  };
+  const camYaw = () => Math.atan2(camera.position.x - sage.position.x, camera.position.z - sage.position.z);
+  const tblYaw = () => Math.atan2(D.tb.position.x - sage.position.x, D.tb.position.z - sage.position.z);
+  const rigGo = (m) => { D.mode = m; D.t = 0; };
+  function noteActive() {
+    D.lastActive = D.clock;
+    if (RIG && D.auto && (D.mode === "seated" || D.mode === "sitting" || D.mode === "sit_turn")) D.wantStand = true;
+  }
+  function setScootPos(v) {
+    D.scootV = v; const o = v * SCOOT_D;
+    D.ch.position.x = D.chairBase.x + D.scootDir.x * o; D.ch.position.z = D.chairBase.z + D.scootDir.z * o;
+    sage.position.x = D.A.x + D.scootDir.x * o; sage.position.z = D.A.z + D.scootDir.z * o;
+  }
+  function rigInit() {
+    const ent = interactables.get("chair-1"); if (!ent || !propObj.table) return false;
+    D.ch = ent.object; D.tb = propObj.table; D.A = seatApproach(ent, ent.points[0]);
+    D.chairBase = { x: D.ch.position.x, z: D.ch.position.z };
+    const dx = D.tb.position.x - D.ch.position.x, dz = D.tb.position.z - D.ch.position.z, dl = Math.hypot(dx, dz) || 1;
+    D.scootDir = { x: dx / dl, z: dz / dl };
+    const ax = D.A.x - D.tb.position.x, az = D.A.z - D.tb.position.z, al = Math.hypot(ax, az) || 1;
+    D.writeP = { x: D.tb.position.x + ax / al * 0.66, z: D.tb.position.z + az / al * 0.66 };
+    if (flags.start === "stand" || !D.auto && flags.start !== "sit") { sage.position.set(D.A.x, 0, D.A.z); yaw = camYaw(); sage.rotation.y = yaw; rigGo("standing"); playClip("Stand_Wait", true); }
+    else { yaw = D.A.yaw; sage.rotation.y = yaw; sage.position.set(D.A.x, 0, D.A.z); setScootPos(1); rigGo("seated"); D.t = 1.0; playClip("Sit_Idle", true); }
+    sage.visible = true; return true;
+  }
+  const clipDur = (n) => (clips[n] ? clips[n].duration : 1.5);
+  function director(dt) {
+    D.clock += dt; D.t += dt;
+    if (D.mode === "boot") {
+      D.bootT += dt;
+      if (registeredProps && rigInit()) return;
+      if (D.bootT > 8) { sage.position.set(tx, 0, tz); sage.visible = true; yaw = camYaw(); sage.rotation.y = yaw; playClip("Stand_Wait", true); rigGo("fallback"); }
+      return;
+    }
+    if (D.mode === "fallback") { turnTo(camYaw(), dt, 1.5); updateBook(dt); return; }
+    const idleS = D.clock - D.lastActive; /* game seconds, so a slow device does not rush her back to the book */
+    if (busy && D.clock - D.busyClock > 60) busy = false; /* never stay stuck if a reply never lands */
+    const m = D.mode;
+    D.tuckT = (m === "standing") ? 0.5 : 1;
+    D.bookMode = (m === "seated" || m === "sitting" || m === "sit_turn") ? "read" : (m === "writing" && !D.leaving) ? "write" : "float";
+    if (m === "standing") {
+      turnTo(camYaw(), dt, 2.2);
+      sage.position.x += (D.A.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.A.z - sage.position.z) * Math.min(1, dt * 4);
+      const wantTalk = D.talk && D.clock < D.talkUntil;
+      playClip(wantTalk ? "Talk_with_Hands_Open" : "Stand_Wait", true);
+      if (D.talk && !wantTalk) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
+      if (D.forceWrite || (busy && !D.talk && D.clock - D.busyClock > WRITE_AFTER_S && !reduce.matches)) { D.forceWrite = false; rigGo("w_turn"); }
+      else if (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S)) { D.forceSit = false; rigGo("sit_turn"); }
+    } else if (m === "sit_turn") {
+      const d = turnTo(D.A.yaw, dt, 2.6);
+      if (D.wantStand && D.auto) { D.wantStand = false; rigGo("standing"); return; }
+      if (d < 0.04 && D.t > 0.25) { D.wantStand = false; rigGo("sitting"); playClip("Sit_Down", false); D.dur = clipDur("Sit_Down"); }
+    } else if (m === "sitting") {
+      if (D.t >= D.dur - 0.05) { D.wantStand = false; rigGo("seated"); playClip("Sit_Idle", true); }
+    } else if (m === "seated") {
+      const want = D.talk && D.clock < D.talkUntil ? "Sit_Talk" : "Sit_Idle";
+      if (D.talk && D.clock >= D.talkUntil) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
+      playClip(want, true);
+      const goOut = ((D.wantStand || D.forceStand) && D.t > 1.0 && !D.talk) || (busy && D.t > 1.0);
+      const tgt = (D.t >= 0.5 && !goOut) ? 1 : 0, cur = D.scootV;
+      if (cur !== tgt) { const st = dt / SCOOT_T; setScootPos(Math.abs(tgt - cur) <= st ? tgt : cur + Math.sign(tgt - cur) * st); }
+      if (goOut && D.scootV === 0) { D.wantStand = false; D.forceStand = false; rigGo("rising"); playClip("Stand_Up", false); D.dur = clipDur("Stand_Up"); }
+    } else if (m === "rising") {
+      if (D.t >= D.dur - 0.05) { D.lastActive = Math.max(D.lastActive, D.clock - 10); rigGo("standing"); playClip("Stand_Wait", true); } /* stay up at least ~15 s after rising */
+    } else if (m === "w_turn") {
+      const d = turnTo(tblYaw(), dt, 2.6);
+      sage.position.x += (D.writeP.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.writeP.z - sage.position.z) * Math.min(1, dt * 4);
+      if (d < 0.05 && D.t > 0.3 && Math.hypot(D.writeP.x - sage.position.x, D.writeP.z - sage.position.z) < 0.02) { rigGo("writing"); D.leaving = false; playClip("Table_Lean", false); }
+    } else if (m === "writing") {
+      turnTo(tblYaw(), dt, 2.0);
+      if (action && currentClip === "Table_Lean" && !D.leaving) {
+        if (action.time > LEAN_HOLD[1]) action.time = LEAN_HOLD[0] + (action.time - LEAN_HOLD[1]); /* hold the writing lean in a short loop */
+        if (!busy && D.t > 2.4) D.leaving = true;
+      }
+      if (D.leaving && D.t > 0.1 && (!action || action.time >= clipDur("Table_Lean") - 0.08 || !action.isRunning())) { rigGo("standing"); playClip("Stand_Wait", true); }
+    }
+    if (m === "standing" || m === "w_turn" || m === "writing") { /* keep her root on the right spot when coming back */ }
+    updateBook(dt);
+  }
+  /* chat events -> director (replaces the old wander/walk reactions on the rigged model) */
+  function directorAct(name) {
+    if (name === "pulse") { haloPulse = 1; return; }
+    if (name === "listen") { noteActive(); if (D.mode === "seated") D.wantStand = true; return; }
+    if (name === "think") { busy = true; D.busyClock = D.clock; noteActive(); if (D.mode === "seated") D.wantStand = true; return; }
+    if (name === "teach" || name === "nod") {
+      busy = false; noteActive(); replies += 1;
+      D.talk = true; D.talkUntil = D.clock + (name === "nod" ? 3.2 : 4.2);
+      D.onTalkDone = () => { if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); } };
+      return;
+    }
+    noteActive();
+  }
+  if (RIG) {
+    sage.visible = false;
+    for (const ev of ["pointermove", "pointerdown", "keydown", "touchstart", "wheel"]) window.addEventListener(ev, noteActive, { passive: true });
+  }
+
   function tick() {
     requestAnimationFrame(tick);
     if (hidden) return; /* paused only while the tab is hidden; the 3D world keeps running while Sage's chat is open */
@@ -1544,8 +1718,10 @@ async function boot() {
     stateT += dt;
     if (!reduce.matches) tAll += dt;
     if (mixer) mixer.update(dt);
+    if (RIG) director(dt);
     applyWingTuck(dt);
 
+    if (RIG) { key.target.position.set(sage.position.x, 1.0, sage.position.z); renderer.render(scene, camera); return; }
     if (!posed && !busy && !quietRoom && !reduce.matches && !staticModel && !ix && flags.nofree !== "1") {
       nextAt -= dt;
       if (nextAt <= 0 && state !== "walk") {
