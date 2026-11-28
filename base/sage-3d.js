@@ -1143,7 +1143,10 @@ async function boot() {
   const KEEP = [{ x: 0, z: 0, r: 1.34 }, { x: CHAIR_DIR.x * CHAIR_R, z: CHAIR_DIR.z * CHAIR_R, r: 1.0 }];
   const AREA = PHONE ? { x0: -0.6, x1: 1.3, z0: -0.4, z1: 2.0 } : { x0: -1.2, x1: 2.2, z0: -0.9, z1: 1.8 };
   const inKeep = (x, z, pad) => KEEP.some((k) => Math.hypot(x - k.x, z - k.z) < k.r + (pad || 0));
+  /* Jacob 2026-11-28: no pacing, no wandering, no aimless motion. Every walk entry point is a no-op. */
+  const NO_PACING = true;
   function wanderTarget() {
+    if (NO_PACING) return { x: sage.position.x, z: sage.position.z };
     for (let i = 0; i < 40; i++) {
       const x = AREA.x0 + Math.random() * (AREA.x1 - AREA.x0), z = AREA.z0 + Math.random() * (AREA.z1 - AREA.z0);
       if (inKeep(x, z, 0.1)) continue;
@@ -1178,6 +1181,7 @@ async function boot() {
   let route = [], onArrive = null;
   function startWalk(to) {
     onArrive = null;
+    if (NO_PACING) { dest = null; route = []; walkLoop = 0; return; }
     const target = to || wanderTarget();
     route = routeTo({ x: sage.position.x, z: sage.position.z }, target);
     dest = route.shift();
@@ -1353,6 +1357,7 @@ async function boot() {
 
   /* Calmer free will: a realistic figure mostly stands, reads, and looks around. */
   function pickFreeWill() {
+    if (NO_PACING) return "idle_pages";
     const roll = Math.random();
     if (!staticModel && Object.keys(clips).length) {
       /* rigged Sage: stand, stroll, sit in the chair, or lean on the table (the last two only when those props and clips exist) */
@@ -1467,6 +1472,7 @@ async function boot() {
     return "armor";
   }
   function reactTo(part) {
+    if (NO_PACING) { window.dispatchEvent(new CustomEvent("ckw:sage-touch", { detail: { part } })); return; } /* no look / wave / stride reactions */
     if (part === "grimoire" || part === "staff") { dest = null; setState("talk"); }
     else if (part === "wings") { dest = null; setState("look"); }
     else if (part === "halo" || part === "face" || part === "crest") { dest = null; setState("wave"); }
@@ -1498,7 +1504,7 @@ async function boot() {
   window.addEventListener("pointerup", endDrag); window.addEventListener("pointercancel", endDrag);
   if (flags.pose) {
     posed = true;
-    if (flags.pose === "walk") {
+    if (flags.pose === "walk" && !NO_PACING) {
       sage.position.set(tx - 0.5, 0, tz + 0.3);
       yaw = 0.6; sage.rotation.y = yaw;
       dest = { x: tx, z: tz };
@@ -1512,7 +1518,7 @@ async function boot() {
   } else {
     setState(reduce.matches ? "pause" : "idle_pages");
     /* greet each fresh visit with a hand raise */
-    if (!reduce.matches) setTimeout(() => { if (!busy && state === "idle_pages") moveFor("greet", 1.8, () => { if (!busy) backToIdle(); }); }, 1400);
+    /* (the 1.4 s boot greet is gone: no motion without a reason) */
   }
 
   yard.hidden = false;
@@ -1534,7 +1540,7 @@ async function boot() {
         const side = v.x > 0 ? "L" : "R", a = out[side]; a[0] = Math.min(a[0], v.x); a[1] = Math.max(a[1], v.x); a[2] = Math.min(a[2], v.y); a[3] = Math.max(a[3], v.y); a[4] = Math.min(a[4], v.z); a[5] = Math.max(a[5], v.z); });
       return out; },
     scoot: () => (RIG ? D.scootV : (ix && ix.scoot) || 0),
-    rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
+    rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, busy, gaze: G.target, gy: +G.yaw.toFixed(2), gp: +G.pitch.toFixed(2), book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
     rigDo: (n) => { if (n === "sit") D.forceSit = true; else if (n === "stand") { D.wantStand = true; D.forceStand = true; } else if (n === "write") D.forceWrite = true; },
     bookNode: () => bookNode,
     cam: (x, y, z, lx, ly, lz) => { camera.clearViewOffset(); camera.position.set(x, y, z); camera.lookAt(lx, ly, lz); camera.fov = 32; camera.updateProjectionMatrix(); }, /* review shots only */
@@ -1553,7 +1559,7 @@ async function boot() {
     stop: () => { hidden = true; renderer.dispose(); yard.hidden = true; },
     /* Webverse playtest controls (client-side only) */
     pose: (name) => {
-      if (name === "walk") { startWalk(); nextAt = 99; return; }
+      if (name === "walk" || NO_PACING) return;
       if (name === "stride") { tWalkFixed = 0.22; }
       dest = null; setState(name); nextAt = name === "idle_pages" ? 3 : 7;
     },
@@ -1565,7 +1571,7 @@ async function boot() {
     /* quiet room anchor: no drifting motes, no wandering */
     quiet: (on) => { quietRoom = !!on; motes.visible = false; if (quietRoom) { dest = null; if (state === "walk") setState("idle_pages"); nextAt = 1e9; } else nextAt = 3; },
     /* the walk anchor: a slow loop around the round table */
-    walk: () => { quietRoom = false; walkLoop = 1; startWalk(); nextAt = 99; },
+    walk: () => {}, /* no pacing */
     glyphKeys: () => Object.keys(GLYPH_MEANINGS),
     /* chat moves, also for playtesters: greet, listen, think, teach, nod, emphasis, rise, pulse */
     act: (name) => window.dispatchEvent(new CustomEvent("ckw:sage-act", { detail: { name } }))
@@ -1583,29 +1589,34 @@ async function boot() {
        standing  Stand_Wait: calm, attentive, facing the visitor (Talk_with_Hands_Open while replying)
        writing   a long reply: she turns to the table, leans in (Table_Lean) and the book comes down to write in
      Visitor activity (mouse, touch, key) -> stands up and attends; 25 s of quiet with the chat closed -> back to the book. */
-  const RIG_NEED = ["Stand_Wait", "Sit_Idle", "Sit_Down", "Stand_Up", "Sit_Talk", "Table_Lean", "Talk_with_Hands_Open"];
+  const RIG_NEED = ["Stand_Wait"]; /* the rest are optional: a missing clip drops that state, it never brings pacing back */
   const RIG = clipsReady && RIG_NEED.every((n) => clips[n]);
+  const CAN_SIT = ["Sit_Idle", "Sit_Down", "Stand_Up"].every((n) => clips[n]), CAN_LEAN = !!clips.Table_Lean;
+  const TRANS_SPEED = 1.45; /* Sit_Down / Stand_Up play faster so a reply never waits on a 4.7 s transition */
   const D = { mode: "boot", t: 0, clock: 0, tuckT: 0.5, talk: false, talkUntil: 0, wantStand: false, A: null, ch: null, tb: null, scootV: 0, scootDir: null, chairBase: null,
-    busyClock: 0, lastActive: 0, leaving: false, writeP: null, bookMode: "float", auto: flags.nofree !== "1" && !reduce.matches, forceSit: false, forceWrite: false, bootT: 0 };
-  const IDLE_SIT_S = 25, WRITE_AFTER_S = 2.2, LEAN_HOLD = [1.25, 2.75], BOOK_SCALE = 0.8;
+    busyClock: 0, lastActive: 0, leaving: false, writeP: null, bookMode: "float", auto: flags.nofree !== "1" && !reduce.matches, forceSit: false, forceWrite: false, bootT: 0, noteUntil: 0 };
+  const IDLE_SIT_S = 25, WRITE_AFTER_S = 0.4, LEAN_HOLD = [1.25, 2.75], BOOK_SCALE = 0.8, NOTE_S = 3.2;
   const chatOpen = () => { const el = document.getElementById("sage-book"); return !!el && el.getAttribute("aria-expanded") === "true"; };
   const bookNode = RIG ? sage.getObjectByName("SageBook") : null;
   if (bookNode) { bookNode.removeFromParent(); sage.add(bookNode); bookNode.scale.setScalar(BOOK_SCALE); bookNode.frustumCulled = false; bookNode.name = "SageBook"; bookNode.position.set(0.46, 1.22, 0.28); }
   if (RIG && sage.userData) sage.userData.book = bookNode;
   const BOOK_POSE = { /* in her own frame (x her left, y up, z forward) */
     float: { p: [0.62, 1.26, 0.22], r: [Math.PI / 2 - 0.12, -0.5, 0.0] }, /* the book's cover normal is its local +Y (glTF), long edge along +Z */
-    read:  { p: [0.1, 1.04, 0.3], r: [-0.95, 0.0, 0.0] },
-    write: { p: [0.0, 0.83, 0.4], r: [0.0, 0.0, 0.0] }
+    read:  { p: [0.05, 0.97, -0.1], r: [-0.95, 0.0, 0.0] }, /* seated: low in front of her lap (well below her face, so it never covers it), tilted up to her eyes */
+    write: { p: [0.0, 0.83, 0.4], r: [0.0, 0.0, 0.0] },     /* standing at the table (Table_Lean) */
+    seatwrite: { p: [-0.02, 0.81, 0.15], r: [0.0, 0.0, 0.0] } /* seated: flat on the table in front of her (Sit_Write) */
   };
+  let bookSide = 1; /* +1 her left, -1 her right */
   const _bq = new THREE.Quaternion(), _be = new THREE.Euler(), _bv = new THREE.Vector3();
   function updateBook(dt) {
     if (!bookNode) return;
-    const bp = BOOK_POSE[D.bookMode] || BOOK_POSE.float, still = reduce.matches || D.bookMode === "write";
+    const bp = BOOK_POSE[D.bookMode] || BOOK_POSE.float, still = reduce.matches || D.bookMode === "write" || D.bookMode === "seatwrite";
     const bob = still ? 0 : Math.sin(tAll * 1.3), sway = still ? 0 : Math.sin(tAll * 0.7);
-    _bv.set(bp.p[0], bp.p[1] + bob * 0.02, bp.p[2]);
-    _be.set(bp.r[0] + (still ? 0 : Math.sin(tAll * 0.9) * 0.04), bp.r[1] + sway * 0.14, bp.r[2] + (still ? 0 : Math.sin(tAll * 1.1) * 0.03), "YXZ");
+    const sx = D.bookMode === "read" ? bookSide : 1;
+    _bv.set(bp.p[0] * sx, bp.p[1] + bob * 0.02, bp.p[2]);
+    _be.set(bp.r[0] + (still ? 0 : Math.sin(tAll * 0.9) * 0.04), bp.r[1] * sx + sway * 0.14, bp.r[2] + (still ? 0 : Math.sin(tAll * 1.1) * 0.03), "YXZ");
     _bq.setFromEuler(_be);
-    const k = 1 - Math.exp(-dt * (D.bookMode === "write" ? 5 : 3));
+    const k = 1 - Math.exp(-dt * (D.bookMode === "write" || D.bookMode === "seatwrite" ? 5 : 3));
     bookNode.position.lerp(_bv, k); bookNode.quaternion.slerp(_bq, k);
   }
   const turnTo = (target, dt, rate) => {
@@ -1619,6 +1630,67 @@ async function boot() {
     D.lastActive = D.clock;
     if (RIG && D.auto && (D.mode === "seated" || D.mode === "sitting" || D.mode === "sit_turn")) D.wantStand = true;
   }
+  /* ---- gaze: her head only ever aims at something real: the visitor (camera + pointer), the chat while they type, or the book ---- */
+  const G = { yaw: 0, pitch: 0, w: 0, lastPointer: -99, lastType: -99, ndc: { x: 0, y: 0 }, target: "book" };
+  const gazeBones = (() => { let n = null, h = null; sage.traverse((o) => { if (!o.isBone) return; if (/^mixamorig:?neck$/i.test(o.name)) n = o; else if (/^mixamorig:?head$/i.test(o.name)) h = o; }); return n && h ? { n, h } : null; })();
+  const _gq = new THREE.Quaternion(), _gq2 = new THREE.Quaternion(), _gp = new THREE.Quaternion(), _gv = new THREE.Vector3(), _gt = new THREE.Vector3(), _gu = new THREE.Vector3(0, 1, 0), _gr = new THREE.Vector3(), _gs = new THREE.Quaternion();
+  let headFwdLocal = null; /* her face direction in the Head bone's own frame, read once from the bind pose */
+  if (gazeBones && RIG) { sage.updateMatrixWorld(true); gazeBones.h.getWorldQuaternion(_gq); sage.getWorldQuaternion(_gs); headFwdLocal = new THREE.Vector3(0, 0, 1).applyQuaternion(_gs).applyQuaternion(_gq.invert()).normalize(); }
+  const gazeOn = (t) => { G.lastPointer = D.clock; return t; };
+  function gazeTarget(out) {
+    const m = D.mode, talking = D.talk && D.clock < D.talkUntil;
+    let t = "book";
+    if (talking) t = "visitor";
+    else if (m === "writing" || D.bookMode === "seatwrite") t = "book";
+    else if (chatOpen() && D.clock - G.lastType < 2.5) t = "chat";
+    else if (D.clock - G.lastPointer < 4 || (m === "standing" && D.clock - D.lastActive < 8)) t = "visitor";
+    G.target = t;
+    if (t === "book" && bookNode) { bookNode.getWorldPosition(out); return out; }
+    if (t === "chat") { out.set(0.72, -0.05, 0.6).unproject(camera); return out; }
+    /* the visitor: the camera, nudged a little toward the pointer so her eyes follow it */
+    out.set(THREE.MathUtils.clamp(G.ndc.x, -1, 1) * 0.35, THREE.MathUtils.clamp(G.ndc.y, -1, 1) * 0.2, 0.2).unproject(camera);
+    return out;
+  }
+  /* the clips may carry no neck/head track (constant tracks are optimised away), so put the clip pose back before the mixer runs:
+     the gaze offset never accumulates frame to frame and the clamp always holds */
+  const gazeBase = [new THREE.Quaternion(), new THREE.Quaternion()]; let gazeSaved = false;
+  function gazeRestore() { if (gazeSaved && gazeBones) { gazeBones.n.quaternion.copy(gazeBase[0]); gazeBones.h.quaternion.copy(gazeBase[1]); } }
+  function applyGaze(dt) {
+    if (!gazeBones || !headFwdLocal || reduce.matches) return;
+    const { n, h } = gazeBones; const m = D.mode;
+    sage.updateMatrixWorld(true);
+    h.getWorldPosition(_gv); gazeTarget(_gt);
+    sage.getWorldQuaternion(_gs); const inv = _gs.clone().invert();
+    const want = _gt.sub(_gv).applyQuaternion(inv).normalize();       /* in her own frame */
+    h.getWorldQuaternion(_gq); const cur = headFwdLocal.clone().applyQuaternion(_gq).applyQuaternion(inv).normalize();
+    const yawW = Math.atan2(want.x, want.z), yawC = Math.atan2(cur.x, cur.z);
+    let dy = yawW - yawC; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI;
+    const dp = Math.asin(THREE.MathUtils.clamp(want.y, -1, 1)) - Math.asin(THREE.MathUtils.clamp(cur.y, -1, 1));
+    const lim = G.target === "book" ? 0.9 : 1.05;
+    const ty = THREE.MathUtils.clamp(dy, -lim, lim), tp = THREE.MathUtils.clamp(dp, -0.45, 0.38);
+    const busyBody = m === "sitting" || m === "rising" || m === "w_turn" || m === "sit_turn";
+    const wT = busyBody ? 0.35 : 1;
+    const k = 1 - Math.exp(-dt * 4.5);
+    G.yaw += (ty - G.yaw) * k; G.pitch += (tp - G.pitch) * k; G.w += (wT - G.w) * (1 - Math.exp(-dt * 3));
+    gazeBase[0].copy(n.quaternion); gazeBase[1].copy(h.quaternion); gazeSaved = true;
+    for (const [b, share] of [[n, 0.4], [h, 0.6]]) {
+      b.updateWorldMatrix(true, false);
+      b.getWorldQuaternion(_gq); b.parent.getWorldQuaternion(_gp);
+      const fwd = headFwdLocal.clone().applyQuaternion(_gq).normalize();
+      _gr.crossVectors(fwd, _gu).normalize();
+      _gq2.setFromAxisAngle(_gu, G.yaw * share * G.w).multiply(_gs.setFromAxisAngle(_gr, G.pitch * share * G.w));
+      _gq.premultiply(_gq2);
+      b.quaternion.copy(_gp.invert().multiply(_gq));
+      b.updateMatrixWorld(true);
+    }
+  }
+  for (const ev of ["pointermove", "pointerdown", "wheel", "touchstart", "scroll"]) window.addEventListener(ev, (e) => {
+    if (e && e.clientX != null) { G.ndc.x = (e.clientX / window.innerWidth) * 2 - 1; G.ndc.y = -(e.clientY / window.innerHeight) * 2 + 1; }
+    else if (e && e.touches && e.touches[0]) { G.ndc.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1; G.ndc.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1; }
+    G.lastPointer = D.clock;
+  }, { passive: true });
+  window.addEventListener("keydown", () => { G.lastType = D.clock; }, { passive: true });
+  window.addEventListener("input", () => { G.lastType = D.clock; }, { passive: true });
   function setScootPos(v) {
     D.scootV = v; const o = v * SCOOT_D;
     D.ch.position.x = D.chairBase.x + D.scootDir.x * o; D.ch.position.z = D.chairBase.z + D.scootDir.z * o;
@@ -1633,10 +1705,15 @@ async function boot() {
     const ax = D.A.x - D.tb.position.x, az = D.A.z - D.tb.position.z, al = Math.hypot(ax, az) || 1;
     D.writeP = { x: D.tb.position.x + ax / al * 0.66, z: D.tb.position.z + az / al * 0.66 };
     if (flags.start === "stand" || !D.auto && flags.start !== "sit") { sage.position.set(D.A.x, 0, D.A.z); yaw = camYaw(); sage.rotation.y = yaw; rigGo("standing"); playClip("Stand_Wait", true); }
-    else { yaw = D.A.yaw; sage.rotation.y = yaw; sage.position.set(D.A.x, 0, D.A.z); setScootPos(1); rigGo("seated"); D.t = 1.0; playClip("Sit_Idle", true); }
+    else if (CAN_SIT) { yaw = D.A.yaw; sage.rotation.y = yaw; sage.position.set(D.A.x, 0, D.A.z); setScootPos(1); rigGo("seated"); D.t = 1.0; playClip("Sit_Idle", true); }
+    else { sage.position.set(D.A.x, 0, D.A.z); yaw = camYaw(); sage.rotation.y = yaw; rigGo("standing"); playClip("Stand_Wait", true); }
+    { /* the reading book floats on her side away from the camera, so it never covers her face */
+      const c = camera.position.clone(), s = new THREE.Vector3(Math.sin(D.A.yaw), 0, Math.cos(D.A.yaw)), l = new THREE.Vector3(s.z, 0, -s.x);
+      c.sub(new THREE.Vector3(D.A.x, 0, D.A.z)); bookSide = c.dot(l) > 0 ? -1 : 1; }
     sage.visible = true; return true;
   }
-  const clipDur = (n) => (clips[n] ? clips[n].duration : 1.5);
+  const clipDur = (n) => (clips[n] ? clips[n].duration / ((n === "Sit_Down" || n === "Stand_Up") ? TRANS_SPEED : 1) : 1.5);
+  const playT = (n) => { playClip(n, false); if (action && currentClip === n) action.timeScale = TRANS_SPEED; };
   function director(dt) {
     D.clock += dt; D.t += dt;
     if (D.mode === "boot") {
@@ -1650,29 +1727,33 @@ async function boot() {
     if (busy && D.clock - D.busyClock > 60) busy = false; /* never stay stuck if a reply never lands */
     const m = D.mode;
     D.tuckT = (m === "standing") ? 0.5 : 1;
-    D.bookMode = (m === "seated" || m === "sitting" || m === "sit_turn") ? "read" : (m === "writing" && !D.leaving) ? "write" : "float";
+    const seatWriting = m === "seated" && (busy || D.clock < D.noteUntil) && !(D.talk && D.clock < D.talkUntil);
+    D.bookMode = seatWriting ? "seatwrite" : (m === "seated" || m === "sitting" || m === "sit_turn") ? "read" : (m === "writing" && !D.leaving) ? "write" : "float";
+    if (D.talk && (m === "sitting" || m === "rising" || m === "sit_turn" || m === "w_turn" || m === "writing")) D.talkUntil += dt; /* a reply never runs out while she is still getting up or down */
     if (m === "standing") {
       turnTo(camYaw(), dt, 2.2);
       sage.position.x += (D.A.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.A.z - sage.position.z) * Math.min(1, dt * 4);
       const wantTalk = D.talk && D.clock < D.talkUntil;
       playClip(wantTalk ? "Talk_with_Hands_Open" : "Stand_Wait", true);
       if (D.talk && !wantTalk) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
-      if (D.forceWrite || (busy && !D.talk && D.clock - D.busyClock > WRITE_AFTER_S && !reduce.matches)) { D.forceWrite = false; rigGo("w_turn"); }
-      else if (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S)) { D.forceSit = false; rigGo("sit_turn"); }
+      const wantWrite = D.forceWrite || (busy && !D.talk && D.clock - D.busyClock > WRITE_AFTER_S) || (!D.talk && D.clock < D.noteUntil);
+      if (CAN_LEAN && wantWrite && !reduce.matches) { D.forceWrite = false; D.noteUntil = 0; rigGo("w_turn"); }
+      else if (CAN_SIT && (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S))) { D.forceSit = false; rigGo("sit_turn"); }
     } else if (m === "sit_turn") {
       const d = turnTo(D.A.yaw, dt, 2.6);
       if (D.wantStand && D.auto) { D.wantStand = false; rigGo("standing"); return; }
-      if (d < 0.04 && D.t > 0.25) { D.wantStand = false; rigGo("sitting"); playClip("Sit_Down", false); D.dur = clipDur("Sit_Down"); }
+      if (d < 0.04 && D.t > 0.25) { D.wantStand = false; rigGo("sitting"); playT("Sit_Down"); D.dur = clipDur("Sit_Down"); }
     } else if (m === "sitting") {
       if (D.t >= D.dur - 0.05) { D.wantStand = false; rigGo("seated"); playClip("Sit_Idle", true); }
     } else if (m === "seated") {
-      const want = D.talk && D.clock < D.talkUntil ? "Sit_Talk" : "Sit_Idle";
+      const want = D.talk && D.clock < D.talkUntil ? "Sit_Talk" : seatWriting && clips.Sit_Write ? "Sit_Write" : "Sit_Idle";
       if (D.talk && D.clock >= D.talkUntil) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
       playClip(want, true);
-      const goOut = ((D.wantStand || D.forceStand) && D.t > 1.0 && !D.talk) || (busy && D.t > 1.0);
+      /* a long reply in flight keeps her seated and writing; she stands for the visitor only once the writing is done */
+      const goOut = (D.wantStand || D.forceStand) && D.t > 1.0 && !D.talk && !busy && D.clock >= D.noteUntil;
       const tgt = (D.t >= 0.5 && !goOut) ? 1 : 0, cur = D.scootV;
       if (cur !== tgt) { const st = dt / SCOOT_T; setScootPos(Math.abs(tgt - cur) <= st ? tgt : cur + Math.sign(tgt - cur) * st); }
-      if (goOut && D.scootV === 0) { D.wantStand = false; D.forceStand = false; rigGo("rising"); playClip("Stand_Up", false); D.dur = clipDur("Stand_Up"); }
+      if (goOut && D.scootV === 0) { D.wantStand = false; D.forceStand = false; rigGo("rising"); playT("Stand_Up"); D.dur = clipDur("Stand_Up"); }
     } else if (m === "rising") {
       if (D.t >= D.dur - 0.05) { D.lastActive = Math.max(D.lastActive, D.clock - 10); rigGo("standing"); playClip("Stand_Wait", true); } /* stay up at least ~15 s after rising */
     } else if (m === "w_turn") {
@@ -1683,7 +1764,7 @@ async function boot() {
       turnTo(tblYaw(), dt, 2.0);
       if (action && currentClip === "Table_Lean" && !D.leaving) {
         if (action.time > LEAN_HOLD[1]) action.time = LEAN_HOLD[0] + (action.time - LEAN_HOLD[1]); /* hold the writing lean in a short loop */
-        if (!busy && D.t > 2.4) D.leaving = true;
+        if ((!busy && D.t > 2.4 && D.clock >= D.noteUntil) || (D.talk && D.clock < D.talkUntil)) D.leaving = true; /* a reply landing straightens her up to answer */
       }
       if (D.leaving && D.t > 0.1 && (!action || action.time >= clipDur("Table_Lean") - 0.08 || !action.isRunning())) { rigGo("standing"); playClip("Stand_Wait", true); }
     }
@@ -1693,12 +1774,15 @@ async function boot() {
   /* chat events -> director (replaces the old wander/walk reactions on the rigged model) */
   function directorAct(name) {
     if (name === "pulse") { haloPulse = 1; return; }
-    if (name === "listen") { noteActive(); if (D.mode === "seated") D.wantStand = true; return; }
-    if (name === "think") { busy = true; D.busyClock = D.clock; noteActive(); if (D.mode === "seated") D.wantStand = true; return; }
+    if (name === "listen") { noteActive(); G.lastType = D.clock; if (D.mode === "seated" && !busy) D.wantStand = true; return; }
+    /* a reply is in flight: she writes straight away (seated: the book comes down to the table in front of her; standing: she turns to the table) */
+    if (name === "think") { busy = true; D.busyClock = D.clock; D.lastActive = D.clock; D.wantStand = false; if (D.mode === "standing") D.forceWrite = true; return; }
     if (name === "teach" || name === "nod") {
       busy = false; noteActive(); replies += 1;
+      if (D.mode === "seated") D.wantStand = false; /* answer from the chair, looking at the visitor */
+      if (D.mode === "writing") D.leaving = true;  /* straighten up from the table to answer */
       D.talk = true; D.talkUntil = D.clock + (name === "nod" ? 3.2 : 4.2);
-      D.onTalkDone = () => { if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); } };
+      D.onTalkDone = () => { D.noteUntil = D.clock + NOTE_S; /* then she notes it down in the book */ if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); } };
       return;
     }
     noteActive();
@@ -1717,12 +1801,13 @@ async function boot() {
     const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
     stateT += dt;
     if (!reduce.matches) tAll += dt;
+    if (RIG) gazeRestore();
     if (mixer) mixer.update(dt);
-    if (RIG) director(dt);
+    if (RIG) { director(dt); applyGaze(dt); }
     applyWingTuck(dt);
 
     if (RIG) { key.target.position.set(sage.position.x, 1.0, sage.position.z); renderer.render(scene, camera); return; }
-    if (!posed && !busy && !quietRoom && !reduce.matches && !staticModel && !ix && flags.nofree !== "1") {
+    if (!NO_PACING && !posed && !busy && !quietRoom && !reduce.matches && !staticModel && !ix && flags.nofree !== "1") {
       nextAt -= dt;
       if (nextAt <= 0 && state !== "walk") {
         const n = pickFreeWill();
@@ -1735,7 +1820,7 @@ async function boot() {
 
     if (ix && ix.phase !== "goto") {
       updateInteraction(dt);
-    } else if (state === "walk" && dest && !reduce.matches) {
+    } else if (!NO_PACING && state === "walk" && dest && !reduce.matches) {
       const dx = dest.x - sage.position.x, dz = dest.z - sage.position.z;
       const dist = Math.hypot(dx, dz);
       /* rigged: the Walking_Woman cycle's planted foot moves at about 1.17 m/s on a 1.72 m body, so move at that
