@@ -769,8 +769,8 @@ function layoutYard(yard, camera, renderer) {
   yard.classList.remove("ckw-yard-inline");
   if (yard.parentNode !== document.body || document.body.firstChild !== yard) document.body.insertBefore(yard, document.body.firstChild);
   if (camera) {
-    if (narrow) { camera.fov = 44; camera.position.set(0.2, 1.5, 5.6); camera.lookAt(0, 1.05, 0); }
-    else { camera.fov = 38; camera.position.set(0.35, 1.85, 4.6); camera.lookAt(0, 0.95, 0); }
+    if (narrow) { camera.fov = 46; camera.position.set(0.1, 1.5, 8.2); camera.lookAt(0.1, 0.9, 0); }
+    else { camera.fov = 38; camera.position.set(0.4, 1.7, 4.8); camera.lookAt(0.4, 0.95, 0); }
     camera.updateProjectionMatrix();
   }
   if (renderer) {
@@ -850,7 +850,7 @@ async function boot() {
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
   let narrow = layoutYard(yard, camera, renderer);
 
-  scene.add(new THREE.HemisphereLight(0x2c2f3c, 0x1a1208, 0.4));
+  scene.add(new THREE.HemisphereLight(0x3a3f55, 0x1f160b, LITE ? 0.95 : 0.7));
   /* Key: warm, from the table side, soft shadows. */
   const key = new THREE.SpotLight(0xffd6a0, 14, 12, 0.5, 0.8, 1.4);
   key.position.set(1.4, 3.4, 3.2);
@@ -869,8 +869,15 @@ async function boot() {
   rimR.position.set(3.5, 2.0, -2.5);
   scene.add(rimR);
   const lantern = new THREE.PointLight(0xe8b25a, 2.2, 6, 1.8);
-  lantern.position.set(0, 1.2, 0);
+  lantern.position.set(0.2, 1.9, 0.9);
   scene.add(lantern);
+  /* Table key: a warm spot on the round table and chair (no shadow map on phones). */
+  const tableKey = new THREE.SpotLight(0xffd9a8, 11, 10, 0.62, 0.7, 1.3);
+  tableKey.position.set(0.3, 3.3, 2.7);
+  tableKey.target.position.set(-0.25, 0.5, -0.1);
+  tableKey.castShadow = !LITE;
+  tableKey.shadow.mapSize.set(1024, 1024); tableKey.shadow.bias = -0.0004; tableKey.shadow.normalBias = 0.02; tableKey.shadow.radius = 4;
+  scene.add(tableKey); scene.add(tableKey.target);
 
   const floorTex = makeFlagstones(LITE ? 256 : 1024);
   floorTex.anisotropy = Math.min(LITE ? 1 : 4, renderer.capabilities.getMaxAnisotropy());
@@ -879,38 +886,43 @@ async function boot() {
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = !LITE;
   scene.add(floor);
-  /* Flagstone ring under the table. */
-  const ring = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.0, 64), new THREE.MeshStandardMaterial({ color: 0x8a6a2c, roughness: 0.5, metalness: 0.6 }));
-  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.002; ring.receiveShadow = true;
-  scene.add(ring);
-
+  /* Scene is only: floor, sky, a realistic round table, one chair, Sage. Table and chair are CC0 Poly Haven
+     models (see docs/SCENE_ASSETS.md), plain GLB + external same-origin JPEGs (CSP script-src 'self'). */
   const table = new THREE.Group();
-  table.name = "StoneTable";
-  const stone = new THREE.MeshPhysicalMaterial({ color: 0x55545c, roughness: 0.78, clearcoat: 0.1 });
-  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.68, 0.08, 64), stone);
-  top.position.y = 0.72; top.castShadow = true; top.receiveShadow = true;
-  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.012, 8, 96), new THREE.MeshPhysicalMaterial({ color: 0xc9a44c, metalness: 0.9, roughness: 0.3 }));
-  lip.rotation.x = Math.PI / 2; lip.position.y = 0.76;
-  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.24, 0.68, 32), stone);
-  pedestal.position.y = 0.34; pedestal.castShadow = true; pedestal.receiveShadow = true;
-  const tableCrest = crestGroup(new THREE.MeshStandardMaterial({ color: 0xffe0a0, emissive: 0xe8b04a, emissiveIntensity: 1.2, side: THREE.DoubleSide }), 0.14);
-  tableCrest.rotation.x = -Math.PI / 2; tableCrest.position.y = 0.762;
-  table.add(top, lip, pedestal, tableCrest);
+  table.name = "RoundTable";
   scene.add(table);
+  const TABLE_URL = LITE ? "/base/assets/scene/table_lite.glb?v=1" : "/base/assets/scene/table.glb?v=1";
+  const CHAIR_URL = LITE ? "/base/assets/scene/chair_lite.glb?v=1" : "/base/assets/scene/chair.glb?v=1";
+  const sceneProps = { table: false, chair: false };
+  function loadProp(url, place, key) {
+    new GLTFLoader().load(url, (g) => {
+      g.scene.traverse((o) => {
+        if (!o.isMesh) return;
+        o.castShadow = !LITE; o.receiveShadow = !LITE;
+        const ms = Array.isArray(o.material) ? o.material : [o.material];
+        ms.forEach((m) => { if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace; if (m) m.envMapIntensity = 0.9; });
+      });
+      place(g.scene); table.add(g.scene); sceneProps[key] = true;
+    }, undefined, (e) => { console.warn("prop load failed", key, e && e.message); });
+  }
+  loadProp(TABLE_URL, () => {}, "table");
+  /* chair: pulled up to the table on the far-left side, turned to face the centre */
+  loadProp(CHAIR_URL, (c) => { c.position.set(-0.66, 0, -0.29); c.rotation.y = Math.atan2(0.78, 0.34); }, "chair");
 
-  const motes = LITE ? makeMotes(24) : makeMotes(160);
-  scene.add(motes);
+  const motes = LITE ? makeMotes(24) : makeMotes(160); /* kept for the API, not added: the scene has no extra props */
+  motes.visible = false;
 
-  let sage = null, usingGLB = false, mixer = null, clips = {};
+  let sage = null, usingGLB = false, mixer = null, clips = {}, staticModel = false; /* staticModel: unrigged Meshy model, so she holds her place (no wandering) until it is rigged */
   try {
     // Only request the model when index.html opts in (data-glb on the canvas, or ?glb=1),
     // so a missing file never logs a 404 console error (smoke test stays green).
     if (!canvas.hasAttribute("data-glb") && flags.glb !== "1") throw new Error("no sage.glb yet");
-    const url = canvas.getAttribute("data-glb") || GLB_URL;
+    const url = (LITE && canvas.getAttribute("data-glb-lite")) || canvas.getAttribute("data-glb") || GLB_URL;
     const gltf = await new Promise((ok, err) => new GLTFLoader().load(url && url !== "" ? url : GLB_URL, ok, undefined, err));
     sage = prepareGLB(gltf.scene);
     usingGLB = true;
     mixer = new THREE.AnimationMixer(gltf.scene);
+    staticModel = !(gltf.animations && gltf.animations.length);
     (gltf.animations || []).forEach((c) => { clips[c.name] = c; });
     if (label) label.hidden = true;
   } catch (e) {
@@ -938,7 +950,8 @@ async function boot() {
     });
   }
 
-  let yaw = 0, tx = narrow ? -0.55 : 0.05, tz = narrow ? 1.55 : 1.4;
+  const PHONE = window.innerWidth <= 900; /* layoutYard returns false always, so test the width here */
+  let yaw = 0, tx = PHONE ? 0.55 : 1.3, tz = PHONE ? 0.9 : 0.7;
   sage.position.set(tx, 0, tz);
   sage.rotation.y = yaw;
   key.target.position.set(tx, 1.0, tz);
@@ -1235,6 +1248,8 @@ async function boot() {
     state: () => state,
     usingGLB: () => usingGLB,
     layers: () => unlocked,
+    lite: () => LITE,
+    props: () => ({ ...sceneProps }),
     stop: () => { hidden = true; renderer.dispose(); yard.hidden = true; },
     /* Webverse playtest controls (client-side only) */
     pose: (name) => {
@@ -1270,7 +1285,7 @@ async function boot() {
     if (!reduce.matches) tAll += dt;
     if (mixer) mixer.update(dt);
 
-    if (!posed && !busy && !quietRoom && !reduce.matches) {
+    if (!posed && !busy && !quietRoom && !reduce.matches && !staticModel) {
       nextAt -= dt;
       if (nextAt <= 0 && state !== "walk") {
         const n = pickFreeWill();
