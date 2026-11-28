@@ -1,6 +1,6 @@
 # Six-phase site path — status
 
-Updated 2026-11-26 6:30 PM CT. Wording rule: archetype, never SI. Nothing here is spent or connected live without the gates below.
+Updated 2026-11-27 6:30 PM CT. Wording rule: archetype, never SI. Nothing here is spent or connected live without the gates below.
 
 **Login rule (Jacob, 2026-11-21 10:46 AM CT):** "Discord login on cloverkingdom.net/base must be available but not required. Make the Discord sign-in optional — guests can browse and use Sage without logging in. Do not remove the login option entirely, just stop gating access behind it." Guests browse every public page and talk to Sage with no login; "Log in with Discord" stays visible and working. Only per-member pages (Member Hall, Round Table votes, My Quests, Account, the Tek Tribe game) still need login, because they show that member's own data.
 
@@ -29,3 +29,5 @@ Details: [sage-3d-phase6.md](sage-3d-phase6.md), [front-door.md](front-door.md),
 
 **Done 2026-11-26:** login button on / and /base/ now opens email, GitHub and Discord options (2f01248, 6e89269); the email login form is allowed to post to the login service (9c47244); /classic/ archived then retired with a redirect to /base/ (3ce2b17, 3e22d1e); Essence Tracks menu drops View and Log out, with Log out shown only when signed in (519cd04, 5c25b9d, 60ed5cc, abf88bc); /base/ retired as a landing page and now redirects to the root, which is the webverse door (f4bf719); Sage 3D script loaded so Sage shows as the face (9005a4e). No gate changed: the login-service return-path change still needs Jacob's yes, then Tek Tribe.
 
+
+**Done 2026-11-27:** Restored Email in the Log in panel and kept /#doors from being a landing view (e34575c, 753d432); /classic/ restored for How to join and The House links (38413b6); Essence Tracks menu loads from its own script and loses the white box (6922eb2, b041dbc, f3c0ab3); root face trimmed to Sage, book, conversation, login button and Essence Tracks (5bcc653, 559ff0b, 12c7690); walkable 3D Sage v06 draft live as sage.glb (a6400b5); Sage chat opens from the five-leaf clover glyph with the 3D world kept live behind it, scroll and padding fixes (30585f1, beb69a6, b20895f, 8568fc7, 9215bfd); Sage's Library inside the chat is a read-only copy on its own worker, guests unaffected (a0143ae, 93d058c), with a "Flagged for you" view for Jacob's logins (2fbd31c); larger phone tap areas (e40a284). No gate changed: Sage library limits and spending still need Jacob plus the CKAKRT vote; the login-service return-path change still needs Jacob's yes, then Tek Tribe; 3D Sage rights still wait on ARGUS.
