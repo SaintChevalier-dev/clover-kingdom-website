@@ -1646,7 +1646,9 @@ async function boot() {
     else if (D.clock - G.lastPointer < 4 || (m === "standing" && D.clock - D.lastActive < 8)) t = "visitor";
     G.target = t;
     if (t === "book" && bookNode) { bookNode.getWorldPosition(out); return out; }
-    if (t === "chat") { out.set(0.72, -0.05, 0.6).unproject(camera); return out; }
+    if (t === "chat") { /* a point toward the chat panel, part way out to her depth, so her head turns to the chat side (clamped) */
+      const d = camera.position.distanceTo(sage.position) * 0.6;
+      out.set(0.72, -0.05, 0.5).unproject(camera).sub(camera.position).normalize().multiplyScalar(d).add(camera.position); return out; }
     /* the visitor: the camera, nudged a little toward the pointer so her eyes follow it */
     out.set(THREE.MathUtils.clamp(G.ndc.x, -1, 1) * 0.35, THREE.MathUtils.clamp(G.ndc.y, -1, 1) * 0.2, 0.2).unproject(camera);
     return out;
