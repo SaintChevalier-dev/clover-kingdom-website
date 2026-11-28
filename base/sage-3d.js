@@ -31,7 +31,9 @@ const LAYERS = [
 
 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 const flags = {};
+let DT_MAX = 0.05; /* ?dtmax= (review captures on slow software GL only) */
 try { new URLSearchParams(location.search).forEach((v, k) => { flags[k] = v; }); } catch (e) {}
+if (+flags.dtmax > 0) DT_MAX = Math.min(0.25, +flags.dtmax);
 const LITE = window.innerWidth <= 900 || (navigator.hardwareConcurrency || 8) <= 4;
 
 function hasWebGL() {
@@ -1542,6 +1544,9 @@ async function boot() {
     scoot: () => (RIG ? D.scootV : (ix && ix.scoot) || 0),
     rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, busy, gaze: G.target, gy: +G.yaw.toFixed(2), gp: +G.pitch.toFixed(2), book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
     gazeBias: (y, p) => { G.biasY = y; G.biasP = p; },
+    fw: (o) => { if (o) { if (o.act) { FW.next = 0; FW.force = o.act; } if (o.page) FW.nextPage = 0; } return { act: FW.act, self: FW.self, stretch: +FW.stretch.toFixed(2), flip: +FW.flip.toFixed(2), log: FW.log.slice(-8) }; },
+    alive: (o) => { if (!ALIVE) return null; if (o) Object.assign(ALIVE.T, o); return { off: ALIVE.T.off, nolimit: ALIVE.T.nolimit, tweak: ALIVE.T.tweak }; },
+    scrub: (name, t) => { if (!RIG) return; D.mode = "debug"; mixer.stopAllAction(); action = null; playClip(name, false); if (action) { action.stop(); action.play(); action.setEffectiveWeight(1); action.time = t; action.paused = true; } },
     openBook: () => +openT.toFixed(2),
     quill: () => (quill ? { a: +quill.alpha.toFixed(2), on: quill.on, vis: quill.root.visible, trail: quillTrail.length } : null),
     rigDo: (n) => { if (n === "sit") D.forceSit = true; else if (n === "stand") { D.wantStand = true; D.forceStand = true; } else if (n === "write") D.forceWrite = true; },
@@ -1598,16 +1603,23 @@ async function boot() {
   const TRANS_SPEED = 1.45; /* Sit_Down / Stand_Up play faster so a reply never waits on a 4.7 s transition */
   const D = { mode: "boot", t: 0, clock: 0, tuckT: 0.5, talk: false, talkUntil: 0, wantStand: false, A: null, ch: null, tb: null, scootV: 0, scootDir: null, chairBase: null,
     busyClock: 0, lastActive: 0, leaving: false, writeP: null, bookMode: "float", auto: flags.nofree !== "1" && !reduce.matches, forceSit: false, forceWrite: false, bootT: 0, noteUntil: 0 };
-  const IDLE_SIT_S = 25, WRITE_AFTER_S = 0.4, LEAN_HOLD = [1.25, 2.75], BOOK_SCALE = 0.8, NOTE_S = 3.2;
+  const IDLE_SIT_S = 12, WRITE_AFTER_S = 0.4, LEAN_HOLD = [1.25, 2.75], BOOK_SCALE = 0.8, NOTE_S = 3.2;
   const chatOpen = () => { const el = document.getElementById("sage-book"); return !!el && el.getAttribute("aria-expanded") === "true"; };
   const bookNode = RIG ? sage.getObjectByName("SageBook") : null;
   if (bookNode) { bookNode.removeFromParent(); sage.add(bookNode); bookNode.scale.setScalar(BOOK_SCALE); bookNode.frustumCulled = false; bookNode.name = "SageBook"; bookNode.position.set(0.46, 1.22, 0.28); }
   if (RIG && sage.userData) sage.userData.book = bookNode;
+  /* ---- free will: her own routine at the table (weighted choices, natural timing). Every motion has a reason: reading, turning pages,
+     tending the book (a quill note, closing and reopening it, settling it in the air), or standing to stretch and shift, then sitting back down. ---- */
+  const FW = { act: "read", until: 0, next: 14 + Math.random() * 10, nextPage: 7 + Math.random() * 6, flip: -1, closeUntil: 0, adj: 0, standUntil: 0, self: false, stretch: 0, log: [] };
+  const FW_CHOICES = [["note", 0.34], ["closeopen", 0.16], ["adjust", 0.2], ["stretch", 0.3]];
+  function fwPick() { if (FW.force) { const f = FW.force; FW.force = null; return f; } let r = Math.random(), acc = 0; for (const [n, w] of FW_CHOICES) { acc += w; if (r < acc) return n; } return "note"; }
+  function fwLog(a) { FW.act = a; FW.log.push([+D.clock.toFixed(1), a]); if (FW.log.length > 30) FW.log.shift(); }
   const BOOK_POSE = { /* in her own frame (x her left, y up, z forward) */
     float: { p: [0.62, 1.26, 0.22], r: [Math.PI / 2 - 0.12, -0.5, 0.0] }, /* the book's cover normal is its local +Y (glTF), long edge along +Z */
     read:  { p: [0.06, 1.06, 0.20], r: [-0.5, 0.15, 0.0] }, /* seated: chest height, ~0.37 m in front of the chest (a forearm), tilted toward her like a stand; her head stays up and her face stays clear */
     write: { p: [0.05, 1.10, 0.50], r: [-0.5, 0.15, 0.0] },  /* standing, mind-quill writing: the open book floats at chest height in front of her */
-    seatwrite: { p: [0.06, 1.06, 0.20], r: [-0.5, 0.15, 0.0] } /* seated, mind-quill writing: same floating open book as reading */
+    seatwrite: { p: [0.06, 1.06, 0.20], r: [-0.5, 0.15, 0.0] }, /* seated, mind-quill writing: same floating open book as reading */
+    standread: { p: [0.05, 1.10, 0.50], r: [-0.5, 0.15, 0.0] } /* standing with nothing asked of her: she opens the book and reads */
   };
   let bookSide = 1; /* +1 her left, -1 her right */
   /* ---- open book: while she reads (or writes) the grimoire opens so plain pages show; closed while it floats beside her standing ----
@@ -1744,10 +1756,30 @@ async function boot() {
     quillInk.tex.needsUpdate = true;
   }
   const BOOK_GAZE_PITCH = -0.2;
-  const BOOK_OPEN_MODES = { read: 1, seatwrite: 1, write: 1 };
+  const BOOK_OPEN_MODES = { read: 1, seatwrite: 1, write: 1, standread: 1 };
+  let pageFlip = null;
+  function buildPageFlip() {
+    const g = openBook && openBook.children[0]; if (!g) return;
+    const half = g.children[0], pagesMesh = half && half.children.find((c) => Array.isArray(c.material)); if (!pagesMesh) return;
+    const mat = pagesMesh.material[2].clone(); mat.side = THREE.DoubleSide;
+    const geo = new THREE.PlaneGeometry(0.2765 - 0.018, 0.386 - 0.02, 8, 1); geo.rotateX(-Math.PI / 2); geo.translate((0.2765 - 0.018) / 2, 0, 0);
+    const pos = geo.attributes.position; pageFlip = { pivot: new THREE.Group(), mesh: new THREE.Mesh(geo, mat), base: Float32Array.from(pos.array) };
+    pageFlip.pivot.position.set(0, 0.021, 0); pageFlip.pivot.add(pageFlip.mesh); pageFlip.mesh.frustumCulled = false; pageFlip.pivot.visible = false; g.add(pageFlip.pivot);
+  }
+  function updatePageFlip(dt) {
+    if (!pageFlip) { buildPageFlip(); if (!pageFlip) return; }
+    if (FW.flip < 0 || openT < 0.95) { pageFlip.pivot.visible = false; return; }
+    FW.flip += dt / 1.1; const u = Math.min(1, FW.flip), e = u * u * (3 - 2 * u);
+    pageFlip.pivot.visible = true; pageFlip.pivot.rotation.z = 0.13 + e * (Math.PI - 0.26);
+    /* the sheet bows as it turns: its free edge lags behind */
+    const pos = pageFlip.mesh.geometry.attributes.position, b = pageFlip.base, bend = Math.sin(u * Math.PI) * 0.35;
+    for (let i = 0; i < pos.count; i++) { const x = b[i * 3], k = x / 0.26; pos.array[i * 3] = x * Math.cos(bend * k * k); pos.array[i * 3 + 1] = -x * Math.sin(bend * k * k); }
+    pos.needsUpdate = true;
+    if (u >= 1) FW.flip = -1;
+  }
   function updateOpenBook(dt) {
     if (!openBook) return;
-    const want = BOOK_OPEN_MODES[D.bookMode] ? 1 : 0;
+    const want = BOOK_OPEN_MODES[D.bookMode] && D.clock >= FW.closeUntil ? 1 : 0; /* tending: she closes it a moment, then opens it again */
     openT += (want - openT) * Math.min(1, dt * 5); if (Math.abs(want - openT) < 0.004) openT = want;
     const showOpen = openT > 0.12;
     openBook.visible = showOpen; if (closedGeo) bookNode.geometry = showOpen ? emptyGeo : closedGeo;
@@ -1760,11 +1792,12 @@ async function boot() {
     const bob = still ? 0 : Math.sin(tAll * 1.3), sway = still ? 0 : Math.sin(tAll * 0.7);
     const sx = D.bookMode === "float" ? 1 : bookSide;
     _bv.set(bp.p[0] * sx, bp.p[1] + bob * 0.02, bp.p[2]);
-    _be.set(bp.r[0] + (still ? 0 : Math.sin(tAll * 0.9) * 0.04), bp.r[1] * sx + sway * 0.14, bp.r[2] + (still ? 0 : Math.sin(tAll * 1.1) * 0.03), "YXZ");
+    if (FW.adj > 0) { FW.adj = Math.max(0, FW.adj - dt / 2.2); const a = Math.sin((1 - FW.adj) * Math.PI); _bv.y += 0.035 * a; _bv.z += 0.03 * a; } /* tending: she lifts and settles it with a thought */
+    _be.set(bp.r[0] + (still ? 0 : Math.sin(tAll * 0.9) * 0.04) + (FW.adj > 0 ? Math.sin((1 - FW.adj) * Math.PI * 2) * 0.12 : 0), bp.r[1] * sx + sway * 0.14, bp.r[2] + (still ? 0 : Math.sin(tAll * 1.1) * 0.03), "YXZ");
     _bq.setFromEuler(_be);
     const k = 1 - Math.exp(-dt * (D.bookMode === "write" || D.bookMode === "seatwrite" ? 4 : 3));
     bookNode.position.lerp(_bv, k); bookNode.quaternion.slerp(_bq, k);
-    updateOpenBook(dt); updateQuill(dt);
+    updateOpenBook(dt); updatePageFlip(dt); updateQuill(dt);
   }
   const turnTo = (target, dt, rate) => {
     let d = target - yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
@@ -1778,7 +1811,7 @@ async function boot() {
     if (RIG && D.auto && (D.mode === "seated" || D.mode === "sitting" || D.mode === "sit_turn")) D.wantStand = true;
   }
   /* ---- gaze: her head only ever aims at something real: the visitor (camera + pointer), the chat while they type, or the book ---- */
-  const G = { biasY: 0, biasP: 0, yaw: 0, pitch: 0, w: 0, lastPointer: -99, lastType: -99, ndc: { x: 0, y: 0 }, target: "book" };
+  const G = { glanceUntil: 0, glanceCool: 0, biasY: 0, biasP: 0, yaw: 0, pitch: 0, w: 0, lastPointer: -99, lastType: -99, ndc: { x: 0, y: 0 }, target: "book" };
   const gazeBones = (() => { let n = null, h = null; sage.traverse((o) => { if (!o.isBone) return; if (/^mixamorig:?neck$/i.test(o.name)) n = o; else if (/^mixamorig:?head$/i.test(o.name)) h = o; }); return n && h ? { n, h } : null; })();
   const _gqt = new THREE.Vector3();
   const _gq = new THREE.Quaternion(), _gq2 = new THREE.Quaternion(), _gp = new THREE.Quaternion(), _gv = new THREE.Vector3(), _gt = new THREE.Vector3(), _gu = new THREE.Vector3(0, 1, 0), _gr = new THREE.Vector3(), _gs = new THREE.Quaternion();
@@ -1790,8 +1823,11 @@ async function boot() {
     let t = "book";
     if (talking) t = "visitor";
     else if (m === "writing" || D.bookMode === "seatwrite") t = "book";
+    else if (FW.self && m === "standing") t = "ahead";
+    else if (m === "rising" || m === "sitting" || m === "sit_turn") t = (FW.self || !D.wantStand && m !== "rising") ? "ahead" : "visitor"; /* getting up or down: eyes where she is going, never twisted toward the book at her shoulder */
     else if (chatOpen() && D.clock - G.lastType < 2.5) t = "chat";
-    else if (D.clock - G.lastPointer < 4 || (m === "standing" && D.clock - D.lastActive < 8)) t = "visitor";
+    else if (D.bookMode === "standread") t = "book";
+    else if ((D.clock - G.lastPointer < 4 && (m !== "seated" || D.clock < G.glanceUntil)) || (m === "standing" && D.clock - D.lastActive < 8)) t = "visitor";
     G.target = t;
     if (t === "book" && bookNode) { /* the open pages (their top face, a touch toward her), else the closed book */
       if (openT > 0.5) {
@@ -1799,6 +1835,7 @@ async function boot() {
         if (quill && quill.alpha > 0.3) { quill.tip.getWorldPosition(_gqt); out.lerp(_gqt, 0.55); } /* writing: her eyes follow the quill (eased, so the head does not jitter) */
       } else bookNode.getWorldPosition(out);
       return out; }
+    if (t === "ahead") { out.set(0, 1.5, 2.5); sage.localToWorld(out); return out; } /* stretching: eyes up and ahead, a reason for the head to lift */
     if (t === "chat") { /* a point toward the chat panel, part way out to her depth, so her head turns to the chat side (clamped) */
       const d = camera.position.distanceTo(sage.position) * 0.6;
       out.set(0.72, -0.05, 0.5).unproject(camera).sub(camera.position).normalize().multiplyScalar(d).add(camera.position); return out; }
@@ -1840,6 +1877,75 @@ async function boot() {
       b.updateMatrixWorld(true);
     }
   }
+
+  /* ================= Alive layer: arm limits + small living motion on top of the clips =================
+     Runs after the mixer and the gaze. Like the gaze it saves the clip pose and puts it back before the next mixer update, so nothing accumulates.
+     1) Joint limits: the Meshy transition clips fold her right wrist ~90 degrees (Stand_Up/Sit_Down). Every frame the hands' swing and twist
+        and the forearms' twist (relative to the bind pose) are clamped, so no frame can bend the wrist or forearm wrong.
+     2) Living motion: breathing, slow weight shifts when standing, a slight head tilt now and then, small hand/finger motion and softer hanging arms. */
+  let FACE = null; /* facial expressions (set up below once the morph targets are found) */
+  const ALIVE = (() => {
+    if (!RIG) return null;
+    const by = {}; sage.traverse((o) => { if (o.isBone) { const m = /^mixamorig:?(.+)$/i.exec(o.name); if (m) by[m[1]] = o; } });
+    const rest = new Map(); for (const k in by) rest.set(by[k], by[k].quaternion.clone());
+    const LIM = [["RightHand", 0.6, 0.6], ["LeftHand", 0.6, 0.6], ["RightForeArm", null, 1.25], ["LeftForeArm", null, 1.25]]; /* [bone, max swing rad, max twist rad] */
+    const used = new Set(); for (const k of ["Hips", "Spine", "Spine1", "Spine2", "Neck", "Head", "LeftShoulder", "RightShoulder", "LeftArm", "RightArm", "LeftForeArm", "RightForeArm", "LeftHand", "RightHand",
+      "LeftHandIndex1", "LeftHandIndex2", "LeftHandMiddle1", "LeftHandMiddle2", "LeftHandRing1", "LeftHandRing2", "LeftHandPinky1", "LeftHandPinky2", "LeftHandThumb1"]) if (by[k] && k !== "Neck" && k !== "Head") used.add(by[k]);
+    const base = new Map(); let saved = false;
+    const T = { ss: 1, sh: 1, sa: 1, tweak: {}, off: flags.alive === "0", nolimit: flags.armfix === "0", w: 0, stand: 0 };
+    const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), Y = new THREE.Vector3(0, 1, 0);
+    function clampBone(b, maxSwing, maxTwist) {
+      const r = rest.get(b); if (!r) return;
+      _q.copy(r).invert().multiply(b.quaternion); /* relative to bind */
+      const tw = _q2.set(0, _q.y, 0, _q.w); const n = Math.hypot(tw.y, tw.w) || 1; tw.y /= n; tw.w /= n;
+      if (tw.w < 0) { tw.y = -tw.y; tw.w = -tw.w; }
+      const sw = _q.clone().multiply(tw.clone().invert()); if (sw.w < 0) { sw.x = -sw.x; sw.y = -sw.y; sw.z = -sw.z; sw.w = -sw.w; }
+      let tA = 2 * Math.atan2(tw.y, tw.w), sA = 2 * Math.acos(Math.min(1, sw.w)), ch = false;
+      if (maxTwist != null && Math.abs(tA) > maxTwist) { tA = Math.sign(tA) * maxTwist; tw.setFromAxisAngle(Y, tA); ch = true; }
+      if (maxSwing != null && sA > maxSwing) { const f = maxSwing / sA; sw.slerp(new THREE.Quaternion(), 1 - f); ch = true; } /* scale the swing angle down to the limit */
+      if (ch) b.quaternion.copy(r).multiply(sw).multiply(tw);
+    }
+    const rot = (b, x, y, z) => { if (!b || (!x && !y && !z)) return; _e.set(x, y, z); b.quaternion.multiply(_q.setFromEuler(_e)); };
+    let shiftPh = Math.random() * 6, tiltV = 0, tiltT = 0, tiltGoal = 0, nextTilt = 4;
+    return {
+      T, by,
+      restore() { if (saved) for (const [b, q] of base) b.quaternion.copy(q); },
+      apply(dt, mode) {
+        for (const b of used) { if (!base.has(b)) base.set(b, new THREE.Quaternion()); base.get(b).copy(b.quaternion); } saved = true;
+        if (T.off) return;
+        const standing = mode === "standing" || mode === "writing", seated = mode === "seated", moving = mode === "sitting" || mode === "rising" || mode === "sit_turn";
+        T.stand += ((standing ? 1 : 0) - T.stand) * Math.min(1, dt * 1.5);
+        T.w += ((moving ? 0.3 : 1) - T.w) * Math.min(1, dt * 3);
+        const t = tAll, w = T.w, st = T.stand;
+        /* breathing ~14/min: chest rises, shoulders lift a hair */
+        const br = Math.sin(t * 1.47) * w;
+        rot(by.Spine1, -0.010 * br, 0, 0); rot(by.Spine2, -0.014 * br, 0, 0);
+        rot(by.LeftShoulder, 0, 0, 0.012 * br); rot(by.RightShoulder, 0, 0, -0.012 * br);
+        /* weight shift while standing: hips roll slowly side to side, the spine counters so the head stays level */
+        shiftPh += dt * (0.55 + 0.15 * Math.sin(t * 0.13));
+        const sh = Math.sin(shiftPh * 0.5) * st * w;
+        rot(by.Hips, 0, 0.03 * sh, 0.035 * sh); rot(by.Spine, 0, 0, -0.022 * sh); rot(by.Spine1, 0, 0, -0.013 * sh);
+        /* an occasional slight head tilt (curious / attentive), not constant */
+        nextTilt -= dt; if (nextTilt <= 0) { tiltGoal = Math.random() < 0.45 ? (Math.random() < 0.5 ? -1 : 1) * (0.05 + Math.random() * 0.06) : 0; nextTilt = 3 + Math.random() * 6; }
+        tiltV += (tiltGoal - tiltV) * Math.min(1, dt * 1.6);
+        /* softer hanging arms when standing: elbows bent a touch more (local +x flexes both elbows), small idle sway of forearms and hands */
+        const hs = Math.sin(t * 0.9) * 0.5 + Math.sin(t * 0.37 + 1) * 0.5;
+        rot(by.LeftForeArm, (0.14 * st + 0.04 * hs) * w, 0, 0); rot(by.RightForeArm, (0.14 * st - 0.04 * hs) * w, 0, 0);
+        rot(by.LeftHand, 0.05 * Math.sin(t * 0.7) * w, 0, 0.04 * hs * w); rot(by.RightHand, 0.05 * Math.sin(t * 0.8 + 2) * w, 0, -0.04 * hs * w);
+        /* left fingers relax and curl a little, never fully still */
+        const cu = (0.18 + 0.08 * Math.sin(t * 0.6)) * w;
+        for (const f of ["Index", "Middle", "Ring", "Pinky"]) { rot(by["LeftHand" + f + "1"], 0, 0, cu); rot(by["LeftHand" + f + "2"], 0, 0, cu * 0.8); }
+        /* a stretch when she stands on her own: chest opens, shoulders roll back, arms ease outward */
+        const sx = FW.stretch * w;
+        if (sx > 0.001) { rot(by.Spine1, -0.10 * sx * T.ss, 0, 0); rot(by.Spine2, -0.09 * sx * T.ss, 0, 0); /* -x arches the back */
+          rot(by.LeftArm, 0, 0, 0.30 * sx * T.sa); rot(by.RightArm, 0, 0.30 * sx * T.sa, 0); /* measured: these lift each arm out to the side */
+          rot(by.LeftForeArm, 0.25 * sx, 0, 0); rot(by.RightForeArm, 0.25 * sx, 0, 0); }
+        for (const k in T.tweak) { const v = T.tweak[k]; rot(by[k], v[0] || 0, v[1] || 0, v[2] || 0); }
+      },
+      post() { if (!T.off && gazeBones) rot(gazeBones.h, 0, 0, tiltV * T.w); }, /* after the gaze has saved its pose, so the tilt never accumulates */
+      limit() { if (T.nolimit) return; for (const [k, s1, t1] of LIM) if (by[k]) clampBone(by[k], s1, t1); }
+    };
+  })();
   for (const ev of ["pointermove", "pointerdown", "wheel", "touchstart", "scroll"]) window.addEventListener(ev, (e) => {
     if (e && e.clientX != null) { G.ndc.x = (e.clientX / window.innerWidth) * 2 - 1; G.ndc.y = -(e.clientY / window.innerHeight) * 2 + 1; }
     else if (e && e.touches && e.touches[0]) { G.ndc.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1; G.ndc.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1; }
@@ -1872,6 +1978,7 @@ async function boot() {
   const playT = (n) => { playClip(n, false); if (action && currentClip === n) action.timeScale = TRANS_SPEED; };
   function director(dt) {
     D.clock += dt; D.t += dt;
+    if (D.mode === "debug") { updateBook(dt); return; }
     if (D.mode === "boot") {
       D.bootT += dt;
       if (registeredProps && rigInit()) return;
@@ -1884,20 +1991,25 @@ async function boot() {
     const m = D.mode;
     D.tuckT = (m === "standing") ? 0.5 : 1;
     const seatWriting = m === "seated" && (busy || D.clock < D.noteUntil) && !(D.talk && D.clock < D.talkUntil);
-    D.bookMode = seatWriting ? "seatwrite" : (m === "seated" || m === "sitting" || m === "sit_turn") ? "read" : (m === "writing") ? "write" : "float";
+    D.bookMode = seatWriting ? "seatwrite" : (m === "seated" || m === "sitting" || m === "sit_turn") ? "read" : (m === "writing") ? "write" : (m === "standing" && D.standRead) ? "standread" : "float";
     if (D.talk && (m === "sitting" || m === "rising" || m === "sit_turn" || m === "w_turn" || m === "writing")) D.talkUntil += dt; /* a reply never runs out while she is still getting up or down */
     if (m === "standing") {
-      turnTo(camYaw(), dt, 2.2);
+      if (FW.self) { /* standing on her own to stretch and shift; then she sits back down and goes on reading */
+        turnTo(D.A.yaw + 0.5, dt, 1.2);
+        const st = D.t; FW.stretch = st < 0.6 ? 0 : st < 3.6 ? Math.sin(Math.min(1, (st - 0.6) / 3) * Math.PI) : 0;
+        if (D.t > FW.standDur || D.talk || busy) { FW.self = false; FW.stretch = 0; if (!D.talk && !busy && CAN_SIT && idleS > 2) { fwLog("sit_back"); rigGo("sit_turn"); return; } }
+      } else turnTo(camYaw(), dt, 2.2);
+      D.standRead = !FW.self && !D.talk && !busy && idleS > 8 && D.clock - G.lastType > 8; /* nothing asked of her: she opens the book rather than stare */
       sage.position.x += (D.A.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.A.z - sage.position.z) * Math.min(1, dt * 4);
       const wantTalk = D.talk && D.clock < D.talkUntil;
       playClip(wantTalk ? "Talk_with_Hands_Open" : "Stand_Wait", true);
       if (D.talk && !wantTalk) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
       const wantWrite = D.forceWrite || (busy && !D.talk && D.clock - D.busyClock > WRITE_AFTER_S) || (!D.talk && D.clock < D.noteUntil);
       if (wantWrite && !reduce.matches) { D.forceWrite = false; D.noteUntil = 0; rigGo("writing"); D.leaving = false; }
-      else if (CAN_SIT && (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S))) { D.forceSit = false; rigGo("sit_turn"); }
+      else if (!FW.self && CAN_SIT && (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S))) { D.forceSit = false; D.standRead = false; rigGo("sit_turn"); }
     } else if (m === "sit_turn") {
       const d = turnTo(D.A.yaw, dt, 2.6);
-      if (D.wantStand && D.auto) { D.wantStand = false; rigGo("standing"); return; }
+      if (D.wantStand && D.auto) { D.wantStand = false; FW.self = false; rigGo("standing"); return; }
       if (d < 0.04 && D.t > 0.25) { D.wantStand = false; rigGo("sitting"); playT("Sit_Down"); D.dur = clipDur("Sit_Down"); }
     } else if (m === "sitting") {
       if (D.t >= D.dur - 0.05) { D.wantStand = false; rigGo("seated"); playClip("Sit_Idle", true); }
@@ -1905,6 +2017,17 @@ async function boot() {
       const want = D.talk && D.clock < D.talkUntil ? "Sit_Talk" : "Sit_Idle"; /* writing is the mind-quill: her arms just rest */
       if (D.talk && D.clock >= D.talkUntil) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
       playClip(want, true);
+      if (D.auto && D.t > 2 && !busy && !D.talk && D.clock >= D.noteUntil && !D.wantStand && !D.forceStand) {
+        FW.nextPage -= dt; if (FW.nextPage <= 0 && FW.flip < 0 && openT > 0.95) { FW.flip = 0; FW.nextPage = 8 + Math.random() * 12; fwLog("page"); }
+        FW.next -= dt;
+        if (FW.next <= 0) {
+          const a = fwPick(); FW.next = 18 + Math.random() * 22; fwLog(a);
+          if (a === "note") D.noteUntil = D.clock + 4 + Math.random() * 3;           /* the mind-quill writes a note */
+          else if (a === "closeopen") FW.closeUntil = D.clock + 1.4 + Math.random();  /* closes it, a breath, opens it again */
+          else if (a === "adjust") FW.adj = 1;                                         /* lifts and settles the floating book */
+          else if (a === "stretch") { FW.self = true; FW.standDur = 6 + Math.random() * 4; D.wantStand = true; }
+        }
+      }
       /* a long reply in flight keeps her seated and writing; she stands for the visitor only once the writing is done */
       const goOut = (D.wantStand || D.forceStand) && D.t > 1.0 && !D.talk && !busy && D.clock >= D.noteUntil;
       const tgt = (D.t >= 0.5 && !goOut) ? 1 : 0, cur = D.scootV;
@@ -1939,7 +2062,11 @@ async function boot() {
   }
   if (RIG) {
     sage.visible = false;
-    for (const ev of ["pointermove", "pointerdown", "keydown", "touchstart", "wheel"]) window.addEventListener(ev, noteActive, { passive: true });
+    for (const ev of ["pointerdown", "keydown", "touchstart"]) window.addEventListener(ev, noteActive, { passive: true }); /* engaging her: she stands to attend */
+    for (const ev of ["pointermove", "wheel"]) window.addEventListener(ev, () => { /* a moving pointer is noticed, not obeyed: keeps her up if already up, and now and then earns a glance */
+      if (D.mode === "standing" || D.mode === "writing") D.lastActive = D.clock;
+      else if (D.mode === "seated" && D.clock > G.glanceCool) { if (Math.random() < 0.35) { G.glanceUntil = D.clock + 2.6; G.glanceCool = D.clock + 12; if (FACE) FACE.cue("attentive", 2.2); } else G.glanceCool = D.clock + 4; }
+    }, { passive: true });
   }
 
   function tick() {
@@ -1948,12 +2075,12 @@ async function boot() {
     const now = performance.now();
     /* reduced motion: the scene holds still, so redraw ~8 times a second for pose/turn controls only */
     if (reduce.matches && now - lastT < 120) return;
-    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    const dt = Math.min(DT_MAX, (now - lastT) / 1000); lastT = now;
     stateT += dt;
     if (!reduce.matches) tAll += dt;
-    if (RIG) gazeRestore();
+    if (RIG) { gazeRestore(); if (ALIVE) ALIVE.restore(); }
     if (mixer) mixer.update(dt);
-    if (RIG) { director(dt); applyGaze(dt); }
+    if (RIG) { director(dt); if (ALIVE) { ALIVE.limit(); ALIVE.apply(dt, D.mode); } applyGaze(dt); if (ALIVE) ALIVE.post(); }
     applyWingTuck(dt);
 
     if (RIG) { key.target.position.set(sage.position.x, 1.0, sage.position.z); renderer.render(scene, camera); return; }
