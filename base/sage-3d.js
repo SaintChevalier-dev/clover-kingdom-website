@@ -831,12 +831,12 @@ async function boot() {
 
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: window.innerWidth > 700, alpha: false, powerPreference: "low-power" });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !LITE, alpha: false, powerPreference: "low-power" });
   } catch (e) { failTo2D(e && e.message); return; }
 
-  renderer.setPixelRatio(Math.min(LITE ? 1.25 : 1.5, window.devicePixelRatio || 1));
+  renderer.setPixelRatio(Math.min(LITE ? 1 : 1.5, window.devicePixelRatio || 1));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = !LITE;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -845,7 +845,7 @@ async function boot() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07070a);
   scene.fog = new THREE.FogExp2(0x07070a, 0.085);
-  try { scene.environment = makeEnvironment(renderer); scene.environmentIntensity = 0.55; } catch (e) {}
+  if (!LITE) { try { scene.environment = makeEnvironment(renderer); scene.environmentIntensity = 0.55; } catch (e) {} }
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
   let narrow = layoutYard(yard, camera, renderer);
@@ -854,8 +854,8 @@ async function boot() {
   /* Key: warm, from the table side, soft shadows. */
   const key = new THREE.SpotLight(0xffd6a0, 14, 12, 0.5, 0.8, 1.4);
   key.position.set(1.4, 3.4, 3.2);
-  key.castShadow = true;
-  key.shadow.mapSize.set(LITE ? 512 : 1024, LITE ? 512 : 1024);
+  key.castShadow = !LITE;
+  key.shadow.mapSize.set(LITE ? 256 : 1024, LITE ? 256 : 1024);
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.02;
   key.shadow.radius = 4;
@@ -872,12 +872,12 @@ async function boot() {
   lantern.position.set(0, 1.2, 0);
   scene.add(lantern);
 
-  const floorTex = makeFlagstones(LITE ? 512 : 1024);
-  floorTex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+  const floorTex = makeFlagstones(LITE ? 256 : 1024);
+  floorTex.anisotropy = Math.min(LITE ? 1 : 4, renderer.capabilities.getMaxAnisotropy());
   const floorMat = new THREE.MeshLambertMaterial({ map: floorTex, color: 0xffffff }); /* matte stone, no grazing sheen */
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(8, 72), floorMat);
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(8, LITE ? 48 : 72), floorMat);
   floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
+  floor.receiveShadow = !LITE;
   scene.add(floor);
   /* Flagstone ring under the table. */
   const ring = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.0, 64), new THREE.MeshStandardMaterial({ color: 0x8a6a2c, roughness: 0.5, metalness: 0.6 }));
@@ -898,8 +898,89 @@ async function boot() {
   table.add(top, lip, pedestal, tableCrest);
   scene.add(table);
 
-  const motes = LITE ? makeMotes(60) : makeMotes(160);
+  const motes = LITE ? makeMotes(24) : makeMotes(160);
   scene.add(motes);
+
+  const seatDoors = new THREE.Group();
+  seatDoors.name = "SeatDoors";
+  scene.add(seatDoors);
+
+  function makeInitialsMap(initials, stub, done) {
+    const c = document.createElement("canvas");
+    c.width = 256; c.height = 256;
+    const g = c.getContext("2d");
+    function paint(img) {
+      g.fillStyle = "#141318";
+      g.fillRect(0, 0, 256, 256);
+      if (img && !stub) {
+        const s = 200;
+        g.drawImage(img, (256 - s) / 2, (256 - s) / 2, s, s);
+      } else {
+        g.strokeStyle = stub ? "#6a6a70" : "#c9a44c";
+        g.lineWidth = 5;
+        g.beginPath(); g.arc(128, 128, 92, 0, Math.PI * 2); g.stroke();
+      }
+      g.fillStyle = stub ? "#b0b0b4" : "#f6efdc";
+      g.font = "700 64px Georgia, serif";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.shadowColor = "rgba(0,0,0,.85)";
+      g.shadowBlur = 8;
+      g.fillText(String(initials || "").slice(0, 3), 128, 140);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      done(tex);
+    }
+    if (stub) { paint(null); return; }
+    const img = new Image();
+    img.onload = () => paint(img);
+    img.onerror = () => paint(null);
+    img.src = "/images/logo-crimson-seal.png";
+  }
+
+  function addSeatDoor(opts) {
+    const id = opts && opts.id, initials = (opts && opts.initials) || "", stub = !!(opts && opts.stub);
+    const x = (opts && opts.x) || 0, z = (opts && opts.z) || 0;
+    if (!id) return null;
+    const g = new THREE.Group();
+    g.name = "SeatDoor:" + id;
+    g.userData.seatId = id;
+    g.userData.stub = stub;
+    const stone = new THREE.MeshStandardMaterial({ color: stub ? 0x3a3a42 : 0x4a484f, roughness: 0.88, metalness: 0.08 });
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.78, 0.14), stone);
+    post.position.y = 0.39;
+    post.castShadow = !LITE;
+    post.receiveShadow = !LITE;
+    post.userData.seatId = id;
+    const lip = new THREE.Mesh(
+      new THREE.BoxGeometry(0.40, 0.03, 0.16),
+      new THREE.MeshStandardMaterial({ color: stub ? 0x6a6a70 : 0xc9a44c, roughness: 0.4, metalness: stub ? 0.2 : 0.7, emissive: stub ? 0x000000 : 0x3a2a10, emissiveIntensity: stub ? 0 : 0.35 })
+    );
+    lip.position.y = 0.80;
+    lip.name = "SeatLip";
+    lip.userData.seatId = id;
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(0.30, 0.30), new THREE.MeshBasicMaterial({ color: 0x222226 }));
+    face.position.set(0, 0.46, 0.075);
+    face.userData.seatId = id;
+    makeInitialsMap(initials, stub, (tex) => {
+      face.material.map = tex;
+      face.material.color.set(0xffffff);
+      face.material.needsUpdate = true;
+    });
+    g.add(post, lip, face);
+    g.position.set(x, 0, z);
+    seatDoors.add(g);
+    return g;
+  }
+
+  function highlightSeat(id) {
+    seatDoors.children.forEach((g) => {
+      const on = g.userData.seatId === id;
+      g.traverse((o) => {
+        if (o.name === "SeatLip" && o.material) o.material.emissiveIntensity = on ? 1.2 : (g.userData.stub ? 0 : 0.35);
+      });
+    });
+  }
 
   let sage = null, usingGLB = false, mixer = null, clips = {};
   try {
@@ -1164,7 +1245,7 @@ async function boot() {
   function onResize() {
     narrow = layoutYard(yard, camera, renderer);
     closeCam();
-    renderer.setPixelRatio(Math.min(LITE ? 1.25 : 1.5, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(LITE ? 1 : 1.5, window.devicePixelRatio || 1));
   }
   window.addEventListener("resize", onResize);
 
@@ -1194,8 +1275,15 @@ async function boot() {
     const r = canvas.getBoundingClientRect();
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObject(sage, true).find((h) => h.object.visible && !(h.object.isSprite) && !(h.object.isPoints));
     if (dragged) { dragged = false; return; } /* a drag turns her; it isn't a tap */
+    const doorHit = ray.intersectObject(seatDoors, true).find((h) => h.object.visible);
+    if (doorHit) {
+      let o = doorHit.object, sid = o.userData && o.userData.seatId;
+      while (!sid && o.parent) { o = o.parent; sid = o.userData && o.userData.seatId; }
+      if (sid) window.dispatchEvent(new CustomEvent("ckw:seat-pick", { detail: { id: sid } }));
+      return;
+    }
+    const hit = ray.intersectObject(sage, true).find((h) => h.object.visible && !(h.object.isSprite) && !(h.object.isPoints));
     if (hit) reactTo(partOf(hit.object));
   });
   /* drag (mouse, pen or touch, sideways) on the 3D view turns Sage; a short tap still touches her */
@@ -1235,6 +1323,10 @@ async function boot() {
     state: () => state,
     usingGLB: () => usingGLB,
     layers: () => unlocked,
+    lite: () => LITE,
+    seatHome: () => ({ tx, tz, narrow }),
+    addSeatDoor,
+    highlightSeat,
     stop: () => { hidden = true; renderer.dispose(); yard.hidden = true; },
     /* Webverse playtest controls (client-side only) */
     pose: (name) => {
