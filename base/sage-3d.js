@@ -1388,7 +1388,7 @@ async function boot() {
   const _ax = new THREE.Vector3(1, 0, 0), _az = new THREE.Vector3(0, 0, -1);
   function applyWingTuck(dt) {
     if (!wingRoots) return;
-    const target = RIG ? D.tuckT : (ix ? 1 : 0);
+    const target = RIG ? Math.max(D.tuckT, COLL ? COLL.st.wingT : 0) : (ix ? 1 : 0); /* COLL: tuck further when a wing would cut into the chair or table */
     tuck += (target - tuck) * Math.min(1, dt * 2.6); if (Math.abs(target - tuck) < 0.002) tuck = target;
     const w = tuck * tuck * (3 - 2 * tuck);
     sage.getWorldQuaternion(_tq[3]).invert();
@@ -1405,7 +1405,7 @@ async function boot() {
     tuckPhi += (phiT - tuckPhi) * Math.min(1, dt * 14);
     const theta = WING.theta + WING.thetaLean * Math.max(0, leanS - 0.17); /* a deep lean rolls the wings in further, so they stay narrow in the phone frame */
     for (const [bone, rest, sg] of [[wingRoots.L, wingRoots.qL, 1], [wingRoots.R, wingRoots.qR, -1]]) {
-      bone.quaternion.copy(rest); bone.scale.setScalar(1 - (1 - WING.scale) * w);
+      bone.quaternion.copy(rest); bone.scale.setScalar((1 - (1 - WING.scale) * w) * (1 - 0.12 * (COLL ? COLL.st.extra || 0 : 0)));
       if (w <= 0) continue;
       bone.parent.updateWorldMatrix(true, false);
       bone.parent.getWorldQuaternion(_tq[0]).premultiply(_tq[3]);                       /* parent, relative to the wrapper */
@@ -1544,6 +1544,7 @@ async function boot() {
     scoot: () => (RIG ? D.scootV : (ix && ix.scoot) || 0),
     rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, busy, gaze: G.target, gy: +G.yaw.toFixed(2), gp: +G.pitch.toFixed(2), book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
     gazeBias: (y, p) => { G.biasY = y; G.biasP = p; },
+    coll: (o) => { if (!COLL) return null; if (o && o.off != null) COLL.st.on = !o.off; return COLL.report(); },
     face: (n, d) => (FACE ? (n ? (n === "blink" ? null : FACE.cue(n, d || 3, true)) : FACE.state()) : null),
     fw: (o) => { if (o) { if (o.act) { FW.next = 0; FW.force = o.act; } if (o.page) FW.nextPage = 0; } return { act: FW.act, self: FW.self, stretch: +FW.stretch.toFixed(2), flip: +FW.flip.toFixed(2), log: FW.log.slice(-8) }; },
     alive: (o) => { if (!ALIVE) return null; if (o) Object.assign(ALIVE.T, o); return { off: ALIVE.T.off, nolimit: ALIVE.T.nolimit, tweak: ALIVE.T.tweak }; },
@@ -1793,6 +1794,7 @@ async function boot() {
     const bob = still ? 0 : Math.sin(tAll * 1.3), sway = still ? 0 : Math.sin(tAll * 0.7);
     const sx = D.bookMode === "float" ? 1 : bookSide;
     _bv.set(bp.p[0] * sx, bp.p[1] + bob * 0.02, bp.p[2]);
+    if (COLL) COLL.book(_bv);
     if (FW.adj > 0) { FW.adj = Math.max(0, FW.adj - dt / 2.2); const a = Math.sin((1 - FW.adj) * Math.PI); _bv.y += 0.035 * a; _bv.z += 0.03 * a; } /* tending: she lifts and settles it with a thought */
     _be.set(bp.r[0] + (still ? 0 : Math.sin(tAll * 0.9) * 0.04) + (FW.adj > 0 ? Math.sin((1 - FW.adj) * Math.PI * 2) * 0.12 : 0), bp.r[1] * sx + sway * 0.14, bp.r[2] + (still ? 0 : Math.sin(tAll * 1.1) * 0.03), "YXZ");
     _bq.setFromEuler(_be);
@@ -1884,7 +1886,7 @@ async function boot() {
      1) Joint limits: the Meshy transition clips fold her right wrist ~90 degrees (Stand_Up/Sit_Down). Every frame the hands' swing and twist
         and the forearms' twist (relative to the bind pose) are clamped, so no frame can bend the wrist or forearm wrong.
      2) Living motion: breathing, slow weight shifts when standing, a slight head tilt now and then, small hand/finger motion and softer hanging arms. */
-  let FACE = null; /* facial expressions (set up below once the morph targets are found) */
+  let FACE = null, COLL = null; /* facial expressions (set up below once the morph targets are found) */
   const ALIVE = (() => {
     if (!RIG) return null;
     const by = {}; sage.traverse((o) => { if (o.isBone) { const m = /^mixamorig:?(.+)$/i.exec(o.name); if (m) by[m[1]] = o; } });
@@ -1955,6 +1957,85 @@ async function boot() {
     };
   })();
 
+  /* ================= Solid furniture: approximate collision volumes for the table and chair =================
+     Table = an upright cylinder (round top, pedestal legs); chair = a seat block plus a back slab, both in the chair's own frame.
+     The floating book is pushed out of them (or up onto the table top); a wing that would cut through them is tucked further in;
+     when she stands on her own, her body is kept clear of them. Sitting down, getting up and the table-lean writing are the deliberate
+     contacts, so her body is not pushed during those (the book and the wings still are). Approximate on purpose: bones, not the skin. */
+  function makeColl() {
+    if (!RIG || !D.tb || !D.ch) return null;
+    const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1), _v = new THREE.Vector3(), _w = new THREE.Vector3();
+    function frame(root) {
+      root.updateMatrixWorld(true); root.getWorldPosition(_p); root.getWorldQuaternion(_q);
+      const M = new THREE.Matrix4().compose(_p.clone(), _q.clone(), _s), inv = M.clone().invert(), box = new THREE.Box3(), b = new THREE.Box3();
+      root.traverse((o) => { if (o.isMesh && o.geometry) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.copy(o.geometry.boundingBox).applyMatrix4(_m.multiplyMatrices(inv, o.matrixWorld)); box.union(b); } });
+      return { M, inv, box };
+    }
+    const T = frame(D.tb), C = frame(D.ch);
+    const tc = T.box.getCenter(new THREE.Vector3()).applyMatrix4(T.M);
+    const table = { x: tc.x, z: tc.z, R: Math.max(T.box.max.x - T.box.min.x, T.box.max.z - T.box.min.z) / 2, top: T.box.max.y + T.M.elements[13] };
+    /* chair: which end of its box is the back? the end away from the table */
+    const tl = new THREE.Vector3(table.x, 0, table.z).applyMatrix4(C.inv), backZ = tl.z > 0 ? C.box.min.z : C.box.max.z, bs = tl.z > 0 ? 1 : -1;
+    const SEAT_Y = 0.47;
+    const seat = new THREE.Box3(new THREE.Vector3(C.box.min.x, 0, C.box.min.z), new THREE.Vector3(C.box.max.x, SEAT_Y, C.box.max.z));
+    const back = new THREE.Box3(new THREE.Vector3(C.box.min.x, SEAT_Y, Math.min(backZ, backZ + bs * 0.09)), new THREE.Vector3(C.box.max.x, C.box.max.y, Math.max(backZ, backZ + bs * 0.09)));
+    let chairInv = C.inv, chairM = C.M;
+    const st = { on: flags.nocoll !== "1", wingT: 0, wingD: 0, bookD: 0, rootD: 0, hits: {} };
+    /* deepest penetration of point p (world) with margin m; returns depth (<=0 = clear) and writes the way out to out (world, unit-ish * depth) */
+    function boxPen(box, p, m, out, allowUp) {
+      _v.copy(p).applyMatrix4(chairInv);
+      const dx0 = _v.x - (box.min.x - m), dx1 = (box.max.x + m) - _v.x, dz0 = _v.z - (box.min.z - m), dz1 = (box.max.z + m) - _v.z, dy1 = (box.max.y + m) - _v.y, dy0 = _v.y - box.min.y;
+      if (dx0 <= 0 || dx1 <= 0 || dz0 <= 0 || dz1 <= 0 || dy1 <= 0 || dy0 < 0) return 0;
+      let d = dx0, dir = [-1, 0, 0];
+      if (dx1 < d) { d = dx1; dir = [1, 0, 0]; } if (dz0 < d) { d = dz0; dir = [0, 0, -1]; } if (dz1 < d) { d = dz1; dir = [0, 0, 1]; }
+      if (allowUp && dy1 < d) { d = dy1; dir = [0, 1, 0]; }
+      out.set(dir[0], dir[1], dir[2]).transformDirection(chairM).multiplyScalar(d); return d;
+    }
+    function cylPen(p, m, out, allowUp) {
+      const dx = p.x - table.x, dz = p.z - table.z, r = Math.hypot(dx, dz);
+      if (p.y > table.top + m || r >= table.R + m) return 0;
+      const dh = table.R + m - r, du = table.top + m - p.y;
+      if (allowUp && du < dh) { out.set(0, du, 0); return du; }
+      if (r < 1e-4) out.set(dh, 0, 0); else out.set(dx / r * dh, 0, dz / r * dh); return dh;
+    }
+    function pen(p, m, out, allowUp, which) {
+      let best = 0; const o = _w;
+      let d = cylPen(p, m, o, allowUp); if (d > best) { best = d; out.copy(o); which && (which.k = "table"); }
+      d = boxPen(seat, p, m, o, allowUp); if (d > best) { best = d; out.copy(o); which && (which.k = "seat"); }
+      d = boxPen(back, p, m, o, false); if (d > best) { best = d; out.copy(o); which && (which.k = "back"); }
+      return best;
+    }
+    const wingBones = []; for (const n of ["Bone_038", "Bone_042"]) { const r = sage.getObjectByName(n); if (r) r.traverse((o) => { if (o.isBone && o !== r) wingBones.push(o); }); }
+    const _o = new THREE.Vector3(), _bw = new THREE.Vector3(), wh = {};
+    return {
+      st, table, seat, back,
+      /* the book's target (sage-local) is moved out of the furniture before the book eases toward it */
+      book(local) {
+        st.bookD = 0; if (!st.on) return;
+        sage.updateMatrixWorld(true); _bw.copy(local); sage.localToWorld(_bw);
+        for (let i = 0; i < 3; i++) { const d = pen(_bw, 0.12, _o, true, wh); if (d <= 0) break; st.bookD = Math.max(st.bookD, d); st.hits.book = wh.k; _bw.add(_o); }
+        if (st.bookD > 0) { sage.worldToLocal(_bw); local.copy(_bw); }
+      },
+      /* wings: measured after the tuck; any bone inside a volume asks for more tuck next frame */
+      wings(dt) {
+        let deep = 0; if (st.on) for (const b of wingBones) { b.getWorldPosition(_bw); const d = pen(_bw, 0.03, _o, false, wh); if (d > deep) { deep = d; st.hits.wing = wh.k; } }
+        st.wingD = deep; if (deep > 0) { st.hold = D.clock + 2.5; st.peak = Math.max(st.wingT, Math.min(1, 0.45 + deep * 10)); }
+        const goal = D.clock < (st.hold || 0) ? Math.min(1, (st.peak || 0) + (deep > 0 ? 0.1 : 0)) : 0; /* hold the extra tuck a moment so the wings do not flutter in and out */
+        st.wingT += (goal - st.wingT) * Math.min(1, dt * (goal > st.wingT ? 8 : 1.2));
+        /* still touching at the full tuck: fold the wings a little smaller as well */
+        const eg = deep > 0 && st.wingT > 0.97 ? 1 : (D.clock < (st.hold || 0) ? st.extra || 0 : 0);
+        st.extra = (st.extra || 0) + (eg - (st.extra || 0)) * Math.min(1, dt * (eg > (st.extra || 0) ? 3 : 1));
+      },
+      /* her body while she stands on her own: kept clear of the table and chair */
+      root(mode) {
+        st.rootD = 0; if (!st.on || mode !== "standing") return;
+        _bw.set(sage.position.x, 0.9, sage.position.z);
+        const d = pen(_bw, 0.18, _o, false, wh); if (d > 0) { st.rootD = d; st.hits.root = wh.k; sage.position.x += _o.x * Math.min(1, 0.25); sage.position.z += _o.z * Math.min(1, 0.25); }
+      },
+      report: () => ({ on: st.on, wingT: +st.wingT.toFixed(2), extra: +(st.extra || 0).toFixed(2), wingD: +st.wingD.toFixed(3), bookD: +st.bookD.toFixed(3), rootD: +st.rootD.toFixed(3), hits: { ...st.hits }, table: { R: +table.R.toFixed(3), top: +table.top.toFixed(3) } })
+    };
+  }
+
   /* ================= Face: blink + a few expressions (morph targets baked in Blender: blink, smile, think, attentive) =================
      Weighted, never constant: natural blinking every few seconds; now and then a thinking look while she reads or while a reply is being
      written; a small smile when she greets or finishes a reply; an attentive lift when the pointer earns a glance (throttled, see pointermove). */
@@ -2020,6 +2101,7 @@ async function boot() {
     { /* the reading book floats on her side away from the camera, so it never covers her face */
       const c = camera.position.clone(), s = new THREE.Vector3(Math.sin(D.A.yaw), 0, Math.cos(D.A.yaw)), l = new THREE.Vector3(s.z, 0, -s.x);
       c.sub(new THREE.Vector3(D.A.x, 0, D.A.z)); bookSide = c.dot(l) > 0 ? -1 : 1; }
+    COLL = makeColl();
     sage.visible = true; return true;
   }
   const clipDur = (n) => (clips[n] ? clips[n].duration / ((n === "Sit_Down" || n === "Stand_Up") ? TRANS_SPEED : 1) : 1.5);
@@ -2131,6 +2213,7 @@ async function boot() {
     if (mixer) mixer.update(dt);
     if (RIG) { director(dt); if (ALIVE) { ALIVE.limit(); ALIVE.apply(dt, D.mode); } applyGaze(dt); if (ALIVE) ALIVE.post(); if (FACE) FACE.update(dt); }
     applyWingTuck(dt);
+    if (COLL) { COLL.wings(dt); COLL.root(D.mode); }
 
     if (RIG) { key.target.position.set(sage.position.x, 1.0, sage.position.z); renderer.render(scene, camera); return; }
     if (!NO_PACING && !posed && !busy && !quietRoom && !reduce.matches && !staticModel && !ix && flags.nofree !== "1") {
