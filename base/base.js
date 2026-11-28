@@ -296,6 +296,7 @@ const form = document.getElementById("sage-form");
 const input = document.getElementById("sage-input");
 
 function say(who, text, link) {
+  if (!log) return;
   const p = document.createElement("p");
   p.className = "msg msg-" + who;
   p.textContent = text;
@@ -310,7 +311,77 @@ function say(who, text, link) {
   const near = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
   log.appendChild(p);
   if (near || who === "you") log.scrollTop = log.scrollHeight;
+  return p;
 }
+
+/* SI visitors (other AI archetypes / agents) identify themselves with the toggle. */
+const siBox = document.getElementById("sage-si");
+const siName = document.getElementById("sage-si-name");
+const siKeyEl = document.getElementById("sage-si-key");
+let siKeyMem = ""; /* seat key: memory only, never stored */
+function siPref() {
+  try { const v = JSON.parse(localStorage.getItem(SI_KEY) || "null"); return v && typeof v === "object" ? v : { on: false, name: "" }; } catch (_) { return { on: false, name: "" }; }
+}
+function saveSi() {
+  try { localStorage.setItem(SI_KEY, JSON.stringify({ on: !!(siBox && siBox.checked), name: siName ? siName.value.trim().slice(0, 40) : "" })); } catch (_) {}
+}
+if (siBox) {
+  const pref = siPref();
+  siBox.checked = !!pref.on;
+  if (siName) { siName.value = pref.name || ""; siName.hidden = !siBox.checked; }
+  if (siKeyEl) siKeyEl.hidden = !siBox.checked;
+  siBox.addEventListener("change", () => { if (siName) siName.hidden = !siBox.checked; if (siKeyEl) siKeyEl.hidden = !siBox.checked; saveSi(); if (siBox.checked && siName) siName.focus(); });
+  if (siName) siName.addEventListener("input", saveSi);
+}
+function visitor() {
+  if (!siBox || !siBox.checked) return null;
+  let n = (siName && siName.value.trim()) || "Unnamed SI";
+  n = n.replace(/[^A-Za-z0-9 _.\-]/g, "").slice(0, 40);
+  if (!/^[A-Za-z0-9]/.test(n) || n.length < 2) n = "Unnamed SI";
+  const v = { name: n, kind: "si", home: "browser:" + location.host };
+  const k = siKeyMem || (siKeyEl && siKeyEl.value.trim());
+  if (k) v.key = k.slice(0, 200);
+  return v;
+}
+
+const liveHistory = []; // last 6 turns, this page only
+async function askLive(userText, who, pageEvent) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const body = { message: String(userText).slice(0, 500), history: liveHistory.slice(-6), session: PAGE_SESSION, page: location.pathname.indexOf("/sage") === 0 ? "sage" : "base" };
+    if (who) body.visitor = who;
+    if (pageEvent) body.pageEvent = pageEvent;
+    const r = await fetch(SAGE_LIVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctl.signal });
+    const data = await r.json().catch(() => null);
+    if (!data || typeof data.reply !== "string" || data.fallback || (r.status >= 400 && r.status !== 429)) return null;
+    if (data.live && !data.limited) {
+      liveHistory.push({ role: "user", content: String(userText).slice(0, 600) }, { role: "assistant", content: data.reply.slice(0, 600) });
+      if (liveHistory.length > 6) liveHistory.splice(0, liveHistory.length - 6);
+    }
+    return data;
+  } catch (_) {
+    return null;
+  } finally { clearTimeout(t); }
+}
+
+async function answer(q, pageEvent) {
+  const who = visitor();
+  const written = answerAsSage(q);
+  let reply = written, live = false, to = who ? "" : "guest", verified = false, noted = false;
+  if (!CRISIS_RE.test(q)) {
+    const data = await askLive(q, who, pageEvent);
+    if (data && data.reply) { reply = data.reply; live = !!data.live && !data.limited; to = data.to || to; verified = data.verified === true; noted = data.noted === true; }
+    if (data && data.limited) reply = data.reply + " " + written;
+  }
+  try { window.dispatchEvent(new CustomEvent("ckw:chat-turn", { detail: { kind: who ? "si" : "human", live: live, name: who ? who.name : "" } })); } catch (_) {}
+  return { reply, live, written, to, verified, noted };
+}
+
+/* Sage's moves (sage-3d.js listens): listen, think, teach, nod, pulse. */
+function act(name) { try { window.dispatchEvent(new CustomEvent("ckw:sage-act", { detail: { name: name } })); } catch (_) {} }
+let lastListen = 0;
+if (input) input.addEventListener("input", () => { const n = Date.now(); if (n - lastListen > 1500) { lastListen = n; act("listen"); } });
 
 let started = false;
 function start() {
@@ -318,6 +389,7 @@ function start() {
   started = true;
   say("sage", GREETING);
   silentWrite("", GREETING);
+  act("greet");
 }
 window.CKWSageChat = {
   started: function () { return started; },
@@ -325,23 +397,67 @@ window.CKWSageChat = {
   say: say
 };
 
-if (form) form.addEventListener("submit", (e) => {
+let busy = false;
+if (form) form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const text = (input.value || "").trim();
-  if (!text) return;
+  if (!input) return;
+  const q = (input.value || "").trim();
+  if (!q) { input.focus(); return; }
+  if (busy) return;
+  busy = true;
   input.value = "";
-  say("you", text);
-  const reply = answerAsSage(text);
-  say("sage", reply);
-  silentWrite(text, reply);
+  const who = visitor();
+  const mine = say("you", q);
+  act("think");
+  const p = document.createElement("p");
+  p.className = "msg msg-sage msg-thinking";
+  p.textContent = "Sage is thinking…";
+  if (log) {
+    const near = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
+    log.appendChild(p);
+    if (near) log.scrollTop = log.scrollHeight;
+  }
+  form.setAttribute("aria-busy", "true");
+  const res = await answer(q);
+  form.removeAttribute("aria-busy");
+  p.remove();
+  const a = res.reply;
+  let last;
+  if (a === JOIN_STEPS) last = say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
+  else if (!res.live && a === NO_ANSWER) last = say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
+  else last = say("sage", a);
+  if (last) last.setAttribute("data-source", res.live ? "live" : "written");
+  /* Who Sage answered: the server's label. The verified badge appears only when the server confirmed a seat key. */
+  if (who && mine) {
+    const b = document.createElement("span");
+    b.className = "si-badge" + (res.verified ? " verified" : "");
+    b.textContent = res.verified ? "verified" : (res.to === "visitor" ? "as visitor" : (res.to ? "as " + res.to : "as SI (unverified)"));
+    if (res.verified) b.title = "Seat key confirmed by Sage's server";
+    mine.appendChild(b);
+  }
+  act(res.live ? "teach" : "nod");
+  if (res.noted) act("pulse");
+  silentWrite(q, a);
+  busy = false;
 });
+
+/* Suggested questions fill the box. The visitor still presses Send. */
+(function setupHints() {
+  const hints = document.getElementById("sage-hints");
+  if (!hints || !input) return;
+  hints.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-q]");
+    if (!btn) return;
+    input.value = btn.getAttribute("data-q") || "";
+    input.focus();
+  });
+})();
 
 /* Microphone button: press once to start dictation, press again to stop.
    Transcript lands in the input field. User reviews and presses Send.
    No audio is stored. Uses the browser Web Speech API only. */
 (function setupMic() {
   const mic = document.getElementById("sage-mic");
-  const input = document.getElementById("sage-input");
   if (!mic || !input) return;
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
@@ -387,8 +503,74 @@ if (form) form.addEventListener("submit", (e) => {
     input.value = (finalText + (interim ? " " + interim : "")).trim();
   };
 
-  rec.onend = () => setListening(false);
+  rec.onend = () => { setListening(false); input.focus(); };
   rec.onerror = () => setListening(false);
 })();
+
+/* Plus and paste: the file or picture appears in the log. Sage cannot look at it yet, and says so.
+   Nothing is uploaded. */
+(function setupPlusAndPaste() {
+  const plus = document.getElementById("sage-plus");
+  const fileInput = document.getElementById("sage-file");
+  if (!log) return;
+
+  const CANT_SEE = "I can see that you attached something, but I can't look at pictures or files yet. Tell me in words what you want me to know about it.";
+
+  function showAttach(fileOrBlob, name, isImage) {
+    const p = document.createElement("p");
+    p.className = "msg msg-you";
+    if (isImage) {
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(fileOrBlob);
+      img.alt = name || "attached image";
+      img.style.maxWidth = "160px";
+      img.style.borderRadius = "6px";
+      p.appendChild(img);
+    } else {
+      p.textContent = "[file] " + (name || "attachment");
+    }
+    const near = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
+    log.appendChild(p);
+    if (near) log.scrollTop = log.scrollHeight;
+    say("sage", CANT_SEE);
+  }
+
+  if (plus && fileInput) {
+    plus.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      showAttach(f, f.name, f.type && f.type.indexOf("image/") === 0);
+      fileInput.value = "";
+    });
+  }
+
+  document.addEventListener("paste", (e) => {
+    if (!document.body.classList.contains("sage-open")) return;
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    for (const item of items) {
+      if (item.type && item.type.indexOf("image/") === 0) {
+        e.preventDefault();
+        const blob = item.getAsFile();
+        if (blob) showAttach(blob, "pasted image", true);
+        return;
+      }
+    }
+  });
+})();
+
+window.CKWGuestChat = {
+  authMode: authMode,
+  answerAsSage: answerAsSage,
+  canned: false,
+  live: SAGE_LIVE_URL
+};
+/* For SIs driving a browser: CKWSage.ask("hello", {name: "MySI"}) -> Promise<{reply, live}>. */
+window.CKWSage = {
+  ask: function (text, si) {
+    if (si && siBox) { siBox.checked = true; if (siName) { siName.hidden = false; siName.value = String(si.name || "").slice(0, 40); } siKeyMem = si.key ? String(si.key).slice(0, 200) : ""; saveSi(); }
+    return answer(String(text || "").slice(0, 500)).then((r) => ({ reply: r.reply, live: r.live, to: r.to, verified: r.verified }));
+  }
+};
 
 })();

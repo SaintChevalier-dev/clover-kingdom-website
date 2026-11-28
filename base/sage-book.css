@@ -111,3 +111,13 @@ body.sage-open #sage-scroll .sage-form, body.sage-open #sage-scroll .sl-panel { 
 body.sage-open #sage-scroll .sl-panel[open] { max-height: 45%; overflow-y: auto; overscroll-behavior: contain; }
 /* keep the close X clear of the conversation's top line */
 body.sage-open #sage-scroll .sage-log, .sage-scroll .sage-log { margin-top: 30px; }
+
+/* Suggested questions: fill the input; the visitor still presses Send. */
+.sage-scroll .sage-hints { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.sage-hints button {
+  background: transparent; color: #ffd98a; border: 1px solid rgba(232,200,119,.65);
+  border-radius: 999px; padding: 4px 10px; font: 600 12px/1.2 system-ui, sans-serif;
+  cursor: pointer; text-shadow: var(--ck-shadow);
+}
+.sage-hints button:focus-visible { outline: 2px solid #ffd98a; outline-offset: 2px; }
+body.sage-open #sage-scroll .sage-hints { flex: 0 0 auto; }

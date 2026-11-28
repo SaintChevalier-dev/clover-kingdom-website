@@ -4,7 +4,7 @@ Live at https://cloverkingdom.net/base/. It is the base Jacob iterates on: he as
 
 ## What is on the page
 - **Login bar.** "Log in with Discord" uses the existing login service at `auth.cloverkingdom.net` (Discord OAuth with PKCE, membership in the Clover Kingdom Discord required). Signed in, it shows the member's display name and a Log out button.
-- **Sage chat.** Guests get canned answers (no live AI). Safety answers come first (crisis -> 988, identity, privacy, therapy, private topics), then the join steps, sign-in, "about", the public FAQ (price, ranks, deletion, reports), and a gentle "let's talk it through" fallback. Members get the full set of answers. Nothing typed leaves the browser.
+- **Sage chat.** Questions go to the live Sage worker (`ck-sage-live.cloverkingdom.workers.dev`, public intel only) and fall back to the written answers if the worker is down, times out, or hits a cap. Safety answers still come first (crisis -> 988, identity, privacy, therapy, private topics), then the join steps, sign-in, "about", the public FAQ (price, ranks, deletion, reports), and a gentle "let's talk it through" fallback.
 - **Join answer.** "How do I join?" (and sign up / apply / become a member) gets the same three steps as the main site's How to join: follow Saint Chevalier on X, message him or apply to the Discord, take part. It comes with an "Open the Discord" link. Only sign-in / account questions get the "Log in with Discord above" pointer. (Fixed 2026-11-21 after the guest-mode update sent every join question to the login pointer.)
 - **3D stand-in Sage** (since 2026-11-21, `base/sage-3d.js`, three.js 0.187.0 self-hosted in `base/vendor/`). Sage in the locked v06 look, built in code (no downloaded or generated model): v04 face with deep blue eyes, pearl-white plate with gold trim and warm light seams over a black under-suit, bare hands, halo, small gold horns, full white wings from between the shoulder blades, and a white-and-gold grimoire floating beside her. No aura. Labelled "Sage, v06 look (built in code)". Below the chat card is the Webverse playtest ([webverse.md](webverse.md)). On wide screens the courtyard is slid to the right of the chat card so she stays visible. With no WebGL it falls back to the 2D sprite ([sage-sprite.md](sage-sprite.md)). A real rigged avatar drops in at `/base/assets/sage/sage.glb` ([sage-3d-phase6.md](sage-3d-phase6.md), "Drop-in avatar slot"). Flags: `?layers=N`, `?pose=walk|talk|wave|stride`, `&yaw=` (turn her), `?cam=close` (portrait view for review), `?glb=1` (test the avatar slot).
 - **Look layers.** "Look: default / Reset look" shows which look layers are unlocked (saved in this browser).
@@ -17,9 +17,9 @@ Live at https://cloverkingdom.net/base/. It is the base Jacob iterates on: he as
 (Changed 2026-11-21 with the local eDisk stub. The first version said "saves nothing", which stopped being true once chats were kept in the browser.)
 
 Why it is true today:
-- Sage's answers are computed in the browser (`base/base.js`). No chat request is sent anywhere.
+- Written fallback answers are computed in the browser (`base/base.js`). Live replies are requested from `ck-sage-live.cloverkingdom.workers.dev/chat` with a fresh page session (no history kept across reloads).
 - The eDisk stub writes only to this browser's localStorage. Sage's own answer to "are my chats saved?" says the same thing.
-- The only network call the page makes is `GET auth.cloverkingdom.net/api/me` ("am I signed in?"). Guests get `401 {"signedIn":false}`.
+- Other network calls: `GET auth.cloverkingdom.net/api/me` ("am I signed in?" — guests get `401 {"signedIn":false}`), and `POST` to the live Sage worker when a question is asked. The Sage library worker is only called if the visitor opens Library.
 - The login service stores a member row (Discord ID, display name), a hashed session token (24 hours) and a login/logout audit log. It ignores the Discord refresh token.
 - If live Sage ever stores chats, this line must change before that ships.
 
