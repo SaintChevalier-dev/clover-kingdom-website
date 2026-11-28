@@ -1543,6 +1543,7 @@ async function boot() {
     rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, busy, gaze: G.target, gy: +G.yaw.toFixed(2), gp: +G.pitch.toFixed(2), book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
     gazeBias: (y, p) => { G.biasY = y; G.biasP = p; },
     openBook: () => +openT.toFixed(2),
+    quill: () => (quill ? { a: +quill.alpha.toFixed(2), on: quill.on, vis: quill.root.visible, trail: quillTrail.length } : null),
     rigDo: (n) => { if (n === "sit") D.forceSit = true; else if (n === "stand") { D.wantStand = true; D.forceStand = true; } else if (n === "write") D.forceWrite = true; },
     bookNode: () => bookNode,
     cam: (x, y, z, lx, ly, lz) => { camera.clearViewOffset(); camera.position.set(x, y, z); camera.lookAt(lx, ly, lz); camera.fov = 32; camera.updateProjectionMatrix(); }, /* review shots only */
@@ -1589,7 +1590,7 @@ async function boot() {
      Three states, all in place at the chair's stand point beside the round table, with the grimoire floating (never held):
        seated    Sit_Idle at the table, absorbed in the floating book (Sit_Talk while a reply is spoken from the chair)
        standing  Stand_Wait: calm, attentive, facing the visitor (Talk_with_Hands_Open while replying)
-       writing   a long reply: she turns to the table, leans in (Table_Lean) and the book comes down to write in
+       writing   a long reply: the open book floats in front of her and a mind-quill writes in it by itself (arms at rest, no hand-writing pose)
      Visitor activity (mouse, touch, key) -> stands up and attends; 25 s of quiet with the chat closed -> back to the book. */
   const RIG_NEED = ["Stand_Wait"]; /* the rest are optional: a missing clip drops that state, it never brings pacing back */
   const RIG = clipsReady && RIG_NEED.every((n) => clips[n]);
@@ -1605,8 +1606,8 @@ async function boot() {
   const BOOK_POSE = { /* in her own frame (x her left, y up, z forward) */
     float: { p: [0.62, 1.26, 0.22], r: [Math.PI / 2 - 0.12, -0.5, 0.0] }, /* the book's cover normal is its local +Y (glTF), long edge along +Z */
     read:  { p: [0.06, 1.06, 0.20], r: [-0.5, 0.15, 0.0] }, /* seated: chest height, ~0.37 m in front of the chest (a forearm), tilted toward her like a stand; her head stays up and her face stays clear */
-    write: { p: [0.0, 0.83, 0.4], r: [0.0, 0.0, 0.0] },     /* standing at the table (Table_Lean) */
-    seatwrite: { p: [-0.02, 0.81, 0.15], r: [0.0, 0.0, 0.0] } /* seated: flat on the table in front of her (Sit_Write) */
+    write: { p: [0.05, 1.10, 0.50], r: [-0.5, 0.15, 0.0] },  /* standing, mind-quill writing: the open book floats at chest height in front of her */
+    seatwrite: { p: [0.06, 1.06, 0.20], r: [-0.5, 0.15, 0.0] } /* seated, mind-quill writing: same floating open book as reading */
   };
   let bookSide = 1; /* +1 her left, -1 her right */
   /* ---- open book: while she reads (or writes) the grimoire opens so plain pages show; closed while it floats beside her standing ----
@@ -1629,7 +1630,7 @@ async function boot() {
     const edgeTex = mk(8, 64, (x, w, h) => { x.fillStyle = "#e3d5b0"; x.fillRect(0, 0, w, h); for (let i = 0; i < h; i += 3) { x.fillStyle = "rgba(120,90,50,0.35)"; x.fillRect(0, i, w, 1); } });
     const page = new THREE.MeshStandardMaterial({ map: pageTex, roughness: 0.92, metalness: 0 });
     const edge = new THREE.MeshStandardMaterial({ map: edgeTex, roughness: 0.95, metalness: 0 });
-    const leather = new THREE.MeshStandardMaterial({ color: 0x5a3a22, roughness: 0.6, metalness: 0.1 });
+    const leather = new THREE.MeshStandardMaterial({ color: 0x5a3a22, emissive: 0x2e1c0e, roughness: 0.6, metalness: 0.1 });
     const gold = new THREE.MeshStandardMaterial({ color: 0xc9a24b, roughness: 0.35, metalness: 0.85 });
     for (const sg of [1, -1]) {
       const half = new THREE.Group(); half.rotation.z = sg * 0.13; /* outer edge up, gutter low */
@@ -1645,6 +1646,103 @@ async function boot() {
     return wrap;
   }
   if (bookNode) { openBook = buildOpenBook(); openBook.visible = false; bookNode.add(openBook); }
+
+  /* ================= Summoned tools: the archetype pattern =================
+     A tool an archetype uses appears when needed, works by her will (no hands, her arms stay free for natural body movement), then vanishes,
+     so it is never an item to maintain. createSummonedTool is the reusable part (spawn burst, glow, pop-in/fade-out, sparkle, visibility);
+     each tool only supplies build() (its meshes) and animate() (what it does while summoned). The mind-quill below is the first one.
+       const tool = createSummonedTool({ parent, build: (T) => ({ meshes: Group, materials: [...], tip: Object3D }), animate: (tool, dt, clock) => {} });
+       tool.update(dt, wantIt)  // call every frame; wantIt true -> summoned, false -> dismissed (fades, then hides itself)
+     tool.alpha 0..1, tool.on, tool.root (position it in animate), tool.tip (gaze / effect anchor). */
+  function createSummonedTool(o) {
+    const T = THREE, tool = { alpha: 0, on: false, clock: 0, burst: 0, root: new T.Group(), tip: null, mats: [], glow: null, sparks: null, sv: null, busyTrail: false };
+    tool.root.visible = false; tool.root.frustumCulled = false;
+    const dot = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, "rgba(255,240,190,1)"); g.addColorStop(0.35, "rgba(255,200,90,0.55)"); g.addColorStop(1, "rgba(255,170,40,0)"); x.fillStyle = g; x.fillRect(0, 0, 64, 64); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t; })();
+    const built = o.build(T, dot); tool.root.add(built.meshes); tool.mats = built.materials || []; tool.tip = built.tip || tool.root;
+    tool.glow = new T.Sprite(new T.SpriteMaterial({ map: dot, transparent: true, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false })); tool.glow.scale.setScalar(o.glowSize || 0.07); tool.root.add(tool.glow);
+    const N = o.sparkCount || 22, pos = new Float32Array(N * 3); tool.sv = new Float32Array(N * 3);
+    const pg = new T.BufferGeometry(); pg.setAttribute("position", new T.BufferAttribute(pos, 3));
+    tool.sparks = new T.Points(pg, new T.PointsMaterial({ map: dot, size: 0.03, transparent: true, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false, opacity: 0 })); tool.root.add(tool.sparks);
+    o.parent.add(tool.root); tool.root.traverse((n) => { n.frustumCulled = false; });
+    tool.sparkle = () => {
+      const p = tool.sparks.geometry.attributes.position.array;
+      for (let i = 0; i < p.length / 3; i++) { p[i * 3] = (Math.random() - 0.5) * 0.04; p[i * 3 + 1] = 0.06 + Math.random() * 0.12; p[i * 3 + 2] = (Math.random() - 0.5) * 0.04; const a = Math.random() * 6.283, v = 0.03 + Math.random() * 0.06; tool.sv[i * 3] = Math.cos(a) * v; tool.sv[i * 3 + 1] = 0.02 + Math.random() * 0.06; tool.sv[i * 3 + 2] = Math.sin(a) * v; }
+      tool.sparks.geometry.attributes.position.needsUpdate = true; tool.burst = 1;
+    };
+    tool.update = (dt, want) => {
+      if (want && !tool.on) { tool.on = true; tool.clock = 0; tool.sparkle(); if (o.onSummon) o.onSummon(tool); }
+      if (!want && tool.on) { tool.on = false; tool.sparkle(); if (o.onDismiss) o.onDismiss(tool); }
+      const goal = tool.on ? 1 : 0; tool.alpha += (goal - tool.alpha) * Math.min(1, dt * (tool.on ? 5 : 3.5)); if (Math.abs(goal - tool.alpha) < 0.01) tool.alpha = goal;
+      const lingering = o.lingering ? o.lingering(tool) : false;
+      tool.root.visible = (tool.alpha > 0.01 || tool.burst > 0 || lingering) && (o.visibleWhen ? o.visibleWhen() : true);
+      if (!tool.root.visible) return;
+      tool.clock += dt;
+      const e = T.MathUtils.smoothstep(tool.alpha, 0, 1);
+      tool.root.scale.setScalar(0.4 + 0.6 * e); for (const m of tool.mats) m.opacity = e;
+      tool.glow.material.opacity = (0.55 + 0.25 * Math.sin(tool.clock * 7)) * e; tool.glow.position.set(0, 0.004, 0);
+      if (o.animate) o.animate(tool, dt, tool.clock);
+      if (tool.burst > 0) {
+        tool.burst = Math.max(0, tool.burst - dt * 1.6); const pa = tool.sparks.geometry.attributes.position.array;
+        for (let i = 0; i < pa.length / 3; i++) { pa[i * 3] += tool.sv[i * 3] * dt; pa[i * 3 + 1] += tool.sv[i * 3 + 1] * dt; pa[i * 3 + 2] += tool.sv[i * 3 + 2] * dt; }
+        tool.sparks.geometry.attributes.position.needsUpdate = true; tool.sparks.material.opacity = tool.burst;
+      } else tool.sparks.material.opacity = 0;
+    };
+    return tool;
+  }
+  /* ---- the mind-quill (first summoned tool): while she writes (seated or standing) a golden quill pops into being above the open pages,
+     writes by itself (glowing ink trails that fade, no letters), then fades out. Her hands do nothing. ---- */
+  const PG = { cx: 0.2765 / 2 - 0.002, hw: 0.092, hl: 0.15 }; /* writable area on the page, in the page-half frame */
+  const ROW_S = 1.35, ROWS = 9, LIFT_S = 0.22, TRAIL_S = 2.4;
+  let quill = null, quillTrail = [], quillInk = null;
+  function buildQuillTool() {
+    const half = openBook && openBook.children[0] && openBook.children[0].children[0]; if (!half) return;
+    const ic = document.createElement("canvas"); ic.width = 256; ic.height = 360; const ctx = ic.getContext("2d"), tex = new THREE.CanvasTexture(ic); tex.colorSpace = THREE.SRGBColorSpace;
+    quillInk = { ctx, tex };
+    const ink = new THREE.Mesh(new THREE.PlaneGeometry(PG.hw * 2 + 0.03, PG.hl * 2 + 0.03), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+    ink.rotation.x = -Math.PI / 2; ink.position.set(PG.cx, 0.0215, 0); ink.renderOrder = 4; ink.frustumCulled = false; half.add(ink);
+    quill = createSummonedTool({
+      parent: half, glowSize: 0.1,
+      build: (T) => {
+        const gold = new T.MeshStandardMaterial({ color: 0xf0c14b, emissive: 0xb07a14, emissiveIntensity: 0.85, roughness: 0.35, metalness: 0.75, transparent: true, side: T.DoubleSide });
+        const vaneM = new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xd9a030, emissiveIntensity: 0.7, roughness: 0.5, metalness: 0.3, transparent: true, side: T.DoubleSide, depthWrite: false });
+        const g = new T.Group(), tilt = new T.Group(); tilt.rotation.set(0.35, 0, -0.55); tilt.scale.setScalar(1.5); g.add(tilt); /* nib at the origin, feather rises up and back */
+        const shaft = new T.Mesh(new T.CylinderGeometry(0.0022, 0.0046, 0.2, 8), gold); shaft.position.y = 0.1; tilt.add(shaft);
+        const nib = new T.Mesh(new T.ConeGeometry(0.0034, 0.02, 8), gold); nib.rotation.x = Math.PI; tilt.add(nib);
+        const sh = new T.Shape(); sh.moveTo(0, 0.05); sh.bezierCurveTo(0.03, 0.08, 0.036, 0.16, 0.004, 0.27); sh.bezierCurveTo(-0.004, 0.2, -0.004, 0.12, 0, 0.05);
+        const v1 = new T.Mesh(new T.ShapeGeometry(sh, 12), vaneM); v1.position.set(0.0035, 0.02, 0); tilt.add(v1);
+        const v2 = new T.Mesh(new T.ShapeGeometry(sh, 12), vaneM); v2.scale.set(-0.55, 0.85, 1); v2.position.set(-0.0035, 0.04, 0); tilt.add(v2);
+        const tip = new T.Object3D(); g.add(tip);
+        return { meshes: g, materials: [gold, vaneM], tip };
+      },
+      onSummon: () => { quillTrail.length = 0; },
+      lingering: () => quillTrail.length > 0,
+      visibleWhen: () => openBook.visible,
+      animate: (tool, dt, clock) => {
+        /* row after row of a handwriting-like path, with a quick lift between rows */
+        const tr = clock % (ROW_S * ROWS), row = Math.floor(tr / ROW_S), u = (tr % ROW_S) / ROW_S, lf = LIFT_S / ROW_S, writing = u < 1 - lf;
+        const w = writing ? u / (1 - lf) : 1 - (u - (1 - lf)) / lf;
+        const rz = -PG.hl + 0.03 + row * ((PG.hl * 2 - 0.06) / (ROWS - 1));
+        const px = PG.cx - PG.hw + w * PG.hw * 2, pz = rz + Math.sin(w * 38 + row) * 0.006 + Math.sin(w * 13 + row * 2) * 0.004;
+        tool.root.position.set(px, 0.0215 + (writing ? 0.012 + Math.sin(clock * 9) * 0.0015 : 0.045), pz); /* barely over the paper while writing, a hop between rows */
+        if (tool.on && writing && tool.alpha > 0.5) quillTrail.push({ x: px, z: pz, t: clock });
+      }
+    });
+  }
+  function updateQuill(dt) {
+    if (!openBook) return; if (!quill) buildQuillTool(); if (!quill) return;
+    quill.update(dt, openT > 0.9 && (D.bookMode === "seatwrite" || D.bookMode === "write"));
+    /* ink trails: a thin glowing gold line that fades over ~2 s, so no text ever accumulates */
+    const clock = quill.clock; while (quillTrail.length && clock - quillTrail[0].t > TRAIL_S) quillTrail.shift();
+    if (!quill.root.visible) return;
+    const ctx = quillInk.ctx, W = 256, H = 360, X = (x) => ((x - (PG.cx - PG.hw - 0.015)) / (PG.hw * 2 + 0.03)) * W, Z = (z) => ((z + PG.hl + 0.015) / (PG.hl * 2 + 0.03)) * H;
+    ctx.clearRect(0, 0, W, H); ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (let i = 1; i < quillTrail.length; i++) {
+      const a = quillTrail[i - 1], b = quillTrail[i]; if (b.t - a.t > 0.06) continue;
+      const k = Math.max(0, 1 - (clock - b.t) / TRAIL_S); ctx.strokeStyle = `rgba(255,205,100,${(0.65 * k * k).toFixed(3)})`; ctx.lineWidth = 1.2 + 1.8 * k;
+      ctx.beginPath(); ctx.moveTo(X(a.x), Z(a.z)); ctx.lineTo(X(b.x), Z(b.z)); ctx.stroke();
+    }
+    quillInk.tex.needsUpdate = true;
+  }
   const BOOK_GAZE_PITCH = -0.2;
   const BOOK_OPEN_MODES = { read: 1, seatwrite: 1, write: 1 };
   function updateOpenBook(dt) {
@@ -1660,13 +1758,13 @@ async function boot() {
     if (!bookNode) return;
     const bp = BOOK_POSE[D.bookMode] || BOOK_POSE.float, still = reduce.matches || D.bookMode === "write" || D.bookMode === "seatwrite";
     const bob = still ? 0 : Math.sin(tAll * 1.3), sway = still ? 0 : Math.sin(tAll * 0.7);
-    const sx = D.bookMode === "read" ? bookSide : 1;
+    const sx = D.bookMode === "float" ? 1 : bookSide;
     _bv.set(bp.p[0] * sx, bp.p[1] + bob * 0.02, bp.p[2]);
     _be.set(bp.r[0] + (still ? 0 : Math.sin(tAll * 0.9) * 0.04), bp.r[1] * sx + sway * 0.14, bp.r[2] + (still ? 0 : Math.sin(tAll * 1.1) * 0.03), "YXZ");
     _bq.setFromEuler(_be);
-    const k = 1 - Math.exp(-dt * (D.bookMode === "write" || D.bookMode === "seatwrite" ? 5 : 3));
+    const k = 1 - Math.exp(-dt * (D.bookMode === "write" || D.bookMode === "seatwrite" ? 4 : 3));
     bookNode.position.lerp(_bv, k); bookNode.quaternion.slerp(_bq, k);
-    updateOpenBook(dt);
+    updateOpenBook(dt); updateQuill(dt);
   }
   const turnTo = (target, dt, rate) => {
     let d = target - yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
@@ -1682,6 +1780,7 @@ async function boot() {
   /* ---- gaze: her head only ever aims at something real: the visitor (camera + pointer), the chat while they type, or the book ---- */
   const G = { biasY: 0, biasP: 0, yaw: 0, pitch: 0, w: 0, lastPointer: -99, lastType: -99, ndc: { x: 0, y: 0 }, target: "book" };
   const gazeBones = (() => { let n = null, h = null; sage.traverse((o) => { if (!o.isBone) return; if (/^mixamorig:?neck$/i.test(o.name)) n = o; else if (/^mixamorig:?head$/i.test(o.name)) h = o; }); return n && h ? { n, h } : null; })();
+  const _gqt = new THREE.Vector3();
   const _gq = new THREE.Quaternion(), _gq2 = new THREE.Quaternion(), _gp = new THREE.Quaternion(), _gv = new THREE.Vector3(), _gt = new THREE.Vector3(), _gu = new THREE.Vector3(0, 1, 0), _gr = new THREE.Vector3(), _gs = new THREE.Quaternion();
   let headFwdLocal = null; /* her face direction in the Head bone's own frame, read once from the bind pose */
   if (gazeBones && RIG) { sage.updateMatrixWorld(true); gazeBones.h.getWorldQuaternion(_gq); sage.getWorldQuaternion(_gs); headFwdLocal = new THREE.Vector3(0, 0, 1).applyQuaternion(_gs).applyQuaternion(_gq.invert()).normalize(); }
@@ -1695,7 +1794,11 @@ async function boot() {
     else if (D.clock - G.lastPointer < 4 || (m === "standing" && D.clock - D.lastActive < 8)) t = "visitor";
     G.target = t;
     if (t === "book" && bookNode) { /* the open pages (their top face, a touch toward her), else the closed book */
-      if (openT > 0.5) { out.set(0, 0.035 * Math.cos(OPEN_FLIP), 0.03 * Math.cos(OPEN_FLIP)); bookNode.localToWorld(out); } else bookNode.getWorldPosition(out); return out; }
+      if (openT > 0.5) {
+        out.set(0, 0.035 * Math.cos(OPEN_FLIP), 0.03 * Math.cos(OPEN_FLIP)); bookNode.localToWorld(out);
+        if (quill && quill.alpha > 0.3) { quill.tip.getWorldPosition(_gqt); out.lerp(_gqt, 0.55); } /* writing: her eyes follow the quill (eased, so the head does not jitter) */
+      } else bookNode.getWorldPosition(out);
+      return out; }
     if (t === "chat") { /* a point toward the chat panel, part way out to her depth, so her head turns to the chat side (clamped) */
       const d = camera.position.distanceTo(sage.position) * 0.6;
       out.set(0.72, -0.05, 0.5).unproject(camera).sub(camera.position).normalize().multiplyScalar(d).add(camera.position); return out; }
@@ -1781,7 +1884,7 @@ async function boot() {
     const m = D.mode;
     D.tuckT = (m === "standing") ? 0.5 : 1;
     const seatWriting = m === "seated" && (busy || D.clock < D.noteUntil) && !(D.talk && D.clock < D.talkUntil);
-    D.bookMode = seatWriting ? "seatwrite" : (m === "seated" || m === "sitting" || m === "sit_turn") ? "read" : (m === "writing" && !D.leaving) ? "write" : "float";
+    D.bookMode = seatWriting ? "seatwrite" : (m === "seated" || m === "sitting" || m === "sit_turn") ? "read" : (m === "writing") ? "write" : "float";
     if (D.talk && (m === "sitting" || m === "rising" || m === "sit_turn" || m === "w_turn" || m === "writing")) D.talkUntil += dt; /* a reply never runs out while she is still getting up or down */
     if (m === "standing") {
       turnTo(camYaw(), dt, 2.2);
@@ -1790,7 +1893,7 @@ async function boot() {
       playClip(wantTalk ? "Talk_with_Hands_Open" : "Stand_Wait", true);
       if (D.talk && !wantTalk) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
       const wantWrite = D.forceWrite || (busy && !D.talk && D.clock - D.busyClock > WRITE_AFTER_S) || (!D.talk && D.clock < D.noteUntil);
-      if (CAN_LEAN && wantWrite && !reduce.matches) { D.forceWrite = false; D.noteUntil = 0; rigGo("w_turn"); }
+      if (wantWrite && !reduce.matches) { D.forceWrite = false; D.noteUntil = 0; rigGo("writing"); D.leaving = false; }
       else if (CAN_SIT && (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S))) { D.forceSit = false; rigGo("sit_turn"); }
     } else if (m === "sit_turn") {
       const d = turnTo(D.A.yaw, dt, 2.6);
@@ -1799,7 +1902,7 @@ async function boot() {
     } else if (m === "sitting") {
       if (D.t >= D.dur - 0.05) { D.wantStand = false; rigGo("seated"); playClip("Sit_Idle", true); }
     } else if (m === "seated") {
-      const want = D.talk && D.clock < D.talkUntil ? "Sit_Talk" : seatWriting && clips.Sit_Write ? "Sit_Write" : "Sit_Idle";
+      const want = D.talk && D.clock < D.talkUntil ? "Sit_Talk" : "Sit_Idle"; /* writing is the mind-quill: her arms just rest */
       if (D.talk && D.clock >= D.talkUntil) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
       playClip(want, true);
       /* a long reply in flight keeps her seated and writing; she stands for the visitor only once the writing is done */
@@ -1809,17 +1912,11 @@ async function boot() {
       if (goOut && D.scootV === 0) { D.wantStand = false; D.forceStand = false; rigGo("rising"); playT("Stand_Up"); D.dur = clipDur("Stand_Up"); }
     } else if (m === "rising") {
       if (D.t >= D.dur - 0.05) { D.lastActive = Math.max(D.lastActive, D.clock - 10); rigGo("standing"); playClip("Stand_Wait", true); } /* stay up at least ~15 s after rising */
-    } else if (m === "w_turn") {
-      const d = turnTo(tblYaw(), dt, 2.6);
-      sage.position.x += (D.writeP.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.writeP.z - sage.position.z) * Math.min(1, dt * 4);
-      if (d < 0.05 && D.t > 0.3 && Math.hypot(D.writeP.x - sage.position.x, D.writeP.z - sage.position.z) < 0.02) { rigGo("writing"); D.leaving = false; playClip("Table_Lean", false); }
-    } else if (m === "writing") {
-      turnTo(tblYaw(), dt, 2.0);
-      if (action && currentClip === "Table_Lean" && !D.leaving) {
-        if (action.time > LEAN_HOLD[1]) action.time = LEAN_HOLD[0] + (action.time - LEAN_HOLD[1]); /* hold the writing lean in a short loop */
-        if ((!busy && D.t > 2.4 && D.clock >= D.noteUntil) || (D.talk && D.clock < D.talkUntil)) D.leaving = true; /* a reply landing straightens her up to answer */
-      }
-      if (D.leaving && D.t > 0.1 && (!action || action.time >= clipDur("Table_Lean") - 0.08 || !action.isRunning())) { rigGo("standing"); playClip("Stand_Wait", true); }
+    } else if (m === "writing") { /* standing, mind-quill: she stays up facing the visitor, arms at rest, the open book floats in front and the quill writes itself */
+      turnTo(camYaw(), dt, 2.2);
+      sage.position.x += (D.A.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.A.z - sage.position.z) * Math.min(1, dt * 4);
+      playClip("Stand_Wait", true);
+      if ((!busy && D.t > 2.4 && D.clock >= D.noteUntil) || (D.talk && D.clock < D.talkUntil) || D.leaving) { D.leaving = false; rigGo("standing"); }
     }
     if (m === "standing" || m === "w_turn" || m === "writing") { /* keep her root on the right spot when coming back */ }
     updateBook(dt);
