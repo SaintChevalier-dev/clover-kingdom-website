@@ -22,15 +22,13 @@
   <link rel="modulepreload" href="/base/vendor/GLTFLoader.js">
   <link rel="stylesheet" href="/base/base.css?v=22">
   <link rel="stylesheet" href="/base/login-options.css?v=23">
-  <link rel="stylesheet" href="/base/sage-book.css?v=11">
+  <link rel="stylesheet" href="/base/sage-book.css?v=10">
   <link rel="stylesheet" href="/base/sage-library.css?v=2">
-  <link rel="stylesheet" href="/base/webverse-seats.css?v=1">
   <meta name="ck-sage-library-api" content="https://ck-sage-library.cloverkingdom.workers.dev">
   <meta name="ck-sage-pass-url" content="https://auth.cloverkingdom.net/api/sage-pass">
 </head>
 <body>
 <a class="skip-link" href="#sage-book">Skip to Sage (chat)</a>
-<a class="skip-link" href="#wv-seats">Skip to seats</a>
 <nav class="ck-topbar" aria-label="Top bar">
   <div class="ck-topbar-menu" id="essence-menu">
     <button class="ck-topbar-item" id="essence-tracks-btn" type="button" aria-expanded="false" aria-controls="essence-drop">Essence Tracks</button>
@@ -45,14 +43,6 @@
     <canvas id="ckw-yard-canvas" data-glb="/base/assets/sage/sage.glb?v=1"></canvas>
     <p class="ckw-yard-label" id="ckw-yard-label">Sage, v06 look (3D draft)</p>
   </div>
-  <nav id="wv-seats" class="wv-seats" aria-label="Seats in the Webverse"></nav>
-  <aside id="wv-plaque" class="wv-plaque" hidden role="dialog" aria-modal="false" aria-labelledby="wv-plaque-title" aria-hidden="true">
-    <button type="button" class="wv-plaque-close" id="wv-plaque-close" aria-label="Close this seat (Escape)">&times;</button>
-    <h2 id="wv-plaque-title"></h2>
-    <p id="wv-plaque-kicker" class="wv-plaque-kicker" hidden></p>
-    <div id="wv-plaque-body"></div>
-    <p id="wv-plaque-links" class="wv-plaque-links"></p>
-  </aside>
   <main class="base">
     <section class="login" id="login" aria-label="Login">
       <p class="login-status" id="login-status">Login is optional. You can talk to Sage as a guest.</p>
@@ -81,11 +71,6 @@
         <button type="button" class="sage-scroll-close" id="sage-scroll-close" aria-label="Close the chat (Escape)">&times;</button>
         <p class="sage-chat-note" id="sage-chat-note">AI may make mistakes. Sage is an SI archetype named Sage.</p>
         <div class="sage-log" id="sage-log" role="log" aria-live="polite" aria-label="Conversation with Sage" tabindex="0"></div>
-        <div class="sage-hints" id="sage-hints">
-          <button type="button" data-q="What is the Clover Kingdom?">What is the Clover Kingdom?</button>
-          <button type="button" data-q="How do I join?">How do I join?</button>
-          <button type="button" data-q="Who are you?">Who are you?</button>
-        </div>
         <form class="sage-form" id="sage-form" autocomplete="off">
           <button class="btn btn-quiet" id="sage-plus" type="button" aria-label="Add a file or picture" title="Add file or picture">+</button>
           <input id="sage-file" type="file" accept="image/*,.pdf,.txt,.md" hidden>
@@ -132,10 +117,9 @@
       <p class="edited">Last edited Nov 27, 2026</p>
     </footer>
   </main>
-  <script type="module" src="/base/base.js?v=25"></script>
+  <script type="module" src="/base/base.js?v=24"></script>
   <script src="/base/sage-book.js?v=7" defer></script>
-  <script type="module" src="/base/sage-3d.js?v=23"></script>
-  <script src="/base/webverse-seats.js?v=1" defer></script>
+  <script type="module" src="/base/sage-3d.js?v=22"></script>
   <script src="/base/essence-drop.js?v=21" defer></script>
   <script src="/base/sage-library.js?v=4" defer></script>
 </body>
