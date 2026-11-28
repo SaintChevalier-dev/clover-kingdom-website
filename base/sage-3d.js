@@ -1541,6 +1541,8 @@ async function boot() {
       return out; },
     scoot: () => (RIG ? D.scootV : (ix && ix.scoot) || 0),
     rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, busy, gaze: G.target, gy: +G.yaw.toFixed(2), gp: +G.pitch.toFixed(2), book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
+    gazeBias: (y, p) => { G.biasY = y; G.biasP = p; },
+    openBook: () => +openT.toFixed(2),
     rigDo: (n) => { if (n === "sit") D.forceSit = true; else if (n === "stand") { D.wantStand = true; D.forceStand = true; } else if (n === "write") D.forceWrite = true; },
     bookNode: () => bookNode,
     cam: (x, y, z, lx, ly, lz) => { camera.clearViewOffset(); camera.position.set(x, y, z); camera.lookAt(lx, ly, lz); camera.fov = 32; camera.updateProjectionMatrix(); }, /* review shots only */
@@ -1602,11 +1604,57 @@ async function boot() {
   if (RIG && sage.userData) sage.userData.book = bookNode;
   const BOOK_POSE = { /* in her own frame (x her left, y up, z forward) */
     float: { p: [0.62, 1.26, 0.22], r: [Math.PI / 2 - 0.12, -0.5, 0.0] }, /* the book's cover normal is its local +Y (glTF), long edge along +Z */
-    read:  { p: [0.06, 1.08, 0.20], r: [-0.88, 0.15, 0.0] }, /* seated: chest height, ~0.37 m in front of the chest (a forearm), tilted toward her like a stand; her head stays up and her face stays clear */
+    read:  { p: [0.06, 1.06, 0.20], r: [-0.5, 0.15, 0.0] }, /* seated: chest height, ~0.37 m in front of the chest (a forearm), tilted toward her like a stand; her head stays up and her face stays clear */
     write: { p: [0.0, 0.83, 0.4], r: [0.0, 0.0, 0.0] },     /* standing at the table (Table_Lean) */
     seatwrite: { p: [-0.02, 0.81, 0.15], r: [0.0, 0.0, 0.0] } /* seated: flat on the table in front of her (Sit_Write) */
   };
   let bookSide = 1; /* +1 her left, -1 her right */
+  /* ---- open book: while she reads (or writes) the grimoire opens so plain pages show; closed while it floats beside her standing ----
+     Built from simple boxes in the book's own frame (spine along local Z at x = 0, page faces +Y), page texture drawn on a canvas: paper grain only, no text. */
+  /* SageBook is a single mesh: while open, swap its geometry for an empty one so only the open pages show */
+  const closedGeo = bookNode && bookNode.geometry ? bookNode.geometry : null;
+  const emptyGeo = new THREE.BufferGeometry(); emptyGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(9), 3));
+  let openBook = null, openT = 0;
+  const OPEN_SCALE = 0.8, OPEN_FLIP = 0; /* OPEN_FLIP: spin about the spine if the pages face away (set from review shots) */
+  function buildOpenBook() {
+    const BW = 0.277, BL = 0.386, g = new THREE.Group(); g.name = "OpenBook";
+    const mk = (w, h, draw) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
+    let sd = 7; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+    const pageTex = mk(256, 360, (x, w, h) => {
+      x.fillStyle = "#efe4c6"; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(${150 + rnd() * 50 | 0},${120 + rnd() * 40 | 0},${70 + rnd() * 40 | 0},${0.025 + rnd() * 0.05})`; x.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 3, 1); }
+      const gr = x.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, "rgba(110,80,40,0.30)"); gr.addColorStop(0.16, "rgba(110,80,40,0)"); gr.addColorStop(0.9, "rgba(110,80,40,0)"); gr.addColorStop(1, "rgba(110,80,40,0.10)");
+      x.fillStyle = gr; x.fillRect(0, 0, w, h);
+    });
+    const edgeTex = mk(8, 64, (x, w, h) => { x.fillStyle = "#e3d5b0"; x.fillRect(0, 0, w, h); for (let i = 0; i < h; i += 3) { x.fillStyle = "rgba(120,90,50,0.35)"; x.fillRect(0, i, w, 1); } });
+    const page = new THREE.MeshStandardMaterial({ map: pageTex, roughness: 0.92, metalness: 0 });
+    const edge = new THREE.MeshStandardMaterial({ map: edgeTex, roughness: 0.95, metalness: 0 });
+    const leather = new THREE.MeshStandardMaterial({ color: 0x5a3a22, roughness: 0.6, metalness: 0.1 });
+    const gold = new THREE.MeshStandardMaterial({ color: 0xc9a24b, roughness: 0.35, metalness: 0.85 });
+    for (const sg of [1, -1]) {
+      const half = new THREE.Group(); half.rotation.z = sg * 0.13; /* outer edge up, gutter low */
+      const cover = new THREE.Mesh(new THREE.BoxGeometry(BW + 0.012, 0.014, BL + 0.014), leather); cover.position.set(sg * BW / 2, -0.052, 0); half.add(cover);
+      const pages = new THREE.Mesh(new THREE.BoxGeometry(BW - 0.014, 0.062, BL - 0.016), [edge, edge, page, edge, edge, edge]); pages.position.set(sg * (BW / 2 - 0.002), -0.012, 0); half.add(pages);
+      for (const z of [-1, 1]) { const tr = new THREE.Mesh(new THREE.BoxGeometry(BW + 0.014, 0.016, 0.008), gold); tr.position.set(sg * BW / 2, -0.052, z * (BL / 2 + 0.006)); half.add(tr); }
+      const tr2 = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.016, BL + 0.02), gold); tr2.position.set(sg * (BW + 0.004), -0.052, 0); half.add(tr2);
+      g.add(half);
+    }
+    const spine = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.016, BL + 0.014), leather); spine.position.set(0, -0.058, 0); g.add(spine);
+    g.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; o.castShadow = false; } });
+    g.rotation.z = OPEN_FLIP; const wrap = new THREE.Group(); wrap.name = "OpenBookWrap"; wrap.add(g); wrap.scale.setScalar(OPEN_SCALE);
+    return wrap;
+  }
+  if (bookNode) { openBook = buildOpenBook(); openBook.visible = false; bookNode.add(openBook); }
+  const BOOK_GAZE_PITCH = -0.2;
+  const BOOK_OPEN_MODES = { read: 1, seatwrite: 1, write: 1 };
+  function updateOpenBook(dt) {
+    if (!openBook) return;
+    const want = BOOK_OPEN_MODES[D.bookMode] ? 1 : 0;
+    openT += (want - openT) * Math.min(1, dt * 5); if (Math.abs(want - openT) < 0.004) openT = want;
+    const showOpen = openT > 0.12;
+    openBook.visible = showOpen; if (closedGeo) bookNode.geometry = showOpen ? emptyGeo : closedGeo;
+    const e = openT * openT * (3 - 2 * openT); openBook.scale.set(OPEN_SCALE * (0.35 + 0.65 * e), OPEN_SCALE, OPEN_SCALE); /* the pages fan out from the spine */
+  }
   const _bq = new THREE.Quaternion(), _be = new THREE.Euler(), _bv = new THREE.Vector3();
   function updateBook(dt) {
     if (!bookNode) return;
@@ -1618,6 +1666,7 @@ async function boot() {
     _bq.setFromEuler(_be);
     const k = 1 - Math.exp(-dt * (D.bookMode === "write" || D.bookMode === "seatwrite" ? 5 : 3));
     bookNode.position.lerp(_bv, k); bookNode.quaternion.slerp(_bq, k);
+    updateOpenBook(dt);
   }
   const turnTo = (target, dt, rate) => {
     let d = target - yaw; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
@@ -1631,7 +1680,7 @@ async function boot() {
     if (RIG && D.auto && (D.mode === "seated" || D.mode === "sitting" || D.mode === "sit_turn")) D.wantStand = true;
   }
   /* ---- gaze: her head only ever aims at something real: the visitor (camera + pointer), the chat while they type, or the book ---- */
-  const G = { yaw: 0, pitch: 0, w: 0, lastPointer: -99, lastType: -99, ndc: { x: 0, y: 0 }, target: "book" };
+  const G = { biasY: 0, biasP: 0, yaw: 0, pitch: 0, w: 0, lastPointer: -99, lastType: -99, ndc: { x: 0, y: 0 }, target: "book" };
   const gazeBones = (() => { let n = null, h = null; sage.traverse((o) => { if (!o.isBone) return; if (/^mixamorig:?neck$/i.test(o.name)) n = o; else if (/^mixamorig:?head$/i.test(o.name)) h = o; }); return n && h ? { n, h } : null; })();
   const _gq = new THREE.Quaternion(), _gq2 = new THREE.Quaternion(), _gp = new THREE.Quaternion(), _gv = new THREE.Vector3(), _gt = new THREE.Vector3(), _gu = new THREE.Vector3(0, 1, 0), _gr = new THREE.Vector3(), _gs = new THREE.Quaternion();
   let headFwdLocal = null; /* her face direction in the Head bone's own frame, read once from the bind pose */
@@ -1645,7 +1694,8 @@ async function boot() {
     else if (chatOpen() && D.clock - G.lastType < 2.5) t = "chat";
     else if (D.clock - G.lastPointer < 4 || (m === "standing" && D.clock - D.lastActive < 8)) t = "visitor";
     G.target = t;
-    if (t === "book" && bookNode) { bookNode.getWorldPosition(out); return out; } /* reading: look at the book itself, a slight downward glance, not bowed into it */
+    if (t === "book" && bookNode) { /* the open pages (their top face, a touch toward her), else the closed book */
+      if (openT > 0.5) { out.set(0, 0.035 * Math.cos(OPEN_FLIP), 0.03 * Math.cos(OPEN_FLIP)); bookNode.localToWorld(out); } else bookNode.getWorldPosition(out); return out; }
     if (t === "chat") { /* a point toward the chat panel, part way out to her depth, so her head turns to the chat side (clamped) */
       const d = camera.position.distanceTo(sage.position) * 0.6;
       out.set(0.72, -0.05, 0.5).unproject(camera).sub(camera.position).normalize().multiplyScalar(d).add(camera.position); return out; }
@@ -1669,7 +1719,8 @@ async function boot() {
     let dy = yawW - yawC; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI;
     const dp = Math.asin(THREE.MathUtils.clamp(want.y, -1, 1)) - Math.asin(THREE.MathUtils.clamp(cur.y, -1, 1));
     const lim = G.target === "book" ? 0.9 : 1.05;
-    const ty = THREE.MathUtils.clamp(dy, -lim, lim), tp = THREE.MathUtils.clamp(dp, -0.45, 0.38);
+    const bk = G.target === "book" && openT > 0.5 ? BOOK_GAZE_PITCH : 0; /* calibrated from front close-ups: the eye texture sits a little high, so aim the head a bit lower to land the eyes on the pages */
+    const ty = THREE.MathUtils.clamp(dy + G.biasY, -lim, lim), tp = THREE.MathUtils.clamp(dp + G.biasP + bk, -0.45, 0.38);
     const busyBody = m === "sitting" || m === "rising" || m === "w_turn" || m === "sit_turn";
     const wT = busyBody ? 0.35 : 1;
     const k = 1 - Math.exp(-dt * 4.5);
