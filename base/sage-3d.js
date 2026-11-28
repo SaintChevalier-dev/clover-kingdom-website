@@ -1672,7 +1672,7 @@ async function boot() {
     tool.update = (dt, want) => {
       if (want && !tool.on) { tool.on = true; tool.clock = 0; tool.sparkle(); if (o.onSummon) o.onSummon(tool); }
       if (!want && tool.on) { tool.on = false; tool.sparkle(); if (o.onDismiss) o.onDismiss(tool); }
-      const goal = tool.on ? 1 : 0; tool.alpha += (goal - tool.alpha) * Math.min(1, dt * (tool.on ? 5 : 3.5)); if (Math.abs(goal - tool.alpha) < 0.01) tool.alpha = goal;
+      const goal = tool.on ? 1 : 0; tool.alpha += (goal - tool.alpha) * Math.min(1, dt * (tool.on ? 5 : 3.5)); if (Math.abs(goal - tool.alpha) < (tool.on ? 0.01 : 0.04)) tool.alpha = goal;
       const lingering = o.lingering ? o.lingering(tool) : false;
       tool.root.visible = (tool.alpha > 0.01 || tool.burst > 0 || lingering) && (o.visibleWhen ? o.visibleWhen() : true);
       if (!tool.root.visible) return;
@@ -1705,7 +1705,7 @@ async function boot() {
       build: (T) => {
         const gold = new T.MeshStandardMaterial({ color: 0xf0c14b, emissive: 0xb07a14, emissiveIntensity: 0.85, roughness: 0.35, metalness: 0.75, transparent: true, side: T.DoubleSide });
         const vaneM = new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xd9a030, emissiveIntensity: 0.7, roughness: 0.5, metalness: 0.3, transparent: true, side: T.DoubleSide, depthWrite: false });
-        const g = new T.Group(), tilt = new T.Group(); tilt.rotation.set(0.35, 0, -0.55); tilt.scale.setScalar(1.5); g.add(tilt); /* nib at the origin, feather rises up and back */
+        const g = new T.Group(), tilt = new T.Group(); tilt.rotation.set(0.3, 0, 0.5); tilt.scale.setScalar(1.25); g.add(tilt); /* nib at the origin, feather rises up and back */
         const shaft = new T.Mesh(new T.CylinderGeometry(0.0022, 0.0046, 0.2, 8), gold); shaft.position.y = 0.1; tilt.add(shaft);
         const nib = new T.Mesh(new T.ConeGeometry(0.0034, 0.02, 8), gold); nib.rotation.x = Math.PI; tilt.add(nib);
         const sh = new T.Shape(); sh.moveTo(0, 0.05); sh.bezierCurveTo(0.03, 0.08, 0.036, 0.16, 0.004, 0.27); sh.bezierCurveTo(-0.004, 0.2, -0.004, 0.12, 0, 0.05);
