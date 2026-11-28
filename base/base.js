@@ -261,9 +261,15 @@ const why = new URLSearchParams(location.search).get("login") || hashWhy;
 if (why) history.replaceState(null, "", location.pathname + location.hash);
 
 const hasLogin = !!(loginBtn && logoutBtn);
+/* Sage is the only public door: the page links to the rest of the site show only after login. Privacy stays public. */
+function setMemberLinks(on) {
+  const el = document.getElementById("member-links");
+  if (el) el.hidden = !on;
+}
 function showSignedOut(msg) {
   session = null;
   if (!hasLogin) { setGuestChrome(); return; }
+  setMemberLinks(false);
   if (statusEl) statusEl.textContent = msg || "";
   loginBtn.hidden = false;
   logoutBtn.hidden = true;
@@ -273,6 +279,7 @@ function showSignedOut(msg) {
 function showSignedIn(me) {
   session = me;
   if (!hasLogin) { setGuestChrome(); return; }
+  setMemberLinks(true);
   if (statusEl) statusEl.textContent = "";
   loginBtn.hidden = true;
   logoutBtn.hidden = true;

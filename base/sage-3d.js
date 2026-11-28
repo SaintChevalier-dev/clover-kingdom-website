@@ -831,12 +831,12 @@ async function boot() {
 
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: window.innerWidth > 700, alpha: false, powerPreference: "low-power" });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !LITE, alpha: false, powerPreference: "low-power" });
   } catch (e) { failTo2D(e && e.message); return; }
 
-  renderer.setPixelRatio(Math.min(LITE ? 1.25 : 1.5, window.devicePixelRatio || 1));
+  renderer.setPixelRatio(Math.min(LITE ? 1 : 1.5, window.devicePixelRatio || 1));
   renderer.setSize(window.innerWidth, window.innerHeight, false);
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = !LITE;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -845,7 +845,7 @@ async function boot() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07070a);
   scene.fog = new THREE.FogExp2(0x07070a, 0.085);
-  try { scene.environment = makeEnvironment(renderer); scene.environmentIntensity = 0.55; } catch (e) {}
+  if (!LITE) { try { scene.environment = makeEnvironment(renderer); scene.environmentIntensity = 0.55; } catch (e) {} }
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
   let narrow = layoutYard(yard, camera, renderer);
@@ -854,8 +854,8 @@ async function boot() {
   /* Key: warm, from the table side, soft shadows. */
   const key = new THREE.SpotLight(0xffd6a0, 14, 12, 0.5, 0.8, 1.4);
   key.position.set(1.4, 3.4, 3.2);
-  key.castShadow = true;
-  key.shadow.mapSize.set(LITE ? 512 : 1024, LITE ? 512 : 1024);
+  key.castShadow = !LITE;
+  key.shadow.mapSize.set(LITE ? 256 : 1024, LITE ? 256 : 1024);
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.02;
   key.shadow.radius = 4;
@@ -872,12 +872,12 @@ async function boot() {
   lantern.position.set(0, 1.2, 0);
   scene.add(lantern);
 
-  const floorTex = makeFlagstones(LITE ? 512 : 1024);
-  floorTex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+  const floorTex = makeFlagstones(LITE ? 256 : 1024);
+  floorTex.anisotropy = Math.min(LITE ? 1 : 4, renderer.capabilities.getMaxAnisotropy());
   const floorMat = new THREE.MeshLambertMaterial({ map: floorTex, color: 0xffffff }); /* matte stone, no grazing sheen */
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(8, 72), floorMat);
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(8, LITE ? 48 : 72), floorMat);
   floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
+  floor.receiveShadow = !LITE;
   scene.add(floor);
   /* Flagstone ring under the table. */
   const ring = new THREE.Mesh(new THREE.RingGeometry(0.95, 1.0, 64), new THREE.MeshStandardMaterial({ color: 0x8a6a2c, roughness: 0.5, metalness: 0.6 }));
@@ -898,7 +898,7 @@ async function boot() {
   table.add(top, lip, pedestal, tableCrest);
   scene.add(table);
 
-  const motes = LITE ? makeMotes(60) : makeMotes(160);
+  const motes = LITE ? makeMotes(24) : makeMotes(160);
   scene.add(motes);
 
   let sage = null, usingGLB = false, mixer = null, clips = {};
@@ -1164,7 +1164,7 @@ async function boot() {
   function onResize() {
     narrow = layoutYard(yard, camera, renderer);
     closeCam();
-    renderer.setPixelRatio(Math.min(LITE ? 1.25 : 1.5, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(LITE ? 1 : 1.5, window.devicePixelRatio || 1));
   }
   window.addEventListener("resize", onResize);
 
