@@ -26,7 +26,18 @@ function load() {
   return null;
 }
 function save() { try { sessionStorage.setItem(POS_KEY, JSON.stringify(pos)); } catch (_) {} }
+const reduceMotion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+const ROLL_MS = 520;
+let rollTimer = 0;
+function isOpen() { return document.body.classList.contains("sage-open"); }
+/* While the chat is open the crest is the scroll's wax seal: it docks on the scroll's top roller (not saved, the visitor's spot comes back on close). */
+function dock() {
+  const r = scroll.getBoundingClientRect(), s = size();
+  book.style.left = Math.round(r.left + r.width / 2 - s.w / 2) + "px";
+  book.style.top = Math.round(r.top - s.h / 2 + 2) + "px";
+}
 function apply() {
+  if (isOpen() && !scroll.hidden) { dock(); return; }
   pos = clampPos(pos || defaultPos());
   book.style.left = pos.x + "px";
   book.style.top = pos.y + "px";
@@ -36,7 +47,7 @@ function apply() {
 /* Put the scroll beside the book: right if it fits, else left; if neither, above or below. */
 function place() {
   if (scroll.hidden) return;
-  if (document.body.classList.contains("sage-open")) { scroll.removeAttribute("style"); scroll.setAttribute("data-side", "center"); return; } /* focus mode: CSS centers it */
+  if (document.body.classList.contains("sage-open")) { scroll.removeAttribute("style"); scroll.setAttribute("data-side", "center"); dock(); return; } /* focus mode: CSS centers it */
   const W = vw(), H = vh(), b = book.getBoundingClientRect();
   const sw = Math.min(360, W - 2 * EDGE);
   scroll.style.width = sw + "px";
@@ -68,7 +79,11 @@ function place() {
 
 function open() {
   const first = !(window.CKWSageChat && window.CKWSageChat.started());
+  clearTimeout(rollTimer);
+  scroll.classList.remove("sage-rolling-up");
   scroll.hidden = false;
+  /* the scroll unrolls down from the seal */
+  if (!reduceMotion.matches) { scroll.classList.remove("sage-unrolling"); void scroll.offsetWidth; scroll.classList.add("sage-unrolling"); rollTimer = setTimeout(() => scroll.classList.remove("sage-unrolling"), ROLL_MS + 340); }
   book.setAttribute("aria-expanded", "true");
   document.body.classList.add("sage-open");
   if (window.CKWSageChat) window.CKWSageChat.start();
@@ -76,10 +91,20 @@ function open() {
   if (input) input.focus({ preventScroll: true });
   if (first) book.classList.add("sage-book-used");
 }
-function close(focusBook) {
+function finishClose() {
   scroll.hidden = true;
-  book.setAttribute("aria-expanded", "false");
+  scroll.classList.remove("sage-rolling-up", "sage-unrolling");
   document.body.classList.remove("sage-open");
+  apply(); /* the seal goes back to the visitor's spot */
+}
+function close(focusBook) {
+  if (scroll.hidden) return;
+  book.setAttribute("aria-expanded", "false");
+  clearTimeout(rollTimer);
+  scroll.classList.remove("sage-unrolling");
+  /* the scroll rolls back up into the seal, then the seal returns */
+  if (reduceMotion.matches) finishClose();
+  else { scroll.classList.add("sage-rolling-up"); rollTimer = setTimeout(finishClose, ROLL_MS); }
   if (focusBook) book.focus();
 }
 
@@ -90,6 +115,7 @@ book.addEventListener("pointerdown", (e) => {
 });
 book.addEventListener("pointermove", (e) => {
   if (!drag || e.pointerId !== drag.id) return;
+  if (isOpen()) return; /* docked as the scroll's seal: a tap closes, no dragging */
   const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
   if (!drag.moved && Math.hypot(dx, dy) < DRAG_PX) return;
   drag.moved = true;
@@ -109,13 +135,13 @@ book.addEventListener("pointercancel", endDrag);
 /* click fires for a tap, a mouse click, and Enter/Space; a drag never opens the scroll */
 book.addEventListener("click", (e) => {
   if (suppressClick) { e.preventDefault(); suppressClick = false; return; }
-  if (scroll.hidden) open(); else close(false);
+  if (scroll.hidden || scroll.classList.contains("sage-rolling-up")) open(); else close(false);
 });
 /* arrow keys move the book (Shift = bigger steps) */
 book.addEventListener("keydown", (e) => {
   const step = e.shiftKey ? 64 : 16;
   const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
-  if (!d) return;
+  if (!d || isOpen()) return;
   e.preventDefault();
   pos = { x: pos.x + d[0], y: pos.y + d[1] };
   apply(); save();

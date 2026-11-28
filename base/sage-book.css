@@ -53,7 +53,8 @@
    and the last-edited date. The top bar with Essence Tracks never goes away. X or Esc restores the text. */
 body.sage-open main { visibility: hidden; }
 body.sage-open #sage-scroll { visibility: visible; }
-body.sage-open #sage-book { visibility: hidden; }
+/* the crest stays: it is the scroll's wax seal, docked on the top roller (sage-book.js dock()) */
+body.sage-open #sage-book { visibility: visible; z-index: 31; transition: left .35s ease, top .35s ease; }
 body.sage-open .ck-topbar { visibility: visible; }
 body.sage-open #sage-scroll {
   /* desktop: right side, so 3D Sage in the middle stays in view */
@@ -122,3 +123,62 @@ body.sage-open #sage-scroll .sage-log, .sage-scroll .sage-log { margin-top: 30px
 }
 .sage-hints button:focus-visible { outline: 2px solid #ffd98a; outline-offset: 2px; }
 body.sage-open #sage-scroll .sage-hints { flex: 0 0 auto; }
+
+/* ===== The seal's parchment scroll (Jacob, Nov 28): pressing the crest unrolls a parchment scroll that hangs from the seal;
+   the chat (input, dictation, Send, quick questions, Sage's Library) lives on it; closing rolls it back up into the seal. ===== */
+body.sage-open #sage-scroll {
+  padding: 10px 18px; border-radius: 0; color: #2b1d0e; text-shadow: none; overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255,250,232,.55), rgba(255,250,232,0) 70%) center / calc(100% - 14px) calc(100% - 16px) no-repeat,
+    radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 62%, rgba(120,78,30,.35) 100%) center / calc(100% - 14px) calc(100% - 16px) no-repeat,
+    linear-gradient(90deg, #d9bf88, #efdcae 8%, #f3e4bd 50%, #ecd7a6 92%, #d4b77c) center / calc(100% - 14px) calc(100% - 16px) no-repeat;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.6));
+}
+body.sage-open #sage-scroll .scroll-rod {
+  height: 12px; border-radius: 6px; margin: -10px -18px 2px; box-shadow: 0 2px 4px rgba(0,0,0,.45);
+  background: linear-gradient(180deg, #8a5a26, #c9944f 35%, #6e4119 70%, #4a2a0f);
+}
+body.sage-open #sage-scroll .scroll-rod:last-child { margin: 2px -18px -10px; }
+body.sage-open #sage-scroll .msg { color: #2b1d0e; text-shadow: none; }
+body.sage-open #sage-scroll .msg-sage { border-left-color: #8a5a1c; }
+body.sage-open #sage-scroll .msg-you { color: #5a1f12; border-right-color: rgba(122,36,20,.6); }
+body.sage-open #sage-scroll a, body.sage-open #sage-scroll .msg a { color: #7a2414; }
+body.sage-open #sage-scroll .sage-form input, body.sage-open #sage-scroll .sage-edit-login input { color: #2b1d0e; text-shadow: none; border-bottom-color: #8a5a1c; }
+body.sage-open #sage-scroll input::placeholder { color: #6b5a3e; }
+body.sage-open #sage-scroll .btn, body.sage-open #sage-scroll .sage-form .btn, body.sage-open #sage-scroll .sage-hints button,
+body.sage-open #sage-scroll .sage-edit-actions .btn, body.sage-open #sage-scroll .sage-edit-choice { color: #6b1d12; border-color: rgba(122,72,28,.75); text-shadow: none; background: rgba(255,248,228,.35); }
+body.sage-open #sage-scroll .sage-scroll-close { color: #6b1d12; text-shadow: none; top: 12px; right: 12px; }
+body.sage-open #sage-scroll .sage-edit-title, body.sage-open #sage-scroll .sage-edit-label { color: #5a1f12; }
+body.sage-open #sage-scroll .sage-edit-path { color: #6b4a1c; }
+body.sage-open #sage-scroll .sage-log { scrollbar-color: #9a7a44 transparent; }
+body.sage-open #sage-scroll :focus-visible { outline-color: #7a2414; }
+body.sage-open #sage-scroll .sl-panel { background: rgba(255,250,236,.45); border-color: rgba(122,72,28,.5); color: #2b1d0e; }
+body.sage-open #sage-scroll .sl-panel > summary, body.sage-open #sage-scroll .sl-propose summary { color: #6b1d12; }
+body.sage-open #sage-scroll .sl-note, body.sage-open #sage-scroll .sl-small, body.sage-open #sage-scroll .sl-reason { color: #4a3a22; }
+body.sage-open #sage-scroll .sl-panel input, body.sage-open #sage-scroll .sl-panel textarea { background: #fffaf0; color: #2b1d0e; border-color: #a88a52; }
+body.sage-open #sage-scroll .sl-btn { background: #6b1d12; color: #f8ecd0; border-color: #4a120a; }
+body.sage-open #sage-scroll .sl-answer { background: rgba(122,72,28,.08); border-left-color: #8a5a1c; }
+body.sage-open #sage-scroll .sl-src { color: #6b5a3e; }
+body.sage-open #sage-scroll .sl-written, body.sage-open #sage-scroll .sl-queued { color: #2f6a25; }
+body.sage-open #sage-scroll .sl-rejected, body.sage-open #sage-scroll .sl-refused, body.sage-open #sage-scroll .sl-error { color: #8a2a14; }
+body.sage-open #sage-scroll .sl-flagged { color: #7a5a10; }
+/* unroll from the seal: the paper reveals top-down while the lower roller travels down; rolling up is the reverse */
+@keyframes sage-unroll { from { clip-path: inset(0 0 calc(100% - 14px) 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes sage-rollup { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 calc(100% - 14px) 0); } }
+@keyframes sage-rod-down { from { top: 0; } to { top: calc(100% - 12px); } }
+@keyframes sage-rod-up { from { top: calc(100% - 12px); } to { top: 0; } }
+body.sage-open #sage-scroll.sage-unrolling { animation: sage-unroll .52s cubic-bezier(.3,.7,.3,1) .28s both; } /* waits for the seal to dock */
+body.sage-open #sage-scroll.sage-rolling-up { animation: sage-rollup .52s cubic-bezier(.6,0,.8,.4) both; }
+body.sage-open #sage-scroll.sage-unrolling::after, body.sage-open #sage-scroll.sage-rolling-up::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 12px; border-radius: 6px; pointer-events: none;
+  background: linear-gradient(180deg, #8a5a26, #c9944f 35%, #6e4119 70%, #4a2a0f); box-shadow: 0 2px 4px rgba(0,0,0,.45);
+}
+body.sage-open #sage-scroll.sage-unrolling::after { animation: sage-rod-down .52s cubic-bezier(.3,.7,.3,1) .28s both; }
+body.sage-open #sage-scroll.sage-rolling-up::after { animation: sage-rod-up .52s cubic-bezier(.6,0,.8,.4) both; }
+body.sage-open #sage-scroll.sage-unrolling .scroll-rod:last-child, body.sage-open #sage-scroll.sage-rolling-up .scroll-rod:last-child { visibility: hidden; }
+@media (min-width: 721px) { body.sage-open #sage-scroll { top: 64px; } }
+@media (max-width: 720px) {
+  body.sage-open #sage-scroll { padding: 10px 14px; }
+  body.sage-open #sage-scroll .scroll-rod { margin-left: -14px; margin-right: -14px; }
+}
+@media (prefers-reduced-motion: reduce) { body.sage-open #sage-scroll.sage-unrolling, body.sage-open #sage-scroll.sage-rolling-up { animation: none; } body.sage-open #sage-book { transition: none; } }
