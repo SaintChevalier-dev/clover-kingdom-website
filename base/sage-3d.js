@@ -1910,8 +1910,32 @@ async function boot() {
     }
     const rot = (b, x, y, z) => { if (!b || (!x && !y && !z)) return; _e.set(x, y, z); b.quaternion.multiply(_q.setFromEuler(_e)); };
     let shiftPh = Math.random() * 6, tiltV = 0, tiltT = 0, tiltGoal = 0, nextTilt = 4;
+    /* Getting up / sitting down: Meshy's Sit_to_Stand / Stand_to_Sit cock the right wrist ~45 deg and twist it the other way mid-rise, with no
+       forearm twist bones to spread it, so the forearm armour kinks. Her arms do no work in these clips (she rises from the legs), so the arm
+       chain is blended toward the calm standing hold (Stand_Wait frame 0, which reads well): hands early, upper/fore arm as she straightens.
+       Sit_Down is the mirror (from the hold, released into the seated pose late). ?armsolve=0 turns it off for comparison. */
+    const HOLD = new Map();
+    { const sw = clips["Stand_Wait"]; if (sw) for (const k of ["RightArm", "RightForeArm", "RightHand", "LeftArm", "LeftForeArm", "LeftHand"]) {
+        const b = by[k]; if (!b) continue; const tr = sw.tracks.find((t) => t.name === b.name + ".quaternion"); if (!tr) continue;
+        HOLD.set(k, new THREE.Quaternion().fromArray(tr.values, 0)); } }
+    const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    const ARMW = { Right: { arm: 1, hand: 1 }, Left: { arm: 0.6, hand: 1 } };
+    function solveArms() {
+      if (flags.armsolve === "0" || !action || !HOLD.size) return;
+      const c = currentClip, d = action.getClip().duration || 1, u = Math.min(1, action.time / d);
+      let wa = 0, wh = 0;
+      if (c === "Stand_Up") { wh = sm(0.08, 0.4, u); wa = sm(0.3, 0.72, u); }
+      else if (c === "Sit_Down") { wh = 1 - sm(0.62, 0.95, u); wa = 1 - sm(0.45, 0.85, u); }
+      else return;
+      for (const side of ["Right", "Left"]) {
+        const W = ARMW[side];
+        for (const [k, w] of [[side + "Arm", wa * W.arm], [side + "ForeArm", wa * W.arm], [side + "Hand", Math.max(wh, wa) * W.hand]]) {
+          const b = by[k], q = HOLD.get(k); if (b && q && w > 0) b.quaternion.slerp(q, w);
+        }
+      }
+    }
     return {
-      T, by,
+      T, by, solveArms,
       restore() { if (saved) for (const [b, q] of base) b.quaternion.copy(q); },
       apply(dt, mode) {
         for (const b of used) { if (!base.has(b)) base.set(b, new THREE.Quaternion()); base.get(b).copy(b.quaternion); } saved = true;
@@ -1953,7 +1977,7 @@ async function boot() {
         const ax = f ? (-0.07 * f.think + 0.05 * f.attentive) : 0, az = f ? (0.07 * f.think + 0.035 * f.smile) : 0;
         rot(gazeBones.h, ax * T.w, 0, (tiltV + az) * T.w);
       }, /* after the gaze has saved its pose, so the tilt never accumulates */
-      limit() { if (T.nolimit) return; for (const [k, s1, t1] of LIM) if (by[k]) clampBone(by[k], s1, t1); }
+      limit() { solveArms(); if (T.nolimit) return; for (const [k, s1, t1] of LIM) if (by[k]) clampBone(by[k], s1, t1); }
     };
   })();
 
