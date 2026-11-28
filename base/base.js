@@ -415,6 +415,18 @@ if (form) form.addEventListener("submit", async (e) => {
   input.value = "";
   const who = visitor();
   const mine = say("you", q);
+  /* Allowed actions by talking (sage-actions.js): a short ask for a whitelisted move is answered here and performed, so her words
+     and her body agree; longer messages still go to the server and the move is added to her reply. Animation only. */
+  const AX = window.CKWSageActions, cmd = AX && !CRISIS_RE.test(q) ? AX.match(q) : null;
+  if (cmd && AX.words(q) <= 16) {
+    const r = AX.perform(cmd, q);
+    const last = say("sage", r.line);
+    if (last) last.setAttribute("data-source", "action");
+    if (r.did !== "stand" && r.did !== "stretch") act("nod"); /* she answers as she moves; getting up needs no talk pause */
+    silentWrite(q, r.line);
+    busy = false;
+    return;
+  }
   act("think");
   const p = document.createElement("p");
   p.className = "msg msg-sage msg-thinking";
@@ -428,7 +440,11 @@ if (form) form.addEventListener("submit", async (e) => {
   const res = await answer(q);
   form.removeAttribute("aria-busy");
   p.remove();
-  const a = res.reply;
+  let a = res.reply;
+  if (AX && !CRISIS_RE.test(q)) {
+    if (cmd) { const r = AX.perform(cmd, q), f = AX.fromReply(a, r.did); const t = r.did ? r.line + " " + f.text : f.text + " " + r.line; if (t !== a) a = t.trim(); }
+    else { const f = AX.fromReply(a, null); if (f.text !== a) a = f.text; }
+  }
   let last;
   if (a === JOIN_STEPS) last = say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });
   else if (!res.live && a === NO_ANSWER) last = say("sage", a, { href: DISCORD_URL, label: "Open the Discord" });

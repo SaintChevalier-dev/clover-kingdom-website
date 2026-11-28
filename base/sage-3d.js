@@ -1811,6 +1811,7 @@ async function boot() {
   const rigGo = (m) => { D.mode = m; D.t = 0; };
   function noteActive() {
     D.lastActive = D.clock;
+    if (D.clock < (D.cmdSitUntil || 0)) return; /* asked to sit: typing to her does not pull her back up */
     if (RIG && D.auto && (D.mode === "seated" || D.mode === "sitting" || D.mode === "sit_turn")) D.wantStand = true;
   }
   /* ---- gaze: her head only ever aims at something real: the visitor (camera + pointer), the chat while they type, or the book ---- */
@@ -2153,14 +2154,14 @@ async function boot() {
         const st = D.t; FW.stretch = st < 0.6 ? 0 : st < 3.6 ? Math.sin(Math.min(1, (st - 0.6) / 3) * Math.PI) : 0;
         if (D.t > FW.standDur || D.talk || busy) { FW.self = false; FW.stretch = 0; if (!D.talk && !busy && CAN_SIT && idleS > 2) { fwLog("sit_back"); rigGo("sit_turn"); return; } }
       } else turnTo(camYaw(), dt, 2.2);
-      D.standRead = !FW.self && !D.talk && !busy && idleS > 8 && D.clock - G.lastType > 8; /* nothing asked of her: she opens the book rather than stare */
+      D.standRead = (D.clock < (D.cmdReadUntil || 0) && !busy) || (!FW.self && !D.talk && !busy && idleS > 8 && D.clock - G.lastType > 8); /* nothing asked of her: she opens the book rather than stare */
       sage.position.x += (D.A.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.A.z - sage.position.z) * Math.min(1, dt * 4);
       const wantTalk = D.talk && D.clock < D.talkUntil;
       playClip(wantTalk ? "Talk_with_Hands_Open" : "Stand_Wait", true);
       if (D.talk && !wantTalk) { D.talk = false; if (D.onTalkDone) { const f = D.onTalkDone; D.onTalkDone = null; f(); } }
       const wantWrite = D.forceWrite || (busy && !D.talk && D.clock - D.busyClock > WRITE_AFTER_S) || (!D.talk && D.clock < D.noteUntil);
       if (wantWrite && !reduce.matches) { D.forceWrite = false; D.noteUntil = 0; rigGo("writing"); D.leaving = false; }
-      else if (!FW.self && CAN_SIT && (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S))) { D.forceSit = false; D.standRead = false; rigGo("sit_turn"); }
+      else if (!FW.self && CAN_SIT && (D.forceSit || (D.auto && !busy && !D.talk && !chatOpen() && idleS > IDLE_SIT_S && D.clock >= (D.cmdStandUntil || 0)))) { D.forceSit = false; D.standRead = false; rigGo("sit_turn"); }
     } else if (m === "sit_turn") {
       const d = turnTo(D.A.yaw, dt, 2.6);
       if (D.wantStand && D.auto) { D.wantStand = false; FW.self = false; rigGo("standing"); return; }
@@ -2179,6 +2180,7 @@ async function boot() {
           if (a === "note") D.noteUntil = D.clock + 4 + Math.random() * 3;           /* the mind-quill writes a note */
           else if (a === "closeopen") FW.closeUntil = D.clock + 1.4 + Math.random();  /* closes it, a breath, opens it again */
           else if (a === "adjust") FW.adj = 1;                                         /* lifts and settles the floating book */
+          else if (a === "stretch" && D.clock < (D.cmdSitUntil || 0)) D.noteUntil = D.clock + 4; /* asked to stay seated: a note instead of getting up */
           else if (a === "stretch") { FW.self = true; FW.standDur = 6 + Math.random() * 4; D.wantStand = true; }
         }
       }
@@ -2195,13 +2197,35 @@ async function boot() {
       playClip("Stand_Wait", true);
       if ((!busy && D.t > 2.4 && D.clock >= D.noteUntil) || (D.talk && D.clock < D.talkUntil) || D.leaving) { D.leaving = false; rigGo("standing"); }
     }
-    if (m === "standing" || m === "w_turn" || m === "writing") { /* keep her root on the right spot when coming back */ }
+    if (FW.pageReq && FW.flip < 0 && openT > 0.95 && (D.bookMode === "read" || D.bookMode === "standread")) { FW.pageReq = false; FW.flip = 0; fwLog("page_asked"); }
     updateBook(dt);
   }
   /* chat events -> director (replaces the old wander/walk reactions on the rigged model) */
+  /* ---- Allowed actions by talking (sage-actions.js matches the visitor's words or Sage's own reply; this only moves her).
+     A fixed whitelist of animation intents; nothing here touches chat, auth, storage or the network. ---- */
+  const BODY_ACTIONS = ["sit", "stand", "read", "page", "note", "close", "open", "look", "smile", "stretch"];
+  function bodyDo(id) {
+    if (!RIG || D.mode === "boot" || D.mode === "fallback" || D.mode === "debug" || !BODY_ACTIONS.includes(id)) return { ok: false };
+    const m = D.mode, seatedish = m === "seated" || m === "sitting" || m === "sit_turn", c = D.clock;
+    let already = false;
+    if (id === "sit") { already = seatedish; D.cmdSitUntil = c + 120; D.cmdStandUntil = 0; D.wantStand = false; D.forceStand = false; FW.self = false; FW.stretch = 0; if (!seatedish) D.forceSit = true; }
+    else if (id === "stand") { already = !seatedish && m !== "rising"; D.cmdSitUntil = 0; D.cmdStandUntil = c + 60; D.lastActive = c; if (seatedish) { D.wantStand = true; D.forceStand = true; } }
+    else if (id === "read") { FW.closeUntil = 0; D.noteUntil = 0; if (!seatedish) D.cmdReadUntil = c + 25; }
+    else if (id === "page") { FW.closeUntil = 0; FW.pageReq = true; if (!seatedish) D.cmdReadUntil = c + 25; }
+    else if (id === "note") { FW.closeUntil = 0; D.noteUntil = c + 5; }
+    else if (id === "close") { already = c < FW.closeUntil; FW.closeUntil = c + 25; }
+    else if (id === "open") { already = c >= FW.closeUntil && seatedish; FW.closeUntil = 0; if (!seatedish) D.cmdReadUntil = c + 25; }
+    else if (id === "look") { G.glanceUntil = c + 5; G.glanceCool = c + 8; G.lastPointer = c; D.lastActive = c; if (FACE) FACE.cue("attentive", 2.5, true); }
+    else if (id === "smile") { if (FACE) FACE.cue("smile", 3, true); }
+    else if (id === "stretch") { FW.self = true; FW.standDur = 6 + Math.random() * 3; D.cmdSitUntil = 0; if (seatedish) D.wantStand = true; else if (m === "standing") rigGo("standing"); }
+    fwLog("asked_" + id);
+    return { ok: true, already, mode: m };
+  }
+  window.CKWSageBody = { actions: () => BODY_ACTIONS.slice(), ready: () => !!RIG && D.mode !== "boot" && D.mode !== "fallback", do: bodyDo, mode: () => D.mode };
+
   function directorAct(name) {
     if (name === "pulse") { haloPulse = 1; return; }
-    if (name === "listen") { noteActive(); G.lastType = D.clock; if (D.mode === "seated" && !busy) D.wantStand = true; return; }
+    if (name === "listen") { noteActive(); G.lastType = D.clock; if (D.mode === "seated" && !busy && D.clock >= (D.cmdSitUntil || 0)) D.wantStand = true; return; }
     /* a reply is in flight: she writes straight away (seated: the book comes down to the table in front of her; standing: she turns to the table) */
     if (name === "think") { busy = true; D.busyClock = D.clock; D.lastActive = D.clock; D.wantStand = false; if (D.mode === "standing") D.forceWrite = true; return; }
     if (name === "teach" || name === "nod") {
