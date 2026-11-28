@@ -1544,6 +1544,7 @@ async function boot() {
     scoot: () => (RIG ? D.scootV : (ix && ix.scoot) || 0),
     rig: () => (RIG ? { mode: D.mode, t: +D.t.toFixed(2), talk: D.talk, busy, gaze: G.target, gy: +G.yaw.toFixed(2), gp: +G.pitch.toFixed(2), book: D.bookMode, scoot: +D.scootV.toFixed(2), clip: currentClip, tuck: +tuck.toFixed(2), x: +sage.position.x.toFixed(2), z: +sage.position.z.toFixed(2), yaw: +yaw.toFixed(2) } : null),
     gazeBias: (y, p) => { G.biasY = y; G.biasP = p; },
+    face: (n, d) => (FACE ? (n ? (n === "blink" ? null : FACE.cue(n, d || 3, true)) : FACE.state()) : null),
     fw: (o) => { if (o) { if (o.act) { FW.next = 0; FW.force = o.act; } if (o.page) FW.nextPage = 0; } return { act: FW.act, self: FW.self, stretch: +FW.stretch.toFixed(2), flip: +FW.flip.toFixed(2), log: FW.log.slice(-8) }; },
     alive: (o) => { if (!ALIVE) return null; if (o) Object.assign(ALIVE.T, o); return { off: ALIVE.T.off, nolimit: ALIVE.T.nolimit, tweak: ALIVE.T.tweak }; },
     scrub: (name, t) => { if (!RIG) return; D.mode = "debug"; mixer.stopAllAction(); action = null; playClip(name, false); if (action) { action.stop(); action.play(); action.setEffectiveWeight(1); action.time = t; action.paused = true; } },
@@ -1942,9 +1943,56 @@ async function boot() {
           rot(by.LeftForeArm, 0.25 * sx, 0, 0); rot(by.RightForeArm, 0.25 * sx, 0, 0); }
         for (const k in T.tweak) { const v = T.tweak[k]; rot(by[k], v[0] || 0, v[1] || 0, v[2] || 0); }
       },
-      post() { if (!T.off && gazeBones) rot(gazeBones.h, 0, 0, tiltV * T.w); }, /* after the gaze has saved its pose, so the tilt never accumulates */
+      post() {
+        if (T.off || !gazeBones) return;
+        /* the face morphs are small on this low-poly head, so each expression also carries a matching head accent that reads at room distance:
+           thinking = chin lifts a touch with a tilt, attentive = a small lean in, smile = a soft tilt */
+        const f = FACE ? FACE.cur : null;
+        const ax = f ? (-0.07 * f.think + 0.05 * f.attentive) : 0, az = f ? (0.07 * f.think + 0.035 * f.smile) : 0;
+        rot(gazeBones.h, ax * T.w, 0, (tiltV + az) * T.w);
+      }, /* after the gaze has saved its pose, so the tilt never accumulates */
       limit() { if (T.nolimit) return; for (const [k, s1, t1] of LIM) if (by[k]) clampBone(by[k], s1, t1); }
     };
+  })();
+
+  /* ================= Face: blink + a few expressions (morph targets baked in Blender: blink, smile, think, attentive) =================
+     Weighted, never constant: natural blinking every few seconds; now and then a thinking look while she reads or while a reply is being
+     written; a small smile when she greets or finishes a reply; an attentive lift when the pointer earns a glance (throttled, see pointermove). */
+  FACE = (() => {
+    if (!RIG) return null;
+    let mesh = null; sage.traverse((o) => { if (!mesh && o.isMesh && o.morphTargetDictionary && o.morphTargetDictionary.blink != null) mesh = o; });
+    if (!mesh) return null;
+    const idx = mesh.morphTargetDictionary, inf = mesh.morphTargetInfluences;
+    const MAXW = { blink: LITE ? 0.8 : 1, smile: 1.5, think: 1.4, attentive: 1.4 }; /* >1 on purpose: the baked deltas are only a few mm */
+    if (+flags.facegain > 0) { for (const k of ["smile", "think", "attentive"]) MAXW[k] *= +flags.facegain; }
+    const cur = { smile: 0, think: 0, attentive: 0 }, until = { smile: 0, think: 0, attentive: 0 }, cool = { smile: 0, think: 0, attentive: 0 };
+    let nextBlink = 1.5 + Math.random() * 3, blinkT = -1, dbl = false, nextThink = 12 + Math.random() * 15, busyThink = false, wasBusy = false;
+    const api = {
+      cur,
+      cue(name, dur, force) { if (!(name in cur)) return false; if (!force && D.clock < cool[name]) return false; until[name] = D.clock + dur; cool[name] = D.clock + dur + (name === "attentive" ? 8 : 6); return true; },
+      state: () => ({ blink: +inf[idx.blink].toFixed(2), smile: +cur.smile.toFixed(2), think: +cur.think.toFixed(2), attentive: +cur.attentive.toFixed(2) }),
+      update(dt) {
+        if (reduce.matches) { for (const k in idx) inf[idx[k]] = 0; return; }
+        /* blink: quick close, slower open; sometimes a double blink */
+        nextBlink -= dt;
+        if (blinkT < 0 && nextBlink <= 0) { blinkT = 0; dbl = Math.random() < 0.15; nextBlink = 2.2 + Math.random() * 4.5; }
+        let b = 0;
+        if (blinkT >= 0) { blinkT += dt; const T1 = 0.07, T2 = 0.19; b = blinkT < T1 ? blinkT / T1 : blinkT < T2 ? 1 - (blinkT - T1) / (T2 - T1) : 0; if (blinkT >= T2) { blinkT = -1; if (dbl) { dbl = false; nextBlink = 0.12; } } }
+        inf[idx.blink] = b * MAXW.blink;
+        /* reading: an occasional thinking look */
+        if (D.mode === "seated" && D.bookMode === "read" && !D.talk) { nextThink -= dt; if (nextThink <= 0) { nextThink = 15 + Math.random() * 25; if (Math.random() < 0.45) api.cue("think", 2.5 + Math.random() * 2); } }
+        /* a reply being written: she thinks while the quill works (most of the time) */
+        if (busy && !wasBusy) busyThink = Math.random() < 0.7; wasBusy = busy;
+        for (const k in cur) {
+          let goal = D.clock < until[k] ? 1 : 0;
+          if (k === "think" && busy && busyThink) goal = 0.85;
+          if (k !== "smile" && cur.smile > 0.3) goal *= 0.4; /* a smile wins over the others */
+          cur[k] += (goal - cur[k]) * Math.min(1, dt * (goal > cur[k] ? 5 : 2.5));
+          inf[idx[k]] = cur[k] * MAXW[k];
+        }
+      }
+    };
+    return api;
   })();
   for (const ev of ["pointermove", "pointerdown", "wheel", "touchstart", "scroll"]) window.addEventListener(ev, (e) => {
     if (e && e.clientX != null) { G.ndc.x = (e.clientX / window.innerWidth) * 2 - 1; G.ndc.y = -(e.clientY / window.innerHeight) * 2 + 1; }
@@ -2034,7 +2082,7 @@ async function boot() {
       if (cur !== tgt) { const st = dt / SCOOT_T; setScootPos(Math.abs(tgt - cur) <= st ? tgt : cur + Math.sign(tgt - cur) * st); }
       if (goOut && D.scootV === 0) { D.wantStand = false; D.forceStand = false; rigGo("rising"); playT("Stand_Up"); D.dur = clipDur("Stand_Up"); }
     } else if (m === "rising") {
-      if (D.t >= D.dur - 0.05) { D.lastActive = Math.max(D.lastActive, D.clock - 10); rigGo("standing"); playClip("Stand_Wait", true); } /* stay up at least ~15 s after rising */
+      if (D.t >= D.dur - 0.05) { D.lastActive = Math.max(D.lastActive, D.clock - 10); rigGo("standing"); playClip("Stand_Wait", true); if (FACE && !FW.self && Math.random() < 0.8) FACE.cue("smile", 2.2); } /* a small smile as she greets you */ /* stay up at least ~15 s after rising */
     } else if (m === "writing") { /* standing, mind-quill: she stays up facing the visitor, arms at rest, the open book floats in front and the quill writes itself */
       turnTo(camYaw(), dt, 2.2);
       sage.position.x += (D.A.x - sage.position.x) * Math.min(1, dt * 4); sage.position.z += (D.A.z - sage.position.z) * Math.min(1, dt * 4);
@@ -2055,7 +2103,8 @@ async function boot() {
       if (D.mode === "seated") D.wantStand = false; /* answer from the chair, looking at the visitor */
       if (D.mode === "writing") D.leaving = true;  /* straighten up from the table to answer */
       D.talk = true; D.talkUntil = D.clock + (name === "nod" ? 3.2 : 4.2);
-      D.onTalkDone = () => { D.noteUntil = D.clock + NOTE_S; /* then she notes it down in the book */ if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); } };
+      if (FACE && Math.random() < 0.4) FACE.cue("smile", 1.6);
+      D.onTalkDone = () => { if (FACE && Math.random() < 0.75) FACE.cue("smile", 2.4, true); D.noteUntil = D.clock + NOTE_S; /* then she notes it down in the book */ if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); } };
       return;
     }
     noteActive();
@@ -2080,7 +2129,7 @@ async function boot() {
     if (!reduce.matches) tAll += dt;
     if (RIG) { gazeRestore(); if (ALIVE) ALIVE.restore(); }
     if (mixer) mixer.update(dt);
-    if (RIG) { director(dt); if (ALIVE) { ALIVE.limit(); ALIVE.apply(dt, D.mode); } applyGaze(dt); if (ALIVE) ALIVE.post(); }
+    if (RIG) { director(dt); if (ALIVE) { ALIVE.limit(); ALIVE.apply(dt, D.mode); } applyGaze(dt); if (ALIVE) ALIVE.post(); if (FACE) FACE.update(dt); }
     applyWingTuck(dt);
 
     if (RIG) { key.target.position.set(sage.position.x, 1.0, sage.position.z); renderer.render(scene, camera); return; }
