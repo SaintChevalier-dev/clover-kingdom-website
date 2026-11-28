@@ -45,3 +45,7 @@
   border: 1px dashed rgba(232,200,119,.4);
   border-radius: 6px;
 }
+
+.login-email-note { margin: 0; max-width: 280px; font-size: .9rem; line-height: 1.4; color: #e8e4d8; }
+.login-email-note.is-error { color: #ff9b8a; }
+.login-email-note[hidden] { display: none; }

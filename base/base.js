@@ -232,7 +232,7 @@ if (loginOptions) {
     if (e.key === "Escape") closeLoginOptions();
   });
 }
-const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in.", email_sent: "Check your email for a login link. It works once and expires in 15 minutes.", ok: "" };
+const LOGIN_WHY = { failed: "Login did not finish. Please try again.", not_member: "You need to be in the Clover Kingdom Discord to log in.", email_sent: "Check your email (and your Junk folder) for a login link. Open it in this browser. It works once and expires in 15 minutes.", ok: "" };
 let hashWhy = null;
 const isMe = (h) => /^#\/me(\?|$)/.test(h);
 if (location.pathname === "/" && location.hash.startsWith("#/")) {
@@ -297,6 +297,63 @@ if (logoutBtn) logoutBtn.addEventListener("click", () => {
 });
 setGuestChrome();
 if (hasLogin) checkLogin();
+
+/* Email login without a page reload (2026-11-28). Before, Continue posted the form, the page reloaded signed out and
+   the panel closed, which looked like "it reset". Now the panel stays open, says where the link went (Hotmail/Outlook
+   files it under Junk), and this tab watches /api/me so it turns signed in by itself once the link is used in this browser. */
+const emailForm = document.getElementById("login-email-form");
+let emailWatch = null;
+function stopEmailWatch() { if (emailWatch) { clearInterval(emailWatch); emailWatch = null; } }
+let emailWatchUntil = 0;
+function emailWatchTick() {
+  if (Date.now() > emailWatchUntil) { stopEmailWatch(); return; }
+  if (document.hidden) return;
+  fetch(CKW_AUTH + "/api/me", { credentials: "include" })
+    .then((r) => r.json().catch(() => null))
+    .then((me) => { if (me && me.signedIn) { stopEmailWatch(); emailNote(""); closeLoginOptions(); showSignedIn(me); } })
+    .catch(() => {});
+}
+function watchForEmailLogin() {
+  stopEmailWatch();
+  emailWatchUntil = Date.now() + 15 * 60 * 1000;
+  emailWatch = setInterval(emailWatchTick, 4000);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && emailWatch) emailWatchTick(); });
+function emailNote(text, isError) {
+  if (!emailForm) return;
+  let n = document.getElementById("login-email-note");
+  if (!n) {
+    n = document.createElement("p");
+    n.id = "login-email-note";
+    n.className = "login-email-note";
+    n.setAttribute("role", "status");
+    n.setAttribute("aria-live", "polite");
+    emailForm.insertAdjacentElement("afterend", n);
+  }
+  n.textContent = text;
+  n.classList.toggle("is-error", !!isError);
+  n.hidden = !text;
+}
+if (emailForm && window.fetch && window.FormData) {
+  emailForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const btn = emailForm.querySelector("button[type=submit]");
+    const addr = String((emailForm.elements.email || {}).value || "").trim();
+    const isMs = /@(hotmail|outlook|live|msn)\./i.test(addr);
+    if (btn) btn.disabled = true;
+    emailNote("Sending your login link...");
+    fetch(emailForm.action, { method: "POST", body: new FormData(emailForm), credentials: "include", headers: { Accept: "application/json" } })
+      .then((r) => r.json().catch(() => ({})).then((j) => ({ ok: r.ok && j && j.ok, j })))
+      .then(({ ok }) => {
+        if (!ok) { emailNote("That did not send. Check the address and try again, or use GitHub or Discord.", true); return; }
+        emailNote("Link sent to " + addr + ". " + (isMs ? "Outlook and Hotmail usually put it in Junk, so look there. " : "If it is not in your inbox, check Spam or Junk. ") +
+          "Open it in this same browser and tap Log me in. This page will log you in by itself. The link works once and lasts 15 minutes.");
+        watchForEmailLogin();
+      })
+      .catch(() => { emailForm.submit(); })
+      .finally(() => { if (btn) btn.disabled = false; });
+  });
+}
 
 const log = document.getElementById("sage-log");
 const form = document.getElementById("sage-form");
