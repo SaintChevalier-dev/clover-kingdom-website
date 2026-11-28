@@ -668,6 +668,7 @@ function findBones(root) {
   root.traverse((o) => { if (o.name && !map[o.name]) map[o.name] = o; });
   /* GLB rigs name bones differently (mixamorig:Head, head, Head_01...). Map the ones we drive. */
   if (!map.Head) root.traverse((o) => { if (!map.Head && o.isBone && /(^|[:_])head($|[_0-9])/i.test(o.name)) map.Head = o; });
+  if (!map.Head) root.traverse((o) => { if (!map.Head && o.isBone && /^mixamorig:?head$/i.test(o.name)) map.Head = o; });
   return map;
 }
 
@@ -715,7 +716,7 @@ function makeFlagstones(size) {
   const c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d");
-  g.fillStyle = "#0b0a0c";
+  g.fillStyle = "#14121a";
   g.fillRect(0, 0, size, size);
   const rows = 44, h = size / rows;
   let n = 0;
@@ -723,7 +724,7 @@ function makeFlagstones(size) {
     let x = -hn(r * 13.7) * h * 1.6;
     while (x < size) {
       const w = h * (1.1 + hn(++n * 3.3) * 1.3);
-      const shade = 26 + Math.floor(hn(n * 7.1) * 22);
+      const shade = 52 + Math.floor(hn(n * 7.1) * 30);
       const warm = Math.floor(hn(n * 5.9) * 6);
       g.fillStyle = `rgb(${shade + warm},${shade + Math.floor(warm / 2)},${shade + 2})`;
       const gap = Math.max(1, size / 512);
@@ -750,8 +751,9 @@ function makeFlagstones(size) {
   /* radial falloff: candlelit near the middle, black at the rim */
   const grad = g.createRadialGradient(size / 2, size / 2, size * 0.06, size / 2, size / 2, size / 2);
   grad.addColorStop(0, "rgba(0,0,0,0)");
-  grad.addColorStop(0.25, "rgba(0,0,0,0.3)");
-  grad.addColorStop(0.55, "rgba(0,0,0,0.85)");
+  grad.addColorStop(0.3, "rgba(0,0,0,0.12)");
+  grad.addColorStop(0.62, "rgba(0,0,0,0.6)");
+  grad.addColorStop(0.85, "rgba(0,0,0,0.92)");
   grad.addColorStop(1, "rgba(0,0,0,1)");
   g.fillStyle = grad;
   g.fillRect(0, 0, size, size);
@@ -769,7 +771,7 @@ function layoutYard(yard, camera, renderer) {
   yard.classList.remove("ckw-yard-inline");
   if (yard.parentNode !== document.body || document.body.firstChild !== yard) document.body.insertBefore(yard, document.body.firstChild);
   if (camera) {
-    if (narrow) { camera.fov = 46; camera.position.set(0.1, 1.5, 8.2); camera.lookAt(0.1, 0.9, 0); }
+    if (narrow) { camera.fov = 50; camera.position.set(0.2, 1.5, 6.8); camera.lookAt(0.2, 1.0, 0); }
     else { camera.fov = 38; camera.position.set(0.4, 1.7, 4.8); camera.lookAt(0.4, 0.95, 0); }
     camera.updateProjectionMatrix();
   }
@@ -817,6 +819,7 @@ function prepareGLB(root) {
   wrap.name = "Sage";
   wrap.add(root);
   wrap.userData.parts = {};
+  wrap.userData.modelScale = root.scale.x || 1;
   return wrap;
 }
 
@@ -840,19 +843,19 @@ async function boot() {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.3;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x07070a);
-  scene.fog = new THREE.FogExp2(0x07070a, 0.085);
-  if (!LITE) { try { scene.environment = makeEnvironment(renderer); scene.environmentIntensity = 0.55; } catch (e) {} }
+  scene.background = new THREE.Color(0x0c0d14);
+  scene.fog = new THREE.FogExp2(0x0c0d14, 0.05);
+  if (!LITE) { try { scene.environment = makeEnvironment(renderer); scene.environmentIntensity = 0.8; } catch (e) {} }
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
   let narrow = layoutYard(yard, camera, renderer);
 
-  scene.add(new THREE.HemisphereLight(0x3a3f55, 0x1f160b, LITE ? 0.95 : 0.7));
+  scene.add(new THREE.HemisphereLight(0x3a3f55, 0x1f160b, LITE ? 1.35 : 1.1));
   /* Key: warm, from the table side, soft shadows. */
-  const key = new THREE.SpotLight(0xffd6a0, 14, 12, 0.5, 0.8, 1.4);
+  const key = new THREE.SpotLight(0xffd6a0, 20, 12, 0.5, 0.8, 1.4);
   key.position.set(1.4, 3.4, 3.2);
   key.castShadow = !LITE;
   key.shadow.mapSize.set(LITE ? 256 : 1024, LITE ? 256 : 1024);
@@ -868,11 +871,11 @@ async function boot() {
   const rimR = new THREE.DirectionalLight(0xffe3b0, 0.9);
   rimR.position.set(3.5, 2.0, -2.5);
   scene.add(rimR);
-  const lantern = new THREE.PointLight(0xe8b25a, 2.2, 6, 1.8);
+  const lantern = new THREE.PointLight(0xe8b25a, 3.4, 7, 1.6);
   lantern.position.set(0.2, 1.9, 0.9);
   scene.add(lantern);
   /* Table key: a warm spot on the round table and chair (no shadow map on phones). */
-  const tableKey = new THREE.SpotLight(0xffd9a8, 11, 10, 0.62, 0.7, 1.3);
+  const tableKey = new THREE.SpotLight(0xffd9a8, 15, 10, 0.62, 0.7, 1.3);
   tableKey.position.set(0.3, 3.3, 2.7);
   tableKey.target.position.set(-0.25, 0.5, -0.1);
   tableKey.castShadow = !LITE;
@@ -894,6 +897,10 @@ async function boot() {
   const TABLE_URL = LITE ? "/base/assets/scene/table_lite.glb?v=1" : "/base/assets/scene/table.glb?v=1";
   const CHAIR_URL = LITE ? "/base/assets/scene/chair_lite.glb?v=1" : "/base/assets/scene/chair.glb?v=1";
   const sceneProps = { table: false, chair: false };
+  const propObj = {};
+  const interactables = new Map();
+  let ix = null; /* active interaction: { id, kind, point, phase, t, yaw, ... } */
+  let registeredProps = false;
   function loadProp(url, place, key) {
     new GLTFLoader().load(url, (g) => {
       g.scene.traverse((o) => {
@@ -902,12 +909,18 @@ async function boot() {
         const ms = Array.isArray(o.material) ? o.material : [o.material];
         ms.forEach((m) => { if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace; if (m) m.envMapIntensity = 0.9; });
       });
-      place(g.scene); table.add(g.scene); sceneProps[key] = true;
+      place(g.scene); table.add(g.scene); sceneProps[key] = true; propObj[key] = g.scene;
+      if (propObj.table && propObj.chair && !registeredProps) { registeredProps = true; registerSceneProps(); }
     }, undefined, (e) => { console.warn("prop load failed", key, e && e.message); });
   }
-  loadProp(TABLE_URL, () => {}, "table");
+  /* True scale for a 1.72 m Sage: the Poly Haven table top is 0.804 m and the chair seat 0.48 m as modelled, so the table is
+     scaled to a 0.75 m top and the chair to a 0.45 m seat (see docs/SCENE_ASSETS.md). The table is turned so a gap between
+     its four legs faces the chair, so a seated Sage's feet land between legs. */
+  const TABLE_SCALE = 0.75 / 0.804, CHAIR_SCALE = 0.45 / 0.48;
+  const CHAIR_DIR = { x: Math.SQRT1_2, z: -Math.SQRT1_2 }, CHAIR_R = 1.22; /* chair centre, back-right of the table (stays in the phone frame), facing the table; pulled back so she can stand between chair and table before sitting */
+  loadProp(TABLE_URL, (t) => { t.scale.setScalar(TABLE_SCALE); t.rotation.y = -0.663; }, "table");
   /* chair: pulled up to the table on the far-left side, turned to face the centre */
-  loadProp(CHAIR_URL, (c) => { c.position.set(-0.66, 0, -0.29); c.rotation.y = Math.atan2(0.78, 0.34); }, "chair");
+  loadProp(CHAIR_URL, (c) => { c.scale.setScalar(CHAIR_SCALE); c.position.set(CHAIR_DIR.x * CHAIR_R, 0, CHAIR_DIR.z * CHAIR_R); c.rotation.y = Math.atan2(-CHAIR_DIR.x, -CHAIR_DIR.z); }, "chair");
 
   const motes = LITE ? makeMotes(24) : makeMotes(160); /* kept for the API, not added: the scene has no extra props */
   motes.visible = false;
@@ -964,11 +977,17 @@ async function boot() {
   };
   closeCam();
   let state = "idle_pages", stateT = 0, busy = false, hidden = false, posed = false;
-  let action = null, lookTarget = null, tAll = 0;
+  let action = null, lookTarget = null, tAll = 0, currentClip = "";
   let wingSpread = 0, haloPulse = 0, haloBoost = 0, haloApplied = 0;
   let lastT = performance.now();
 
+  /* Meshy rig clips: Idle, Walking_Woman, Talk_with_Hands_Open (plus Walking, Running, unused). */
+  const CLIP_FOR = {
+    idle_pages: "Idle", pause: "Idle", look: "Idle", listen: "Idle", think: "Idle", wave: "Idle", rise: "Idle", greet: "Idle",
+    walk: "Walking_Woman", talk: "Talk_with_Hands_Open", teach: "Talk_with_Hands_Open", emphasis: "Talk_with_Hands_Open", nod: "Talk_with_Hands_Open"
+  };
   function findClip(name) {
+    if (CLIP_FOR[name] && clips[CLIP_FOR[name]]) return clips[CLIP_FOR[name]];
     if (clips[name]) return clips[name];
     const re = { idle_pages: /idle|breath|stand/i, walk: /walk/i, talk: /talk|speak/i, wave: /wave|greet/i, look: /look|idle/i, pause: /idle|stand/i }[name];
     const all = Object.values(clips);
@@ -980,9 +999,14 @@ async function boot() {
     if (!clip) return false;
     const next = mixer.clipAction(clip);
     if (action === next) return true;
-    if (action) action.fadeOut(0.3);
+    const fade = 0.4;
+    const prev = action;
     action = next;
-    action.reset().setLoop(loop === false ? THREE.LoopOnce : THREE.LoopRepeat, loop === false ? 1 : Infinity).fadeIn(0.3).play();
+    action.reset().setLoop(loop === false ? THREE.LoopOnce : THREE.LoopRepeat, loop === false ? 1 : Infinity);
+    action.clampWhenFinished = loop === false;
+    action.play();
+    if (prev) action.crossFadeFrom(prev, fade, false); else action.fadeIn(fade);
+    currentClip = clip.name;
     return true;
   }
 
@@ -1105,19 +1129,59 @@ async function boot() {
   }
 
   function setState(name) {
+    if (ixLocked()) { /* seated / leaning: chat or free-will state changes must not snap her out of the pose */
+      if (ix.phase === "seated") ix.talk = (name === "teach" || name === "talk" || name === "emphasis" || name === "nod");
+      return;
+    }
     state = name;
     stateT = 0;
     if (usingGLB) playClip(name, true);
   }
 
+  /* Wander area and keep-outs: the round table and the chair (her wings are about 0.9 m each side,
+     so the discs include that clearance). Route around them with a waypoint instead of cutting through. */
+  const KEEP = [{ x: 0, z: 0, r: 1.34 }, { x: CHAIR_DIR.x * CHAIR_R, z: CHAIR_DIR.z * CHAIR_R, r: 1.0 }];
+  const AREA = PHONE ? { x0: -0.6, x1: 1.3, z0: -0.4, z1: 2.0 } : { x0: -1.2, x1: 2.2, z0: -0.9, z1: 1.8 };
+  const inKeep = (x, z, pad) => KEEP.some((k) => Math.hypot(x - k.x, z - k.z) < k.r + (pad || 0));
   function wanderTarget() {
-    for (let i = 0; i < 16; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = 1.2 + Math.random() * 1.0;
-      const x = Math.cos(a) * r, z = Math.sin(a) * r;
-      if (Math.hypot(x - tx, z - tz) > 0.6) return { x, z };
+    for (let i = 0; i < 40; i++) {
+      const x = AREA.x0 + Math.random() * (AREA.x1 - AREA.x0), z = AREA.z0 + Math.random() * (AREA.z1 - AREA.z0);
+      if (inKeep(x, z, 0.1)) continue;
+      if (Math.hypot(x - sage.position.x, z - sage.position.z) < 0.9) continue;
+      return { x, z };
     }
-    return { x: -1.5, z: 1.2 };
+    return { x: home.x, z: home.z };
+  }
+  /* waypoints that keep the straight legs outside every keep-out disc */
+  function routeTo(from, to) {
+    const pts = [];
+    let cur = { x: from.x, z: from.z };
+    for (let guard = 0; guard < 4; guard++) {
+      let hit = null, hitD = 1e9;
+      for (const k of KEEP) {
+        const dx = to.x - cur.x, dz = to.z - cur.z, L2 = dx * dx + dz * dz || 1e-9;
+        const t = THREE.MathUtils.clamp(((k.x - cur.x) * dx + (k.z - cur.z) * dz) / L2, 0, 1);
+        const px = cur.x + dx * t, pz = cur.z + dz * t, d = Math.hypot(px - k.x, pz - k.z);
+        if (d < k.r - 0.02 && d < hitD) { hit = { k, px, pz, d }; hitD = d; }
+      }
+      if (!hit) break;
+      let ox = hit.px - hit.k.x, oz = hit.pz - hit.k.z, ol = Math.hypot(ox, oz);
+      if (ol < 0.05) { ox = -(to.z - cur.z); oz = to.x - cur.x; ol = Math.hypot(ox, oz) || 1; }
+      /* tangent-ish waypoint on the side the path already leans to; pushed out a little past the disc */
+      const wp = { x: hit.k.x + ox / ol * (hit.k.r + 0.22), z: hit.k.z + oz / ol * (hit.k.r + 0.22) };
+      wp.x = THREE.MathUtils.clamp(wp.x, AREA.x0 - 0.6, AREA.x1 + 0.4); wp.z = THREE.MathUtils.clamp(wp.z, AREA.z0 - 0.5, AREA.z1 + 0.3);
+      pts.push(wp); cur = wp;
+    }
+    pts.push({ x: to.x, z: to.z });
+    return pts;
+  }
+  let route = [], onArrive = null;
+  function startWalk(to) {
+    onArrive = null;
+    const target = to || wanderTarget();
+    route = routeTo({ x: sage.position.x, z: sage.position.z }, target);
+    dest = route.shift();
+    setState("walk");
   }
 
   function faceToward(x, z, dt, speed) {
@@ -1129,9 +1193,158 @@ async function boot() {
     sage.rotation.y = yaw;
   }
 
+
+  /* ---------- Interactable objects: marked use points, registered so later webverse objects plug in the same way ----------
+     register({ id, kind: "seat" | "surface", object: Object3D, points: [{ name, local: [x, y, z], yaw, ... }] })
+       seat:    point.local = seat-surface point (hips go here), point.yaw = facing (local), point.standOffset = how far in front of
+                the seat point her feet end up (0.41 for the procedural Sit_Down / Stand_Up clips)
+       surface: point.local = where she stands (floor), point.yaw = facing the table edge (local), point.use = "lean"
+     A point's world position and facing come from the object's transform each time, so moving the object moves its use points. */
+  const IX_CLIPS = { sitDown: "Sit_Down", sitIdle: "Sit_Idle", sitTalk: "Sit_Talk", standUp: "Stand_Up", lean: "Table_Lean" };
+  /* Meshy clips (Stand_to_Sit_Transition_M, Chair_Sit_Idle_F, Sitting_Answering_Questions, Sit_to_Stand_Transition_F), re-rooted in Blender so the seated hips sit
+     0.41 m behind the root and the seat contact is at 0.45 m. Hips offset after Stand_Up vs Idle (blender metres): STAND_END_SHIFT moves the root so there is no pop. */
+  const STAND_END_SHIFT = { x: 0.065, z: -0.083 };
+  const ixLocked = () => !!ix && (ix.phase === "sitting" || ix.phase === "seated" || ix.phase === "standing" || ix.phase === "leaning");
+  function worldPoint(ent, pt) {
+    const v = new THREE.Vector3(pt.local[0], pt.local[1] || 0, pt.local[2]);
+    ent.object.updateWorldMatrix(true, false);
+    const pos = ent.object.localToWorld(v.clone());
+    const dl = new THREE.Vector3(Math.sin(pt.yaw || 0), 0, Math.cos(pt.yaw || 0));
+    const dir = dl.transformDirection(ent.object.matrixWorld); /* object scale is uniform, so the direction is unit */
+    return { pos, dir: { x: dir.x, z: dir.z }, yaw: Math.atan2(dir.x, dir.z) };
+  }
+  function register(def) {
+    if (!def || !def.id || !def.object || !Array.isArray(def.points)) return false;
+    interactables.set(def.id, { busy: false, ...def });
+    if (flags.points === "1") showMarkers(interactables.get(def.id));
+    return true;
+  }
+  function canInteract(what) {
+    if (!clipsReady) return false;
+    if (what === "sit") return !!(clips[IX_CLIPS.sitDown] && clips[IX_CLIPS.sitIdle] && clips[IX_CLIPS.standUp]) && [...interactables.values()].some((e) => e.kind === "seat" && !e.busy);
+    if (what === "lean") return !!clips[IX_CLIPS.lean] && [...interactables.values()].some((e) => e.kind === "surface");
+    return false;
+  }
+  function pickEnt(kind) {
+    const list = [...interactables.values()].filter((e) => e.kind === kind && !e.busy);
+    return list.length ? list[Math.floor(Math.random() * list.length)] : null;
+  }
+  function seatApproach(ent, pt) {
+    const w = worldPoint(ent, pt), off = pt.standOffset != null ? pt.standOffset : 0.41;
+    return { x: w.pos.x + w.dir.x * off, z: w.pos.z + w.dir.z * off, yaw: w.yaw, seat: w.pos };
+  }
+  /* approach a use point: walk round the keep-out discs to an outside point beside it, then in along a straight final leg */
+  function approachRoute(A, pt, kind) {
+    const c = KEEP[0];
+    const cur = { x: sage.position.x, z: sage.position.z };
+    let pre;
+    if (kind === "seat") {
+      /* come in from the side of the chair (never through it): 0.9 m sideways of the stand point, on the side nearer to her */
+      const lx = Math.cos(A.yaw), lz = -Math.sin(A.yaw); /* right-hand side of facing */
+      const sgn = ((cur.x - A.x) * lx + (cur.z - A.z) * lz) >= 0 ? 1 : -1;
+      pre = { x: A.x + lx * sgn * 0.9, z: A.z + lz * sgn * 0.9 };
+    } else {
+      pre = { x: A.x - Math.sin(A.yaw) * 0.9, z: A.z - Math.cos(A.yaw) * 0.9 }; /* straight back from the table edge */
+    }
+    const rx = pre.x - c.x, rz = pre.z - c.z, rl = Math.hypot(rx, rz) || 1;
+    const outer = { x: c.x + rx / rl * (c.r + 0.2), z: c.z + rz / rl * (c.r + 0.2) };
+    return routeTo(cur, outer).concat([pre, { x: A.x, z: A.z }]);
+  }
+  function startInteraction(kind, ent, pt) {
+    if (!ent || !pt || ix) return false;
+    actToken++; /* cancel any pending chat-move timers (greet / nod) so they cannot cut the walk short */
+    const A = kind === "seat" ? seatApproach(ent, pt) : (() => { const w = worldPoint(ent, pt); return { x: w.pos.x, z: w.pos.z, yaw: w.yaw }; })();
+    ix = { id: ent.id, kind, ent, point: pt, phase: "goto", t: 0, yaw: A.yaw, A };
+    ent.busy = true;
+    const pts = approachRoute(A, pt, kind);
+    route = pts; dest = route.shift(); setState("walk"); nextAt = 99;
+    onArrive = () => { if (!ix) return; ix.phase = "turn"; ix.t = 0; dest = null; route = []; state = "interact"; playClip("idle_pages", true); };
+    return true;
+  }
+  function endInteraction() {
+    if (ix && ix.ent) ix.ent.busy = false;
+    ix = null; onArrive = null; dest = null; route = [];
+    state = "idle_pages"; playClip("idle_pages", true); nextAt = 3 + Math.random() * 4;
+  }
+  const clipLen = (n) => (clips[n] ? clips[n].duration : 1.5);
+  function updateInteraction(dt) {
+    ix.t += dt;
+    if (ix.phase === "turn") {
+      let d = ix.yaw - yaw;
+      while (d > Math.PI) d -= Math.PI * 2;
+      while (d < -Math.PI) d += Math.PI * 2;
+      yaw += THREE.MathUtils.clamp(d, -2.6 * dt, 2.6 * dt); sage.rotation.y = yaw;
+      /* settle exactly on the stand point (the walk stops within 5 cm) */
+      sage.position.x = lerp(sage.position.x, ix.A.x, Math.min(1, dt * 6)); sage.position.z = lerp(sage.position.z, ix.A.z, Math.min(1, dt * 6));
+      if (Math.abs(d) < 0.04 && ix.t > 0.25) {
+        ix.phase = ix.kind === "seat" ? "sitting" : "leaning"; ix.t = 0;
+        playClip(ix.kind === "seat" ? IX_CLIPS.sitDown : IX_CLIPS.lean, false);
+        ix.dur = clipLen(ix.kind === "seat" ? IX_CLIPS.sitDown : IX_CLIPS.lean);
+      }
+    } else if (ix.phase === "sitting") {
+      if (ix.t >= ix.dur - 0.05) { ix.phase = "seated"; ix.t = 0; ix.hold = 8 + Math.random() * 8; playClip(IX_CLIPS.sitIdle, true); }
+    } else if (ix.phase === "seated") {
+      if (busy || ix.talk) ix.t = Math.min(ix.t, ix.hold - 0.2); /* stay seated while a chat reply is in progress */
+      const want = ix.talk && clips[IX_CLIPS.sitTalk] ? IX_CLIPS.sitTalk : IX_CLIPS.sitIdle;
+      if (currentClip !== want) playClip(want, true);
+      if (ix.t >= ix.hold) { ix.phase = "standing"; ix.t = 0; playClip(IX_CLIPS.standUp, false); ix.dur = clipLen(IX_CLIPS.standUp); }
+    } else if (ix.phase === "standing" || ix.phase === "leaning") {
+      if (ix.t >= ix.dur - 0.05) {
+        if (ix.phase === "standing") { /* keep her hips where the clip ended: the Idle stance sits a few cm differently */
+          const c = Math.cos(yaw), sn = Math.sin(yaw);
+          sage.position.x += STAND_END_SHIFT.x * c + STAND_END_SHIFT.z * sn; sage.position.z += -STAND_END_SHIFT.x * sn + STAND_END_SHIFT.z * c;
+        }
+        endInteraction();
+      }
+    }
+  }
+  function useById(id, pointName) {
+    const ent = interactables.get(id); if (!ent || ent.busy || ix) return false;
+    const pts = ent.points.filter((q) => !q.blocked);
+    const pt = (pointName && ent.points.find((q) => q.name === pointName)) || pts[Math.floor(Math.random() * pts.length)];
+    return startInteraction(ent.kind, ent, pt);
+  }
+  /* the scene's own props: the chair is a seat, the round table a surface with stand-and-lean points around its edge */
+  function registerSceneProps() {
+    const chair = propObj.chair, tbl = propObj.table;
+    register({ id: "chair-1", kind: "seat", object: chair, points: [{ name: "seat", local: [0, 0.48, 0.12 / CHAIR_SCALE], yaw: 0, standOffset: 0.41 }] }); /* local = model units: seat top 0.48 m, hips 0.12 m (world) forward of the chair centre */
+    const tpts = [];
+    const cdir = Math.atan2(chair.position.z - tbl.position.z, chair.position.x - tbl.position.x);
+    for (let k = 0; k < 8; k++) {
+      const a = (k * 45) * Math.PI / 180, R = 0.66; /* stand 0.66 m from the table centre (0.14 m off the rim), the Table_Lean hands land on the top */
+      const px = Math.cos(a) * R, pz = Math.sin(a) * R;
+      let d = Math.abs(a - cdir); d = Math.min(d, Math.PI * 2 - d);
+      tpts.push({ name: "edge_" + k, local: [px, 0, pz], yaw: Math.atan2(-px, -pz), use: "lean", blocked: d < 0.9 });
+    }
+    /* table points are given in world-aligned (unrotated) angles about the table centre, so keep the table's own yaw out of it */
+    register({ id: "table-1", kind: "surface", object: tableAnchor(tbl), points: tpts });
+  }
+  /* an un-rotated, un-scaled anchor at the table centre so its use points are plain world offsets */
+  function tableAnchor(tbl) {
+    const a = new THREE.Object3D(); a.position.copy(tbl.position); scene.add(a); a.updateMatrixWorld(true); return a;
+  }
+  /* debug markers (?points=1): seat point cyan, stand point yellow with a facing arrow, table points green */
+  function showMarkers(ent) {
+    ent.points.forEach((pt) => {
+      const w = worldPoint(ent, pt);
+      const stand = ent.kind === "seat" ? seatApproach(ent, pt) : { x: w.pos.x, z: w.pos.z };
+      const dot = (col, x, y, z, r) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), new THREE.MeshBasicMaterial({ color: col })); m.position.set(x, y, z); scene.add(m); };
+      if (ent.kind === "seat") dot(0x00ffff, w.pos.x, w.pos.y, w.pos.z, 0.04);
+      dot(pt.blocked ? 0xff3030 : (ent.kind === "seat" ? 0xffee00 : 0x30ff60), stand.x, 0.02, stand.z, 0.04);
+      scene.add(new THREE.ArrowHelper(new THREE.Vector3(w.dir.x, 0, w.dir.z), new THREE.Vector3(stand.x, 0.05, stand.z), 0.3, ent.kind === "seat" ? 0xffee00 : 0x30ff60));
+    });
+  }
+
   /* Calmer free will: a realistic figure mostly stands, reads, and looks around. */
   function pickFreeWill() {
     const roll = Math.random();
+    if (!staticModel && Object.keys(clips).length) {
+      /* rigged Sage: stand, stroll, sit in the chair, or lean on the table (the last two only when those props and clips exist) */
+      if (roll < 0.28) return "walk";
+      if (roll < 0.5 && canInteract("sit")) return "use_seat";
+      if (roll < 0.66 && canInteract("lean")) return "use_table";
+      return "idle_pages";
+    }
     if (roll < 0.18) return "walk";
     if (roll < 0.4) return "look";
     if (roll < 0.46) return "wave";
@@ -1140,6 +1353,34 @@ async function boot() {
     return "idle_pages";
   }
 
+  /* Wing tuck: while she walks to, sits on or leans at a prop, each wing root is rolled in 14 degrees, pitched back 4 and shrunk to 70%, so the wings stay
+     compact (about +-0.65 m instead of +-1.0 m) and clear of the chair posts and the table edge. Rigid roots Bone_038 / Bone_042 sit under Spine2. */
+  const WING = { theta: 14 * Math.PI / 180, phi: 4 * Math.PI / 180, scale: 0.7 };
+  let wingRoots = null, tuck = 0, tuckPhi = WING.phi;
+  { const L = sage.getObjectByName("Bone_038"), R = sage.getObjectByName("Bone_042");
+    if (L && R && L.parent && R.parent) wingRoots = { L, R, qL: L.quaternion.clone(), qR: R.quaternion.clone() }; }
+  const _tq = [new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion()];
+  const _ax = new THREE.Vector3(1, 0, 0), _az = new THREE.Vector3(0, 0, -1);
+  function applyWingTuck(dt) {
+    if (!wingRoots) return;
+    const target = ix ? 1 : 0;
+    tuck += (target - tuck) * Math.min(1, dt * 2.6); if (Math.abs(target - tuck) < 0.002) tuck = target;
+    const w = tuck * tuck * (3 - 2 * tuck);
+    /* leaning over the table pitches the spine 45 degrees, which flicks the wings up and shows their pale underside, so pitch them back down against the lean */
+    const phiT = ix && ix.phase === "leaning" ? -34 * Math.PI / 180 : WING.phi;
+    tuckPhi += (phiT - tuckPhi) * Math.min(1, dt * 2.6);
+    sage.getWorldQuaternion(_tq[3]).invert();
+    for (const [bone, rest, sg] of [[wingRoots.L, wingRoots.qL, 1], [wingRoots.R, wingRoots.qR, -1]]) {
+      bone.quaternion.copy(rest); bone.scale.setScalar(1 - (1 - WING.scale) * w);
+      if (w <= 0) continue;
+      bone.parent.updateWorldMatrix(true, false);
+      bone.parent.getWorldQuaternion(_tq[0]).premultiply(_tq[3]);                       /* parent, relative to the wrapper */
+      _tq[1].setFromAxisAngle(_ax, tuckPhi * w).multiply(_tq[2].setFromAxisAngle(_az, sg * WING.theta * w)); /* pitch back after rolling in */
+      _tq[2].copy(_tq[0]).invert().multiply(_tq[1]).multiply(_tq[0]);                  /* same rotation, in the parent's frame */
+      bone.quaternion.premultiply(_tq[2]);
+      bone.updateMatrixWorld(true);
+    }
+  }
   let nextAt = 3, dest = null, home = { x: tx, z: tz };
 
   /* Chat-driven moves (base.js fires ckw:sage-act): typing -> listen, waiting -> think,
@@ -1147,10 +1388,11 @@ async function boot() {
   let actToken = 0, replies = 0;
   function moveFor(name, secs, then) {
     const my = ++actToken;
-    dest = null; setState(name);
+    dest = null; route = []; if (ix && !ixLocked()) { if (ix.ent) ix.ent.busy = false; ix = null; onArrive = null; }
+    setState(name);
     if (secs) setTimeout(() => { if (my === actToken && then) then(); }, secs * 1000);
   }
-  function backToIdle() { busy = false; setState(reduce.matches ? "pause" : "idle_pages"); nextAt = 3; }
+  function backToIdle() { busy = false; if (ix) { ix.talk = false; return; } /* mid-interaction: a late chat timer must not drop her out of it */ setState(reduce.matches ? "pause" : "idle_pages"); nextAt = 3; }
   window.addEventListener("ckw:sage-act", (e) => {
     const name = e && e.detail && e.detail.name;
     if (reduce.matches) return; /* reduced motion: no moves and no halo flash */
@@ -1164,7 +1406,9 @@ async function boot() {
         if (unlocked < LAYERS.length) { unlocked += 1; saveUnlocked(unlocked); applyAttachments(sage, unlocked); }
         backToIdle();
       };
-      if (name === "nod") moveFor("nod", 1.4, finish);
+      const rigged = usingGLB && Object.keys(clips).length > 0; /* rigged: hold the Talk clip for the whole reply, then relax */
+      if (name === "nod") moveFor("nod", rigged ? 3.2 : 1.4, finish);
+      else if (rigged) moveFor("teach", 4.2, finish);
       else moveFor("teach", 1.8, () => (emph ? moveFor("emphasis", 1.3, () => moveFor("nod", 1.2, finish)) : moveFor("nod", 1.2, finish)));
     }
     else if (["greet", "emphasis", "rise"].includes(name)) moveFor(name, name === "rise" ? 1.9 : 1.6, () => { if (!busy) backToIdle(); });
@@ -1249,11 +1493,24 @@ async function boot() {
     usingGLB: () => usingGLB,
     layers: () => unlocked,
     lite: () => LITE,
+    clip: () => currentClip,
+    wingTuck: () => tuck,
+    interactables: () => [...interactables.values()].map((e) => ({ id: e.id, kind: e.kind, busy: e.busy, points: e.points.map((q) => ({ name: q.name, blocked: !!q.blocked })) })),
+    register,
+    use: (id, pointName) => useById(id, pointName),
+    interaction: () => (ix ? { id: ix.id, phase: ix.phase, t: +ix.t.toFixed(2) } : null),
+    usePoint: (id, name) => { const e = interactables.get(id); const q = e && e.points.find((p) => p.name === name); if (!e || !q) return null; const w = worldPoint(e, q); const st = e.kind === "seat" ? seatApproach(e, q) : { x: w.pos.x, z: w.pos.z, yaw: w.yaw }; return { world: { x: w.pos.x, y: w.pos.y, z: w.pos.z }, facingYaw: w.yaw, stand: st }; },
+    walkSpeed: () => WALK_MPS * modelScale,
+    modelScale: () => modelScale,
+    clips: () => Object.keys(clips),
+    where: () => ({ x: sage.position.x, z: sage.position.z, yaw }),
+    keepOut: () => KEEP.map((k) => ({ ...k })),
+    area: () => ({ ...AREA }),
     props: () => ({ ...sceneProps }),
     stop: () => { hidden = true; renderer.dispose(); yard.hidden = true; },
     /* Webverse playtest controls (client-side only) */
     pose: (name) => {
-      if (name === "walk") { dest = wanderTarget(); setState("walk"); nextAt = 99; return; }
+      if (name === "walk") { startWalk(); nextAt = 99; return; }
       if (name === "stride") { tWalkFixed = 0.22; }
       dest = null; setState(name); nextAt = name === "idle_pages" ? 3 : 7;
     },
@@ -1263,9 +1520,9 @@ async function boot() {
     /* touch a part (also fired by clicking her in the 3D view): she reacts, the page says why */
     touch: (part) => reactTo(part),
     /* quiet room anchor: no drifting motes, no wandering */
-    quiet: (on) => { quietRoom = !!on; motes.visible = !quietRoom; if (quietRoom) { dest = null; if (state === "walk") setState("idle_pages"); nextAt = 1e9; } else nextAt = 3; },
+    quiet: (on) => { quietRoom = !!on; motes.visible = false; if (quietRoom) { dest = null; if (state === "walk") setState("idle_pages"); nextAt = 1e9; } else nextAt = 3; },
     /* the walk anchor: a slow loop around the round table */
-    walk: () => { quietRoom = false; motes.visible = true; dest = { x: home.x - 0.9, z: home.z - 0.5 }; setState("walk"); nextAt = 99; walkLoop = 2; },
+    walk: () => { quietRoom = false; walkLoop = 1; startWalk(); nextAt = 99; },
     glyphKeys: () => Object.keys(GLYPH_MEANINGS),
     /* chat moves, also for playtesters: greet, listen, think, teach, nod, emphasis, rise, pulse */
     act: (name) => window.dispatchEvent(new CustomEvent("ckw:sage-act", { detail: { name } }))
@@ -1273,6 +1530,9 @@ async function boot() {
   window.dispatchEvent(new Event("ckw:sage3d-ready"));
 
   let tWalk = 0;
+  const WALK_MPS = 1.17;
+  const clipsReady = usingGLB && Object.keys(clips).length > 0;
+  const modelScale = (sage.userData && sage.userData.modelScale) || 1;
   const mp = motes.geometry.attributes.position, seeds = motes.userData.seed;
   function tick() {
     requestAnimationFrame(tick);
@@ -1284,44 +1544,59 @@ async function boot() {
     stateT += dt;
     if (!reduce.matches) tAll += dt;
     if (mixer) mixer.update(dt);
+    applyWingTuck(dt);
 
-    if (!posed && !busy && !quietRoom && !reduce.matches && !staticModel) {
+    if (!posed && !busy && !quietRoom && !reduce.matches && !staticModel && !ix && flags.nofree !== "1") {
       nextAt -= dt;
       if (nextAt <= 0 && state !== "walk") {
         const n = pickFreeWill();
-        if (n === "walk") dest = wanderTarget();
-        setState(n);
-        nextAt = n === "walk" ? 99 : (3 + Math.random() * 4);
+        if (n === "use_seat") { const e = pickEnt("seat"); if (!e || !startInteraction("seat", e, e.points[0])) startWalk(); }
+        else if (n === "use_table") { const e = pickEnt("surface"); const pts = e && e.points.filter((q) => !q.blocked); if (!e || !pts.length || !startInteraction("surface", e, pts[Math.floor(Math.random() * pts.length)])) startWalk(); }
+        else if (n === "walk") startWalk(); else setState(n);
+        nextAt = (n === "walk" || n === "use_seat" || n === "use_table") ? 99 : (3 + Math.random() * 5);
       }
     }
 
-    if (state === "walk" && dest && !reduce.matches) {
+    if (ix && ix.phase !== "goto") {
+      updateInteraction(dt);
+    } else if (state === "walk" && dest && !reduce.matches) {
       const dx = dest.x - sage.position.x, dz = dest.z - sage.position.z;
       const dist = Math.hypot(dx, dz);
-      const speed = 0.6;
-      if (dist < 0.05 && walkLoop > 0) {
+      /* rigged: the Walking_Woman cycle's planted foot moves at about 1.17 m/s on a 1.72 m body, so move at that
+         (scaled by the model scale) and her feet do not slide. The old procedural stand-in keeps 0.6. */
+      const speed = (clipsReady ? WALK_MPS * modelScale : 0.6) * (action && clipsReady ? action.timeScale : 1);
+      if (dist < 0.05 && route.length) {
+        dest = route.shift();
+      } else if (dist < 0.05 && walkLoop > 0) {
         walkLoop -= 1;
-        dest = walkLoop === 1 ? { x: home.x + 0.6, z: home.z - 0.9 } : { x: home.x, z: home.z };
+        startWalk();
+      } else if (dist < 0.05 && onArrive) {
+        const cb = onArrive; onArrive = null; cb();
       } else if (dist < 0.05) {
         dest = null;
         if (!busy) { setState("idle_pages"); nextAt = 3 + Math.random() * 3; }
         else setState("talk");
       } else {
-        const step = speed * dt;
+        /* turn first, then go: no gliding sideways while she is still swinging round */
+        let dy = Math.atan2(dx, dz) - yaw;
+        while (dy > Math.PI) dy -= Math.PI * 2;
+        while (dy < -Math.PI) dy += Math.PI * 2;
+        const go = clipsReady ? THREE.MathUtils.clamp(1.6 - Math.abs(dy) * 1.3, 0, 1) : 1;
+        const step = speed * dt * go;
         sage.position.x += dx / dist * Math.min(step, dist);
         sage.position.z += dz / dist * Math.min(step, dist);
-        faceToward(dest.x, dest.z, dt, 2.4);
+        faceToward(dest.x, dest.z, dt, clipsReady ? 3.2 : 2.4);
         tWalk += dt;
       }
     } else if (manualYaw != null) {
       yaw = lerp(yaw, manualYaw, Math.min(1, dt * 8)); sage.rotation.y = yaw;
     } else if (flags.yaw != null && posed) {
       yaw = parseFloat(flags.yaw) || 0; sage.rotation.y = yaw;
-    } else if (state !== "walk" && !dest) {
+    } else if (state !== "walk" && !dest && !ix) {
       /* settle facing the viewer, slightly toward the table */
       faceToward(sage.position.x + 0.35, sage.position.z + 1, dt, 1.2);
     }
-    if (lookTarget && bones.Head && state !== "walk") {
+    if (lookTarget && bones.Head && state !== "walk" && !clipsReady) {
       const hd = bones.Head;
       hd.rotation.y = lerp(hd.rotation.y || 0, lookTarget.x * 0.35, 0.05);
       hd.rotation.x = lerp(hd.rotation.x || 0, 0.12 - lookTarget.y * 0.12, 0.05);
