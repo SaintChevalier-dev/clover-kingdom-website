@@ -1602,7 +1602,7 @@ async function boot() {
   if (RIG && sage.userData) sage.userData.book = bookNode;
   const BOOK_POSE = { /* in her own frame (x her left, y up, z forward) */
     float: { p: [0.62, 1.26, 0.22], r: [Math.PI / 2 - 0.12, -0.5, 0.0] }, /* the book's cover normal is its local +Y (glTF), long edge along +Z */
-    read:  { p: [0.05, 0.97, -0.1], r: [-0.95, 0.0, 0.0] }, /* seated: low in front of her lap (well below her face, so it never covers it), tilted up to her eyes */
+    read:  { p: [0.06, 1.08, 0.20], r: [-0.88, 0.15, 0.0] }, /* seated: chest height, ~0.37 m in front of the chest (a forearm), tilted toward her like a stand; her head stays up and her face stays clear */
     write: { p: [0.0, 0.83, 0.4], r: [0.0, 0.0, 0.0] },     /* standing at the table (Table_Lean) */
     seatwrite: { p: [-0.02, 0.81, 0.15], r: [0.0, 0.0, 0.0] } /* seated: flat on the table in front of her (Sit_Write) */
   };
@@ -1645,7 +1645,7 @@ async function boot() {
     else if (chatOpen() && D.clock - G.lastType < 2.5) t = "chat";
     else if (D.clock - G.lastPointer < 4 || (m === "standing" && D.clock - D.lastActive < 8)) t = "visitor";
     G.target = t;
-    if (t === "book" && bookNode) { bookNode.getWorldPosition(out); return out; }
+    if (t === "book" && bookNode) { bookNode.getWorldPosition(out); return out; } /* reading: look at the book itself, a slight downward glance, not bowed into it */
     if (t === "chat") { /* a point toward the chat panel, part way out to her depth, so her head turns to the chat side (clamped) */
       const d = camera.position.distanceTo(sage.position) * 0.6;
       out.set(0.72, -0.05, 0.5).unproject(camera).sub(camera.position).normalize().multiplyScalar(d).add(camera.position); return out; }
